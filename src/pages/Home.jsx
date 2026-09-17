@@ -105,7 +105,7 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
               >
-                UNLOCKING THE <br className="hidden sm:inline" />POWER OF DATA EXTRACTION
+                UNLOCKING THE <br className="hidden sm:inline" /> POWER OF DATA EXTRACTION
               </motion.h1>
               <motion.p
                 style={{ lineHeight: '1.25' }}
