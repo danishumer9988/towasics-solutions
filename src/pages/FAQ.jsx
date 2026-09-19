@@ -157,6 +157,7 @@ export default function FAQ() {
         }
         image="/assets/faqtitle-C_rvXKxK.png"
         imageAlt="FAQ Illustration"
+        imageSize="large"
       />
 
       {/* Interactive Dynamic Category & Accordion FAQ Section */}

@@ -33,6 +33,26 @@ const countries = [
   { name: 'United Kingdom', short: 'GB', code: '+44' },
 ]
 
+const services = [
+  'Bulk Data Scraping',
+  'Custom Web Scraping Software',
+  'Web Automation Bots',
+  'AI-Powered Bots',
+  'Daily Data Feeds',
+  'Third-Party API Integration',
+  'Server Setup for Bots & Scripts',
+  'PowerBI Dashboard Design',
+  'Others',
+]
+
+const budgets = [
+  '$0 - $500',
+  '$501 - $1000',
+  '$1001 - $5000',
+  '$5001 - $10000',
+  '$10000+',
+]
+
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.2 } }
@@ -42,6 +62,17 @@ const itemVariants = {
   hidden: { opacity: 0, y: 30 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } }
 }
+
+const selectClass =
+  'w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-gray-800 text-base focus:outline-none focus:border-[#1aa4ac] appearance-none cursor-pointer pr-10'
+
+const ChevronIcon = () => (
+  <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-500">
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+    </svg>
+  </div>
+)
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
@@ -111,7 +142,7 @@ export default function ContactForm() {
             </div>
 
             <motion.form className="space-y-4 max-w-lg mx-auto" variants={containerVariants} onSubmit={handleSubmit}>
-              <motion.input
+              <input
                 type="text"
                 name="name"
                 placeholder="your name"
@@ -119,8 +150,8 @@ export default function ContactForm() {
                 onChange={handleChange}
                 className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 text-base focus:outline-none focus:border-[#1aa4ac] transition-colors"
               />
-              
-              <motion.input
+
+              <input
                 type="email"
                 name="email"
                 placeholder="you@company.com"
@@ -129,54 +160,43 @@ export default function ContactForm() {
                 className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 text-base focus:outline-none focus:border-[#1aa4ac] transition-colors"
               />
 
+              {/* Services */}
               <div className="relative">
-                <motion.select
+                <select
                   name="service"
                   value={formData.service}
                   onChange={handleChange}
-                  className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-gray-800 text-base focus:outline-none focus:border-[#1aa4ac] appearance-none cursor-pointer pr-10"
+                  className={selectClass}
                 >
-                  <option value="" disabled hidden>Select a services</option>
-                  <option value="">Select a services</option>
-                  <option>Bulk Data Scraping</option>
-                  <option>Custom Web Scraping Software</option>
-                  <option>Web Automation Bots</option>
-                  <option>AI-Powered Bots</option>
-                  <option>Daily Data Feeds</option>
-                  <option>Third-Party API Integration</option>
-                  <option>Server Setup for Bots & Scripts</option>
-                  <option>PowerBI Dashboard Design</option>
-                  <option>Others</option>
-                </motion.select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-500">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
+                  <option value="">Select a service</option>
+                  {services.map((service) => (
+                    <option key={service} value={service}>
+                      {service}
+                    </option>
+                  ))}
+                </select>
+                <ChevronIcon />
               </div>
 
+              {/* Budget */}
               <div className="relative">
-                <motion.select
+                <select
                   name="budget"
                   value={formData.budget}
                   onChange={handleChange}
-                  className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-gray-800 text-base focus:outline-none focus:border-[#1aa4ac] appearance-none cursor-pointer pr-10"
+                  className={selectClass}
                 >
-                  <option value="" disabled hidden>Select your estimated budget</option>
                   <option value="">Select your estimated budget</option>
-                  <option>$0 - $500</option>
-                  <option>$501 - $1000</option>
-                  <option>$1001 - $5000</option>
-                  <option>$5001 - $10000</option>
-                  <option>$10000+</option>
-                </motion.select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-500">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
+                  {budgets.map((budget) => (
+                    <option key={budget} value={budget}>
+                      {budget}
+                    </option>
+                  ))}
+                </select>
+                <ChevronIcon />
               </div>
 
+              {/* Phone */}
               <div className="flex border border-gray-200 rounded-xl bg-white overflow-hidden focus-within:border-[#1aa4ac] transition-colors">
                 <div className="relative flex items-center border-r border-gray-200">
                   <select
@@ -184,8 +204,10 @@ export default function ContactForm() {
                     onChange={handleCountryChange}
                     className="pl-4 pr-8 py-3.5 bg-transparent text-gray-800 text-base font-medium focus:outline-none cursor-pointer appearance-none"
                   >
-                    {countries.map((c, i) => (
-                      <option key={i} value={c.short}>{c.short}</option>
+                    {countries.map((c) => (
+                      <option key={c.short} value={c.short}>
+                        {c.short}
+                      </option>
                     ))}
                   </select>
                   <div className="absolute right-2 pointer-events-none text-gray-400">
@@ -204,7 +226,7 @@ export default function ContactForm() {
                 />
               </div>
 
-              <motion.textarea
+              <textarea
                 name="message"
                 rows={4}
                 placeholder="project brief"

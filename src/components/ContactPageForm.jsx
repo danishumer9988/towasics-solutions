@@ -132,6 +132,8 @@ export default function ContactPageForm() {
                   <option>AI-Powered Bots</option>
                   <option>Daily Data Feeds</option>
                   <option>Third-Party API Integration</option>
+                  <option>Server Setup for Bots & Scripts</option>
+                  <option>PowerBI Dashboard Design</option>
                   <option>Others</option>
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
@@ -281,7 +283,7 @@ export default function ContactPageForm() {
                 </div>
                 <div className="leading-snug text-gray-900 font-medium">
                   <div>22D CANAL PARK GULBERG II</div>
-                  <div className="mt-0.5">Lahore, Pakistan 54000a</div>
+                  <div className="mt-0.5">Lahore, Pakistan 54000</div>
                 </div>
               </div>
             </div>

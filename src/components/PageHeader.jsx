@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function PageHeader({ title, description, image, imageAlt, children }) {
+export default function PageHeader ({ title, description, image, imageAlt, children, imageSize = 'normal'}) {
   return (
     <div 
       className="main-container relative w-full text-white overflow-hidden flex items-center min-h-[420px] sm:min-h-[460px] lg:min-h-[480px]"
@@ -30,7 +30,7 @@ export default function PageHeader({ title, description, image, imageAlt, childr
           {/* Right Column: Uniformly Scaled Image */}
           {image && (
             <div className="lg:col-span-5 flex justify-center lg:justify-end items-center">
-              <div className="w-full max-w-[420px] h-[260px] sm:h-[320px] md:h-[360px] lg:h-[390px] flex items-center justify-center lg:justify-end">
+              <div className="w-full max-w-[520px] h-[260px] sm:h-[320px] md:h-[360px] lg:h-[390px] flex items-center justify-center lg:justify-end">
                 <img
                   src={image}
                   alt={imageAlt || title || 'Header illustration'}

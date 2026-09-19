@@ -328,57 +328,85 @@ export default function ServicePage() {
         imageAlt={service.title}
       />
 
-      {/* Section 1 - Overview */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6">
-              <p 
-                className="text-[18px] md:text-[24px]"
-                style={{ fontFamily: "'Inria Serif', serif", fontWeight: 700, lineHeight: '100%', letterSpacing: '0%', color: '#44D9E7' }}
-              >
-                Towasic Solutions
-              </p>
-              <h2 
-                className="text-[28px] md:text-[40px]"
-                style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, lineHeight: '100%', letterSpacing: '0%', textTransform: 'capitalize', color: '#086B87' }}
-              >
-                {service.section1.title}
-              </h2>
-              <p className="text-gray-600 text-lg leading-relaxed">
-                {service.section1.description}
-              </p>
-              
-              {/* Stats Grid */}
-              <div className="grid grid-cols-2 gap-6 pt-4">
-                {service.section1.stats.map((stat, idx) => (
-                  <div key={idx} className="border-l-4 border-brand-500 pl-4">
-                    <div className="text-3xl font-black text-brand-600 mb-1">{stat.value}</div>
-                    <div className="text-gray-600 font-medium text-sm">{stat.label}</div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="pt-6">
+        {/* Section 1 - Overview */}
+        <section className="py-16 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div className="space-y-6">
                 <Link
-                  to="/industries"
-                  className="bg-[#0a85a7] hover:bg-[#097390] text-white px-6 py-3 rounded-lg hover:shadow-lg transition shadow-md flex items-center gap-2 w-fit font-semibold font-inter"
+                  to="/"
+                  className="text-[18px] md:text-[24px] hover:opacity-80 transition"
+                  style={{
+                    fontFamily: "'Inria Serif', serif",
+                    fontWeight: 700,
+                    lineHeight: '100%',
+                    letterSpacing: '0%',
+                    color: '#44D9E7'
+                  }}
                 >
-                  View All Industries
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
+                  Towasic Solutions
                 </Link>
-              </div>
-            </div>
 
-            <div className="flex justify-center lg:justify-end">
-              <img src={section1ImgUrl} alt="Overview" className="max-w-[85%] rounded-2xl object-cover" />
+                <h2
+                  className="text-[28px] md:text-[40px]"
+                  style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontWeight: 700,
+                    lineHeight: '100%',
+                    letterSpacing: '0%',
+                    textTransform: 'capitalize',
+                    color: '#086B87'
+                  }}
+                >
+                  {service.section1.title}
+                </h2>
+
+                <p className="text-gray-600 text-lg leading-relaxed">
+                  {service.section1.description}
+                </p>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 gap-6 pt-4">
+                  {service.section1.stats.map((stat, idx) => (
+                    <div key={idx} className="border-l-4 border-brand-500 pl-4">
+                      <div className="text-3xl font-black text-brand-600 mb-1">
+                        {stat.value}
+                      </div>
+                      <div className="text-gray-600 font-medium text-sm">
+                        {stat.label}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pt-6">
+                  <Link
+                    to="/industries"
+                    className="bg-[#0a85a7] hover:bg-[#097390] text-white px-6 py-3 rounded-lg hover:shadow-lg transition shadow-md flex items-center gap-2 w-fit font-semibold font-inter"
+                  >
+                    View All Industries
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M14 5l7 7m0 0l-7 7m7-7H3"
+                      />
+                    </svg>
+                  </Link>
+                </div>
+              </div>
+
+              <div className="flex justify-center lg:justify-end">
+                <img
+                  src={section1ImgUrl}
+                  alt="Overview"
+                  className="max-w-[85%] rounded-2xl object-cover"
+                />
+              </div>
             </div>
           </div>
-        </div>
-      </section>
-
+        </section>
       {/* Section 2 - Technical Details */}
       <section className="py-16 bg-gray-50 border-t border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
