@@ -348,7 +348,7 @@ export default function FAQ() {
 
           <Link 
             to="/contactus" 
-            className="inline-block text-[#3EB5D6] hover:text-[#096078] text-xl font-bold italic underline transition"
+            className="inline-block text-[#3EB5D6] hover:text-[#096078] text-xl font-bold transition"
           >
             Let's Talk
           </Link>
