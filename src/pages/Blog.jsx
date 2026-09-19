@@ -68,7 +68,9 @@ export default function Blog() {
               color: '#3EB5D6'
             }}
           >
+          {/*
             Towasic Solutions
+          */}
           </h3>
 
           <p 
