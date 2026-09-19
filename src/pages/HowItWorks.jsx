@@ -155,11 +155,13 @@ export default function HowItWorks() {
             to discuss your project needs and get a free consultation!
           </p>
         </div>
+        {/*
         <Link to="/aboutus">
           <button className="bg-[#0a85a7] hover:bg-[#097390] text-white font-bold px-8 py-3 rounded-lg text-lg shadow-lg transition font-inter">
             About Us
           </button>
         </Link>
+        */}
       </div>
 
       <Footer />
