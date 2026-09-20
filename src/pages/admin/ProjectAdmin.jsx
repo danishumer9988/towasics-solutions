@@ -1,147 +1,127 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import AdminSidebar from '../../components/AdminSidebar'
 import { API_BASE_URL } from '../../config'
+import AdminLayout from '../../components/admin/AdminLayout'
+import {
+  PageHeader, Card, Button, Badge, EmptyState,
+  TableSkeleton, ConfirmDialog, Alert,
+} from '../../components/admin/ui'
 
 export default function ProjectAdmin() {
   const [projects, setProjects] = useState([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [confirmId, setConfirmId] = useState(null)
+  const [deleting, setDeleting] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
-    const user = localStorage.getItem('user')
-    if (!user) {
-      navigate('/auth/login')
-    }
+    if (!localStorage.getItem('user')) navigate('/auth/login')
   }, [navigate])
 
   const fetchProjects = async () => {
-    setLoading(true)
-    setError('')
+    setLoading(true); setError('')
     try {
       const res = await axios.get(`${API_BASE_URL}/projects`)
       setProjects(res.data)
     } catch (err) {
-      setError('Failed to load portfolio projects')
-      console.error(err)
-    } finally {
-      setLoading(false)
-    }
+      console.error(err); setError('Failed to load portfolio projects')
+    } finally { setLoading(false) }
   }
+  useEffect(() => { fetchProjects() }, [])
 
-  useEffect(() => {
-    fetchProjects()
-  }, [])
-
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this portfolio project?')) {
-      try {
-        const config = {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        }
-        await axios.delete(`${API_BASE_URL}/projects/${id}`, config)
-        setProjects(projects.filter(project => project._id !== id))
-      } catch (err) {
-        console.error('Failed to delete project', err)
-        setError('Failed to delete project')
-      }
-    }
+  const handleDelete = async () => {
+    if (!confirmId) return
+    setDeleting(true)
+    try {
+      await axios.delete(`${API_BASE_URL}/projects/${confirmId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      })
+      setProjects(projects.filter((p) => p._id !== confirmId))
+      setConfirmId(null)
+    } catch (err) {
+      console.error(err); setError('Failed to delete project')
+    } finally { setDeleting(false) }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        <AdminSidebar />
-        
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">Portfolio Projects</h1>
-          <Link 
-            to="/admin/projects/new" 
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition duration-200 font-semibold"
-          >
-            Add New Project
-          </Link>
-        </div>
+    <AdminLayout>
+      <PageHeader
+        title="Portfolio Projects"
+        description="Manage the projects shown on your website."
+        actions={
+          <Button as={Link} to="/admin/projects/new">
+            <i className="fa-solid fa-plus"></i>
+            New Project
+          </Button>
+        }
+      />
 
+      {error && <div className="mb-4"><Alert>{error}</Alert></div>}
+
+      <Card className="overflow-hidden">
         {loading ? (
-          <div className="text-center py-10 font-medium text-gray-500">Loading portfolio projects...</div>
-        ) : error ? (
-          <div className="text-center py-10 text-red-500 font-semibold">{error}</div>
+          <TableSkeleton rows={5} cols={5} />
+        ) : projects.length === 0 ? (
+          <EmptyState
+            icon="fa-diagram-project"
+            title="No projects yet"
+            description="Start by adding your first portfolio project."
+            action={<Button as={Link} to="/admin/projects/new">Add Project</Button>}
+          />
         ) : (
-          <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
-                    Number
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
-                    Images
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Title
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Description
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-28">
-                    Actions
-                  </th>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs uppercase tracking-wider text-ink-subtle border-b border-line bg-gray-50/60">
+                  <th className="px-5 py-3 font-medium w-20">No.</th>
+                  <th className="px-5 py-3 font-medium w-28">Cover</th>
+                  <th className="px-5 py-3 font-medium">Title</th>
+                  <th className="px-5 py-3 font-medium hidden md:table-cell">Description</th>
+                  <th className="px-5 py-3 font-medium w-28 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {projects.map((project) => (
-                  <tr key={project._id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold">
-                      #{project.projectNumber}
+              <tbody>
+                {projects.map((p) => (
+                  <tr key={p._id} className="border-b border-line last:border-0 hover:bg-gray-50/60">
+                    <td className="px-5 py-3"><Badge tone="brand">#{p.projectNumber}</Badge></td>
+                    <td className="px-5 py-3">
+                      {p.images?.[0] ? (
+                        <img src={p.images[0]} alt="" className="w-10 h-10 rounded-lg object-cover border border-line" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-ink-subtle text-xs">—</div>
+                      )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex -space-x-2 overflow-hidden">
-                        {project.images && project.images.map((img, i) => (
-                          <img 
-                            key={i} 
-                            src={img} 
-                            alt={`Preview ${i}`} 
-                            className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover bg-gray-50" 
-                          />
-                        ))}
-                        {(!project.images || project.images.length === 0) && (
-                          <span className="text-xs text-gray-400">No images</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900 font-semibold">
-                      {project.title}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 max-w-md truncate">
-                      {project.description}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end gap-3 text-lg">
-                        <Link to={`/admin/projects/edit/${project._id}`} className="text-blue-500 hover:text-blue-700">
+                    <td className="px-5 py-3 font-medium text-ink">{p.title}</td>
+                    <td className="px-5 py-3 text-ink-muted hidden md:table-cell max-w-md truncate">{p.description}</td>
+                    <td className="px-5 py-3 text-right">
+                      <div className="inline-flex gap-1">
+                        <Button variant="ghost" size="sm" as={Link} to={`/admin/projects/edit/${p._id}`}>
                           <i className="fa-solid fa-pen-to-square"></i>
-                        </Link>
-                        <button onClick={() => handleDelete(project._id)} className="text-red-500 hover:text-red-700">
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => setConfirmId(p._id)} className="text-red-600 hover:bg-red-50">
                           <i className="fa-solid fa-trash"></i>
-                        </button>
+                        </Button>
                       </div>
                     </td>
                   </tr>
                 ))}
-                {projects.length === 0 && (
-                  <tr>
-                    <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
-                      No portfolio projects created yet.
-                    </td>
-                  </tr>
-                )}
               </tbody>
             </table>
           </div>
         )}
-      </div>
-    </div>
+      </Card>
+
+      <ConfirmDialog
+        open={!!confirmId}
+        onClose={() => setConfirmId(null)}
+        onConfirm={handleDelete}
+        busy={deleting}
+        title="Delete project"
+        message="Are you sure you want to delete this portfolio project? This action cannot be undone."
+        confirmLabel="Delete"
+      />
+    </AdminLayout>
   )
 }

@@ -20,7 +20,6 @@ import Login from './pages/admin/Login'
 import AdminUsers from './pages/admin/AdminUsers'
 import Subscriptions from './pages/admin/Subscriptions'
 import AddFAQ from './pages/admin/AddFAQ'
-import AdminSidebar from './components/AdminSidebar'
 import ProjectAdmin from './pages/admin/ProjectAdmin'
 import ProjectNew from './pages/admin/ProjectNew'
 import ProjectEdit from './pages/admin/ProjectEdit'
@@ -33,6 +32,7 @@ function App() {
       <ScrollToTop />
       <WhatsAppButton />
       <Routes>
+        {/* Public */}
         <Route path="/" element={<Home />} />
         <Route path="/aboutus" element={<AboutUs />} />
         <Route path="/contactus" element={<ContactUs />} />
@@ -44,24 +44,27 @@ function App() {
         <Route path="/services/:serviceName" element={<ServicePage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
-        {/* Admin routes */}
+
+        {/* Admin */}
+        <Route path="/auth/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/blogs" element={<BlogAdmin />} />
-        <Route path="/blogs/new" element={<BlogNew />} />
-        <Route path="/blogs/edit/:id" element={<BlogEdit />} />
+
         <Route path="/admin/projects" element={<ProjectAdmin />} />
         <Route path="/admin/projects/new" element={<ProjectNew />} />
         <Route path="/admin/projects/edit/:id" element={<ProjectEdit />} />
+
+        <Route path="/blogs" element={<BlogAdmin />} />
+        <Route path="/blogs/new" element={<BlogNew />} />
+        <Route path="/blogs/edit/:id" element={<BlogEdit />} />
+
         <Route path="/admin/users" element={<AdminUsers />} />
-        <Route path="/auth/login" element={<Login />} />
-        <Route path="/users" element={<AdminSidebar />} />
         <Route path="/subscriptions" element={<Subscriptions />} />
         <Route path="/addfaq" element={<AddFAQ />} />
+
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   )
 }
-
 
 export default App

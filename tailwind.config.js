@@ -1,12 +1,10 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
       colors: {
+        // ← keep your existing brand block
         brand: {
           50: '#f0fdfe',
           100: '#ccfbf1',
@@ -19,8 +17,22 @@ export default {
           800: '#115e59',
           850: '#071412',
           900: '#134e4a',
-        }
+        },
+        // ← ADD these
+        ink: {
+          DEFAULT: '#17202A',
+          muted:   '#667085',
+          subtle:  '#98A2B3',
+        },
+        line:    '#E5E7EB',
+        surface: '#F7F9FC',
       },
+      // ← ADD these
+      boxShadow: {
+        card: '0 1px 2px rgba(16,24,40,0.04), 0 1px 3px rgba(16,24,40,0.06)',
+        pop:  '0 12px 32px -8px rgba(16,24,40,0.12)',
+      },
+      // ← keep your existing fontFamily / animation / keyframes
       fontFamily: {
         'instrument': ['Instrument Sans', 'sans-serif'],
         'jakarta': ['Plus Jakarta Sans', 'sans-serif'],
@@ -65,10 +77,6 @@ export default {
         shimmer: {
           '0%': { backgroundPosition: '-200px 0' },
           '100%': { backgroundPosition: '200px 0' },
-        },
-        gradientShift: {
-          '0%, 100%': { backgroundPosition: '0% 50%' },
-          '50%': { backgroundPosition: '100% 50%' },
         },
       },
     },

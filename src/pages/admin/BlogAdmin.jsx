@@ -1,117 +1,126 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import AdminSidebar from '../../components/AdminSidebar'
 import { API_BASE_URL } from '../../config'
+import AdminLayout from '../../components/admin/AdminLayout'
+import {
+  PageHeader, Card, Button, EmptyState, Skeleton,
+  ConfirmDialog, Alert, Badge,
+} from '../../components/admin/ui'
 
 export default function BlogAdmin() {
   const [blogs, setBlogs] = useState([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [confirmId, setConfirmId] = useState(null)
   const navigate = useNavigate()
 
   useEffect(() => {
-    const user = localStorage.getItem('user')
-    if (!user) {
-      navigate('/auth/login')
-    }
+    if (!localStorage.getItem('user')) navigate('/auth/login')
   }, [navigate])
 
-  const fetchBlogs = async () => {
-    setLoading(true)
-    setError('')
-    try {
-      const res = await axios.get(`${API_BASE_URL}/blogs`)
-      setBlogs(res.data)
-    } catch (err) {
-      setError('Failed to load blogs')
-      console.error(err)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   useEffect(() => {
-    fetchBlogs()
+    (async () => {
+      setLoading(true)
+      try {
+        const res = await axios.get(`${API_BASE_URL}/blogs`)
+        setBlogs(res.data)
+      } catch (err) {
+        console.error(err); setError('Failed to load blogs')
+      } finally { setLoading(false) }
+    })()
   }, [])
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this blog post?')) {
-      try {
-        await axios.delete(`${API_BASE_URL}/blogs/${id}`)
-        setBlogs(blogs.filter(blog => blog._id !== id))
-      } catch (err) {
-        console.error('Failed to delete blog', err)
-        setError('Failed to delete blog')
-      }
+  const handleDelete = async () => {
+    try {
+      await axios.delete(`${API_BASE_URL}/blogs/${confirmId}`)
+      setBlogs(blogs.filter((b) => b._id !== confirmId))
+      setConfirmId(null)
+    } catch (err) {
+      console.error(err); setError('Failed to delete blog')
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        <AdminSidebar />
-        
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">Blog Posts</h1>
-          <Link 
-            to="/blogs/new" 
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition duration-200 font-semibold"
-          >
-            Add New Blog
-          </Link>
-        </div>
+    <AdminLayout>
+      <PageHeader
+        title="Blog Posts"
+        description="Create, edit and publish posts for your website."
+        actions={<Button as={Link} to="/blogs/new"><i className="fa-solid fa-plus"></i>New Post</Button>}
+      />
 
-        {loading ? (
-          <div className="text-center py-10 font-medium text-gray-500">Loading blogs...</div>
-        ) : error ? (
-          <div className="text-center py-10 text-red-500 font-semibold">{error}</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {blogs.map((blog) => (
-              <div key={blog._id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-200 border border-gray-150 flex flex-col justify-between">
-                <div>
-                  {blog.featuredImage && (
-                    <div className="h-48 overflow-hidden">
-                      <img src={blog.featuredImage} alt={blog.title} className="w-full h-full object-cover" />
-                    </div>
-                  )}
-                  <div className="p-4">
-                    <Link to={`/blogs/${blog.slug}`}>
-                      <h2 className="text-xl font-bold text-gray-800 hover:text-blue-600 mb-2 line-clamp-2">
-                        {blog.title}
-                      </h2>
-                    </Link>
-                    <div 
-                      className="text-gray-600 mb-4 line-clamp-3 text-sm" 
-                      dangerouslySetInnerHTML={{ __html: blog.content }}
-                    />
-                  </div>
+      {error && <div className="mb-4"><Alert>{error}</Alert></div>}
+
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i} className="overflow-hidden">
+              <Skeleton className="h-44 w-full rounded-none" />
+              <div className="p-5 space-y-3">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-5/6" />
+              </div>
+            </Card>
+          ))}
+        </div>
+      ) : blogs.length === 0 ? (
+        <Card>
+          <EmptyState
+            icon="fa-newspaper"
+            title="No blog posts yet"
+            description="Publish your first blog post to share with your audience."
+            action={<Button as={Link} to="/blogs/new">Write a Post</Button>}
+          />
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {blogs.map((b) => (
+            <Card key={b._id} className="overflow-hidden flex flex-col">
+              {b.featuredImage && (
+                <div className="h-44 bg-gray-100 overflow-hidden">
+                  <img src={b.featuredImage} alt="" className="w-full h-full object-cover" />
                 </div>
-                
-                <div className="p-4 border-t border-gray-100 flex justify-between items-center bg-gray-50">
-                  <Link to={`/blogs/${blog.slug}`} className="text-blue-600 hover:underline font-semibold text-sm">
-                    Read more →
-                  </Link>
-                  <div className="flex space-x-3 text-lg">
-                    <Link to={`/blogs/edit/${blog._id}`} className="text-blue-500 hover:text-blue-700">
-                      <i className="fa-solid fa-pen-to-square"></i>
-                    </Link>
-                    <button onClick={() => handleDelete(blog._id)} className="text-red-500 hover:text-red-700">
-                      <i className="fa-solid fa-trash"></i>
-                    </button>
-                  </div>
+              )}
+              <div className="p-5 flex-1 flex flex-col">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  {b.isFeatured && <Badge tone="warning">Featured</Badge>}
+                  {b.tags?.slice(0, 2).map((t) => <Badge key={t}>{t}</Badge>)}
+                </div>
+                <Link to={`/blogs/${b.slug}`} className="text-base font-semibold text-ink hover:text-brand-600 line-clamp-2">
+                  {b.title}
+                </Link>
+                <div
+                  className="text-sm text-ink-muted mt-2 line-clamp-3"
+                  dangerouslySetInnerHTML={{ __html: b.content }}
+                />
+              </div>
+              <div className="px-5 py-3 border-t border-line flex justify-between items-center">
+                <Link to={`/blogs/${b.slug}`} className="text-brand-600 text-sm font-medium hover:underline">
+                  Read more →
+                </Link>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="sm" as={Link} to={`/blogs/edit/${b._id}`}>
+                    <i className="fa-solid fa-pen-to-square"></i>
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => setConfirmId(b._id)} className="text-red-600 hover:bg-red-50">
+                    <i className="fa-solid fa-trash"></i>
+                  </Button>
                 </div>
               </div>
-            ))}
-            {blogs.length === 0 && (
-              <div className="col-span-full text-center py-12 text-gray-500 font-medium">
-                No blog posts created yet.
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      <ConfirmDialog
+        open={!!confirmId}
+        onClose={() => setConfirmId(null)}
+        onConfirm={handleDelete}
+        title="Delete blog post"
+        message="Are you sure you want to delete this blog post?"
+        confirmLabel="Delete"
+      />
+    </AdminLayout>
   )
 }

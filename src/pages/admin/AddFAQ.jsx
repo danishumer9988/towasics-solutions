@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import AdminSidebar from '../../components/AdminSidebar'
 import { API_BASE_URL } from '../../config'
+import AdminLayout from '../../components/admin/AdminLayout'
+import { PageHeader, Card, CardHeader, Button, Field, Input, Textarea, EmptyState } from '../../components/admin/ui'
 
 export default function AddFAQ() {
   const [categories, setCategories] = useState([])
@@ -14,186 +15,124 @@ export default function AddFAQ() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const user = localStorage.getItem('user')
-    if (!user) {
-      navigate('/auth/login')
-    }
+    if (!localStorage.getItem('user')) navigate('/auth/login')
   }, [navigate])
-
-  useEffect(() => {
-    fetchCategories()
-  }, [])
 
   const fetchCategories = async () => {
     setLoading(true)
     try {
       const res = await axios.get(`${API_BASE_URL}/categories`)
       setCategories(res.data)
-    } catch (err) {
-      console.error('Error fetching categories:', err)
-    } finally {
-      setLoading(false)
-    }
+    } catch (err) { console.error(err) }
+    finally { setLoading(false) }
+  }
+  useEffect(() => { fetchCategories() }, [])
+
+  const addCategory = async () => {
+    if (!newCategoryName.trim()) return
+    try {
+      await axios.post(`${API_BASE_URL}/categories`, { category: newCategoryName })
+      setNewCategoryName(''); fetchCategories()
+    } catch (err) { console.error(err) }
   }
 
-  const handleAddCategory = async () => {
-    if (newCategoryName.trim()) {
-      try {
-        await axios.post(`${API_BASE_URL}/categories`, { category: newCategoryName })
-        setNewCategoryName('')
-        fetchCategories()
-      } catch (err) {
-        console.error('Error adding category:', err)
-      }
-    }
-  }
-
-  const handleAddFaq = async () => {
-    if (newFaq.question.trim() && newFaq.answer.trim() && selectedCategoryId) {
-      try {
-        await axios.post(`${API_BASE_URL}/categories/${selectedCategoryId}/faqs`, newFaq)
-        setNewFaq({ question: '', answer: '' })
-        setSelectedCategoryId(null)
-        fetchCategories()
-      } catch (err) {
-        console.error('Error adding FAQ:', err)
-      }
-    }
-  }
-
-  const toggleCategory = (id) => {
-    setActiveCategoryId(activeCategoryId === id ? null : id)
+  const addFaq = async () => {
+    if (!newFaq.question.trim() || !newFaq.answer.trim() || !selectedCategoryId) return
+    try {
+      await axios.post(`${API_BASE_URL}/categories/${selectedCategoryId}/faqs`, newFaq)
+      setNewFaq({ question: '', answer: '' })
+      setSelectedCategoryId(null)
+      fetchCategories()
+    } catch (err) { console.error(err) }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto">
-        <AdminSidebar />
-        
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-bold text-gray-800">FAQ Management</h2>
-          <button 
-            onClick={() => navigate('/dashboard')} 
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
-          >
-            Go back
-          </button>
-        </div>
+    <AdminLayout>
+      <PageHeader
+        title="FAQ Management"
+        description="Create categories and add frequently asked questions."
+      />
 
-        {/* Add Category Section */}
-        <div className="bg-white p-6 rounded-lg shadow mb-8">
-          <h3 className="text-xl font-semibold text-gray-700 mb-4">Add New Category</h3>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              placeholder="Enter category name"
-              value={newCategoryName}
-              onChange={(e) => setNewCategoryName(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleAddCategory()}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
-            />
-            <button
-              className="px-6 py-2 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition"
-              onClick={handleAddCategory}
-            >
-              Add Category
-            </button>
-          </div>
-        </div>
-
-        {/* Categories and FAQs Section */}
-        <div className="bg-white p-6 rounded-lg shadow mb-8">
-          <h3 className="text-xl font-semibold text-gray-700 mb-4">Categories</h3>
-          {loading ? (
-            <div className="text-center py-6 text-gray-500 font-medium">Loading categories...</div>
-          ) : categories.length === 0 ? (
-            <div className="text-center py-6 text-gray-500 font-medium">No categories yet. Add one above!</div>
-          ) : (
-            <div className="space-y-4">
-              {categories.map((cat) => (
-                <div key={cat._id} className="border border-gray-200 rounded-lg overflow-hidden">
-                  <div 
-                    className="flex justify-between items-center p-4 bg-gray-50 hover:bg-gray-100 cursor-pointer transition select-none"
-                    onClick={() => toggleCategory(cat._id)}
-                  >
-                    <h4 className="font-bold text-gray-800">{cat.category}</h4>
-                    <span className="text-xl font-semibold text-gray-600">
-                      {activeCategoryId === cat._id ? '−' : '+'}
-                    </span>
-                  </div>
-
-                  {activeCategoryId === cat._id && (
-                    <div className="p-4 bg-white border-t border-gray-200">
-                      {cat.faqs && cat.faqs.length > 0 ? (
-                        <div className="space-y-3 mb-4">
-                          {cat.faqs.map((faq, idx) => (
-                            <div key={idx} className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                              <div className="font-semibold text-gray-800 mb-1">Q: {faq.question}</div>
-                              <div className="text-gray-600">A: {faq.answer}</div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-gray-500 text-sm italic mb-4">No FAQs in this category yet.</div>
-                      )}
-
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <Card>
+            <CardHeader title="Categories" subtitle={`${categories.length} categor${categories.length === 1 ? 'y' : 'ies'}`} />
+            {loading ? (
+              <div className="p-8 text-center text-ink-muted text-sm">Loading categories…</div>
+            ) : categories.length === 0 ? (
+              <EmptyState icon="fa-folder-open" title="No categories yet" description="Create your first FAQ category on the right." />
+            ) : (
+              <div className="divide-y divide-line">
+                {categories.map((cat) => {
+                  const open = activeCategoryId === cat._id
+                  return (
+                    <div key={cat._id}>
                       <button
-                        className="px-4 py-2 border-2 border-brand-500 text-brand-600 hover:bg-brand-50 font-medium rounded-lg transition"
-                        onClick={() => setSelectedCategoryId(cat._id)}
+                        onClick={() => setActiveCategoryId(open ? null : cat._id)}
+                        className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition text-left"
                       >
-                        {selectedCategoryId === cat._id ? 'Adding FAQ...' : 'Add FAQ to this Category'}
+                        <span className="font-medium text-ink">{cat.category}</span>
+                        <i className={`fa-solid fa-chevron-${open ? 'up' : 'down'} text-xs text-ink-muted`}></i>
                       </button>
+                      {open && (
+                        <div className="px-5 pb-5 space-y-3">
+                          {cat.faqs?.length ? cat.faqs.map((f, i) => (
+                            <div key={i} className="bg-gray-50 rounded-lg p-3 border border-line">
+                              <p className="text-sm font-medium text-ink">Q: {f.question}</p>
+                              <p className="text-sm text-ink-muted mt-1">A: {f.answer}</p>
+                            </div>
+                          )) : (
+                            <p className="text-sm text-ink-subtle italic">No FAQs in this category yet.</p>
+                          )}
+                          <Button
+                            variant="secondary" size="sm"
+                            onClick={() => setSelectedCategoryId(cat._id)}
+                          >
+                            {selectedCategoryId === cat._id ? 'Selected' : 'Add FAQ here'}
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  )
+                })}
+              </div>
+            )}
+          </Card>
+
+          {selectedCategoryId && (
+            <Card>
+              <CardHeader title="New FAQ" />
+              <div className="p-5 space-y-4">
+                <Field label="Question">
+                  <Input value={newFaq.question} onChange={(e) => setNewFaq({ ...newFaq, question: e.target.value })} />
+                </Field>
+                <Field label="Answer">
+                  <Textarea rows={4} value={newFaq.answer} onChange={(e) => setNewFaq({ ...newFaq, answer: e.target.value })} />
+                </Field>
+                <div className="flex justify-end gap-2">
+                  <Button variant="secondary" onClick={() => setSelectedCategoryId(null)}>Cancel</Button>
+                  <Button onClick={addFaq}>Add FAQ</Button>
                 </div>
-              ))}
-            </div>
+              </div>
+            </Card>
           )}
         </div>
 
-        {/* Add FAQ Form Section */}
-        {selectedCategoryId && (
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-xl font-semibold text-gray-700 mb-4">Add New FAQ</h3>
-            <div className="space-y-4">
-              <div className="input-group">
-                <label className="block text-gray-600 font-medium mb-1">Question</label>
-                <input
-                  type="text"
-                  placeholder="Enter question"
-                  value={newFaq.question}
-                  onChange={(e) => setNewFaq({ ...newFaq, question: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
-                />
-              </div>
-              <div className="input-group">
-                <label className="block text-gray-600 font-medium mb-1">Answer</label>
-                <textarea
-                  placeholder="Enter answer"
-                  value={newFaq.answer}
-                  onChange={(e) => setNewFaq({ ...newFaq, answer: e.target.value })}
-                  rows="3"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
-                />
-              </div>
-              <div className="flex gap-2 justify-end">
-                <button
-                  className="px-6 py-2 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition"
-                  onClick={handleAddFaq}
-                >
-                  Add FAQ
-                </button>
-                <button
-                  className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition"
-                  onClick={() => setSelectedCategoryId(null)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
+        <Card className="self-start">
+          <CardHeader title="Add Category" />
+          <div className="p-5 space-y-3">
+            <Field label="Category name">
+              <Input
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && addCategory()}
+                placeholder="e.g. Billing"
+              />
+            </Field>
+            <Button onClick={addCategory} className="w-full">Create Category</Button>
           </div>
-        )}
+        </Card>
       </div>
-    </div>
+    </AdminLayout>
   )
 }
