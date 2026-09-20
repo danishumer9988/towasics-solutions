@@ -1,4 +1,6 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { useEffect } from 'react'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+
 import ScrollToTop from './components/ScrollToTop'
 import Home from './pages/Home'
 import AboutUs from './pages/AboutUs'
@@ -12,6 +14,7 @@ import ServicePage from './pages/ServicePage'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import TermsOfService from './pages/TermsOfService'
 import NotFound from './pages/NotFound'
+
 import Dashboard from './pages/admin/Dashboard'
 import BlogAdmin from './pages/admin/BlogAdmin'
 import BlogNew from './pages/admin/BlogNew'
@@ -24,13 +27,45 @@ import ProjectAdmin from './pages/admin/ProjectAdmin'
 import ProjectNew from './pages/admin/ProjectNew'
 import ProjectEdit from './pages/admin/ProjectEdit'
 
-import WhatsAppButton from './components/WhatsAppButton'
+import Analytics, { VisitorDetail } from './pages/admin/Analytics'
 
+import WhatsAppButton from './components/WhatsAppButton'
+import { trackPageView, initClickTracking } from './lib/analytics'
+
+/* ---------- Analytics tracker ---------- */
+const SKIP_PREFIXES = [
+  '/admin',
+  '/dashboard',
+  '/auth',
+  '/blogs',
+  '/subscriptions',
+  '/addfaq',
+]
+
+function TrackerMount() {
+  const location = useLocation()
+
+  useEffect(() => {
+    initClickTracking()
+  }, [])
+
+  useEffect(() => {
+    const p = location.pathname
+    if (SKIP_PREFIXES.some((prefix) => p.startsWith(prefix))) return
+    trackPageView()
+  }, [location.pathname, location.search])
+
+  return null
+}
+
+/* ---------- App ---------- */
 function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
       <WhatsAppButton />
+      <TrackerMount />
+
       <Routes>
         {/* Public */}
         <Route path="/" element={<Home />} />
@@ -45,7 +80,7 @@ function App() {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
 
-        {/* Admin */}
+        {/* Admin — existing */}
         <Route path="/auth/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
 
@@ -60,6 +95,10 @@ function App() {
         <Route path="/admin/users" element={<AdminUsers />} />
         <Route path="/subscriptions" element={<Subscriptions />} />
         <Route path="/addfaq" element={<AddFAQ />} />
+
+        {/* Admin — new analytics */}
+        <Route path="/admin/analytics" element={<Analytics />} />
+        <Route path="/admin/analytics/visitor/:visitorId" element={<VisitorDetail />} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>

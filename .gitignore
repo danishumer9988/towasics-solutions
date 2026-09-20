@@ -29,3 +29,8 @@ dist-ssr/
 
 # Backend repository folder
 backend/
+
+# Environment variables (NEVER commit these)
+.env
+.env.local
+.env.*.local

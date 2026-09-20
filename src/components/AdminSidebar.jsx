@@ -5,7 +5,8 @@ const nav = [
   {
     section: 'Overview',
     items: [
-      { to: '/dashboard', label: 'Dashboard', icon: 'fa-gauge-high' },
+      { to: '/dashboard',       label: 'Dashboard', icon: 'fa-gauge-high' },
+      { to: '/admin/analytics', label: 'Analytics', icon: 'fa-chart-line' },
     ],
   },
   {
@@ -30,7 +31,6 @@ export default function AdminSidebar() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  // Close mobile drawer on route change
   useEffect(() => { setOpen(false) }, [location.pathname])
 
   const handleLogout = () => {
@@ -56,10 +56,7 @@ export default function AdminSidebar() {
 
       {/* Backdrop */}
       {open && (
-        <div
-          onClick={() => setOpen(false)}
-          className="lg:hidden fixed inset-0 bg-ink/40 z-40"
-        />
+        <div onClick={() => setOpen(false)} className="lg:hidden fixed inset-0 bg-ink/40 z-40" />
       )}
 
       {/* Sidebar */}
@@ -70,12 +67,9 @@ export default function AdminSidebar() {
           transition-transform duration-200
           ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       >
-        {/* Header */}
         <div className="h-16 px-5 flex items-center justify-between border-b border-line">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-brand-600 text-white flex items-center justify-center font-bold text-sm">
-              A
-            </div>
+            <div className="w-8 h-8 rounded-lg bg-brand-600 text-white flex items-center justify-center font-bold text-sm">A</div>
             <span className="font-semibold text-ink">Admin Panel</span>
           </div>
           <button
@@ -87,7 +81,6 @@ export default function AdminSidebar() {
           </button>
         </div>
 
-        {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-6">
           {nav.map((group) => (
             <div key={group.section}>
@@ -117,7 +110,6 @@ export default function AdminSidebar() {
           ))}
         </nav>
 
-        {/* Footer */}
         <div className="p-3 border-t border-line">
           <button
             onClick={handleLogout}
