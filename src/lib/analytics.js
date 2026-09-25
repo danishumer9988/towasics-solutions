@@ -6,13 +6,9 @@ const STS  = 'an_sid_ts'
 const TTL  = 30 * 60 * 1000 // 30 min session window
 const DISABLED = !ANALYTICS_URL || typeof window === 'undefined'
 
+// 16-char hex instead of 36-char UUID — saves 40 bytes per row across 4 collections
 const uuid = () =>
-  (crypto?.randomUUID?.()) ||
-  'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0
-    const v = c === 'x' ? r : (r & 0x3) | 0x8
-    return v.toString(16)
-  })
+  Array.from({ length: 16 }, () => Math.floor(Math.random() * 16).toString(16)).join('')
 
 const visitorId = () => {
   let v = localStorage.getItem(VKEY)
