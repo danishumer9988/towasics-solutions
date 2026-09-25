@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import Slider from 'react-slick'
 import axios from 'axios'
@@ -8,7 +8,96 @@ import PageHeader from '../components/PageHeader'
 import TestimonialSlider from '../components/TestimonialSlider'
 import { API_BASE_URL } from '../config'
 
-/* -------------------- Portfolio: Project Detail Modal -------------------- */
+/* -------------------- Image Lightbox (gallery) -------------------- */
+function ImageLightboxModal({ isOpen, image, title, images = [], onClose }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    if (images && image) {
+      const idx = images.indexOf(image);
+      if (idx !== -1) setCurrentIndex(idx);
+      else setCurrentIndex(0);
+    }
+  }, [image, images]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowRight' && images.length > 1) {
+        setCurrentIndex((prev) => (prev + 1) % images.length);
+      }
+      if (e.key === 'ArrowLeft' && images.length > 1) {
+        setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, images, onClose]);
+
+  if (!isOpen) return null;
+
+  const currentImg = images.length > 0 ? images[currentIndex] : image;
+
+  return (
+    <div
+      className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 transition-all duration-300"
+      onClick={onClose}
+    >
+      <div
+        className="relative max-w-5xl max-h-[90vh] w-full flex flex-col items-center justify-center"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute -top-12 right-0 sm:-top-5 sm:-right-10 bg-white/20 hover:bg-red-600 text-white rounded-full w-10 h-10 flex items-center justify-center transition-all shadow-xl text-xl"
+          title="Close (Esc)"
+        >
+          <i className="fa-solid fa-xmark"></i>
+        </button>
+
+        <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/20 bg-black/40 flex items-center justify-center max-h-[80vh] w-full">
+          <img
+            src={currentImg}
+            alt={title || "Enlarged Project View"}
+            className="max-h-[80vh] max-w-full object-contain"
+            onError={(e) => { e.target.src = '/assets/slider.png' }}
+          />
+        </div>
+
+        <div className="mt-4 flex items-center justify-between w-full max-w-2xl px-2 text-white">
+          <p className="text-sm sm:text-base font-semibold truncate font-inter text-white/90">
+            {title} {images.length > 1 && `(${currentIndex + 1} of ${images.length})`}
+          </p>
+
+          {images.length > 1 && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)}
+                className="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5"
+              >
+                <i className="fa-solid fa-chevron-left text-xs"></i> Prev
+              </button>
+              <button
+                onClick={() => setCurrentIndex((prev) => (prev + 1) % images.length)}
+                className="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5"
+              >
+                Next <i className="fa-solid fa-chevron-right text-xs"></i>
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* -------------------- Project Detail Modal (full title + description) -------------------- */
 function ProjectDetailModal({ isOpen, project, onClose }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const images = project?.images?.length ? project.images : ['/assets/slider.png'];
@@ -88,129 +177,167 @@ function ProjectDetailModal({ isOpen, project, onClose }) {
             </div>
           )}
 
-          {/* Title + full description */}
+          {/* Full title + description */}
           <h2 className="text-2xl sm:text-3xl font-extrabold text-[#086B87] mb-4 leading-tight font-inter">
             {project.title}
           </h2>
           <p className="text-gray-600 leading-relaxed text-sm sm:text-base whitespace-pre-line font-medium font-inter">
             {project.description}
           </p>
-
-          {/* External link (if any) */}
-          {project.link && project.link.trim() && (
-            <div className="mt-6 pt-5 border-t border-gray-100">
-              <a
-                href={project.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-[#0a85a7] hover:bg-[#097390] text-white px-5 py-2.5 rounded-lg font-semibold text-sm transition"
-              >
-                Visit Project
-                <i className="fa-solid fa-arrow-up-right-from-square text-xs"></i>
-              </a>
-            </div>
-          )}
         </div>
       </div>
     </div>
   );
 }
 
-/* -------------------- Portfolio: Compact Project Card -------------------- */
-function ProjectCard({ project, onReadMore }) {
-  const cover = project.images?.[0] || '/assets/slider.png';
-  const hasLink = project.link && project.link.trim().length > 0;
-
-  const handleReadMore = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (hasLink) {
-      window.open(project.link, '_blank', 'noopener,noreferrer');
-    } else {
-      onReadMore(project);
-    }
-  };
+/* -------------------- Project Card -------------------- */
+function ProjectCard({ project, onEnlarge, onReadMore }) {
+  const [activeImage, setActiveImage] = useState(
+    project.images && project.images.length > 0 ? project.images[0] : '/assets/slider.png'
+  );
 
   return (
-    <div className="bg-white rounded-3xl shadow-lg overflow-hidden border border-white/40 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
-      {/* Image */}
-      <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
-        <img
-          src={cover}
-          alt={project.title}
-          loading="lazy"
-          className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-          onError={(e) => { e.target.src = '/assets/slider.png' }}
-        />
-        <span className="absolute top-3 left-3 bg-[#0a85a7] text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
-          #{project.projectNumber?.toString().padStart(2, '0') || '—'}
-        </span>
-      </div>
+    <div className="px-2 flex justify-center w-full">
+      <div className="bg-white rounded-3xl shadow-xl overflow-hidden p-6 md:p-8 w-full max-w-5xl border border-white/20 min-h-[400px] flex flex-col justify-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+          {/* Details */}
+          <div className="space-y-4 text-left">
+            <span className="inline-block bg-[#0a85a7] text-white px-4 py-1.5 rounded-full font-bold text-sm tracking-wide shadow-sm font-sans">
+              Project #{project.projectNumber?.toString().padStart(2, '0') || '—'}
+            </span>
 
-      {/* Content */}
-      <div className="p-5 flex flex-col flex-1 text-left">
-        <h3
-          className="text-lg font-bold text-[#086B87] mb-2 leading-snug font-inter"
-          style={{
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-          }}
-        >
-          {project.title}
-        </h3>
-        <p
-          className="text-sm text-gray-600 leading-relaxed mb-4 flex-1 font-medium font-inter"
-          style={{
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-          }}
-        >
-          {project.description}
-        </p>
+            <h3 className="text-2xl md:text-3xl font-extrabold text-[#086B87] leading-tight font-inter">
+              {project.title}
+            </h3>
 
-        <button
-          type="button"
-          onClick={handleReadMore}
-          className="self-start inline-flex items-center gap-2 text-[#0a85a7] hover:text-[#097390] font-semibold text-sm transition-all hover:gap-3 cursor-pointer bg-transparent border-0 p-0"
-        >
-          Read More
-          {hasLink ? (
-            <i className="fa-solid fa-arrow-up-right-from-square text-xs"></i>
-          ) : (
-            <i className="fa-solid fa-arrow-right text-xs"></i>
-          )}
-        </button>
+            {/* 2-line clamped description */}
+            <p
+              className="text-gray-600 leading-relaxed text-sm md:text-base font-medium font-inter"
+              style={{
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}
+            >
+              {project.description}
+            </p>
+
+            {/* Read More button */}
+            <button
+              type="button"
+              onClick={() => onReadMore(project)}
+              className="inline-flex items-center gap-2 text-[#0a85a7] hover:text-[#097390] font-semibold text-sm transition-all hover:gap-3 cursor-pointer bg-transparent border-0 p-0 mt-2"
+            >
+              Read More
+              <i className="fa-solid fa-arrow-right text-xs"></i>
+            </button>
+          </div>
+
+          {/* Images */}
+          <div className="flex flex-col gap-4">
+            <div
+              onClick={() => onEnlarge && onEnlarge(activeImage, project.images, project.title)}
+              className="rounded-2xl overflow-hidden border border-gray-100 aspect-video shadow-md bg-gray-50 flex items-center justify-center cursor-pointer group relative"
+              title="Click to enlarge image"
+            >
+              <img
+                src={activeImage}
+                alt={project.title}
+                className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
+                onError={(e) => { e.target.src = '/assets/slider.png' }}
+              />
+              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <span className="bg-black/75 text-white text-xs font-semibold px-3.5 py-2 rounded-full flex items-center gap-2 shadow-lg backdrop-blur-xs">
+                  <i className="fa-solid fa-magnifying-glass-plus text-sm"></i> Click to Enlarge
+                </span>
+              </div>
+            </div>
+
+            {project.images && project.images.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto py-1 scrollbar-thin">
+                {project.images.map((img, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActiveImage(img)}
+                    className={`h-12 w-20 rounded-lg overflow-hidden border-2 flex-shrink-0 transition-all ${
+                      activeImage === img ? 'border-[#0a85a7] scale-105 shadow-sm' : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <img src={img} alt={`Thumb ${i}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-/* -------------------- Portfolio: Section (grid) -------------------- */
-function PortfolioSection() {
+/* -------------------- Portfolio Section -------------------- */
+function PortfolioSlider() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [selectedProject, setSelectedProject] = useState(null);
+  const [modalState, setModalState] = useState({ isOpen: false, image: '', images: [], title: '' });
+  const [detailProject, setDetailProject] = useState(null);
+  const sliderRef = useRef(null);
 
-  const fetchProjects = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const res = await axios.get(`${API_BASE_URL}/projects`);
-      setProjects(Array.isArray(res.data) ? res.data : []);
-    } catch (err) {
-      console.error('Error loading portfolio:', err);
-      setError('Unable to load portfolio. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/projects`);
+        setProjects(res.data);
+      } catch (err) {
+        console.error('Error loading portfolio projects:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProjects();
+  }, []);
+
+  const handleEnlargeImage = (image, images, title) => {
+    setModalState({
+      isOpen: true,
+      image,
+      images: images && images.length > 0 ? images : [image],
+      title
+    });
   };
 
-  useEffect(() => { fetchProjects(); }, []);
+  const handleCloseModal = () => {
+    setModalState({ isOpen: false, image: '', images: [], title: '' });
+  };
+
+  if (loading) {
+    return (
+      <section className="py-20 bg-[#35d9e1]/70">
+        <div className="max-w-7xl mx-auto px-4 text-center text-gray-800 font-bold text-lg">
+          Loading portfolio...
+        </div>
+      </section>
+    );
+  }
+
+  if (projects.length === 0) {
+    return null;
+  }
+
+  const displayProjects = projects;
+
+  const settings = {
+    infinite: displayProjects.length > 1,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    dots: false,
+    autoplay: false,
+    arrows: false,
+    centerMode: false,
+    initialSlide: 0
+  };
 
   return (
     <>
@@ -225,68 +352,57 @@ function PortfolioSection() {
             </div>
           </div>
 
-          {/* Loading skeleton */}
-          {loading && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="bg-white rounded-3xl shadow-lg overflow-hidden animate-pulse">
-                  <div className="aspect-[4/3] bg-gray-100" />
-                  <div className="p-5 space-y-3">
-                    <div className="h-5 w-3/4 bg-gray-200 rounded" />
-                    <div className="h-3 w-full bg-gray-100 rounded" />
-                    <div className="h-3 w-5/6 bg-gray-100 rounded" />
-                    <div className="h-4 w-24 bg-gray-200 rounded mt-2" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <div className="relative mt-12 px-4 md:px-12">
+            {displayProjects.length > 1 && (
+              <>
+                <button
+                  onClick={() => sliderRef.current?.slickPrev()}
+                  className="absolute left-0 md:left-2 top-1/2 -translate-y-1/2 bg-white hover:bg-gray-100 text-gray-800 h-12 w-12 rounded-full flex items-center justify-center shadow-lg border border-gray-200 transition-all z-10 active:scale-95"
+                  title="Previous Project"
+                >
+                  <i className="fa-solid fa-chevron-left text-lg"></i>
+                </button>
 
-          {/* Error */}
-          {!loading && error && (
-            <div className="mt-10 max-w-xl mx-auto text-center bg-white rounded-2xl shadow-md p-8 border border-red-100">
-              <i className="fa-solid fa-triangle-exclamation text-red-500 text-3xl mb-3"></i>
-              <p className="text-gray-700 font-medium mb-4">{error}</p>
-              <button
-                onClick={fetchProjects}
-                className="bg-[#0a85a7] hover:bg-[#097390] text-white px-6 py-2.5 rounded-lg font-semibold text-sm transition cursor-pointer"
-              >
-                Retry
-              </button>
-            </div>
-          )}
+                <button
+                  onClick={() => sliderRef.current?.slickNext()}
+                  className="absolute right-0 md:right-2 top-1/2 -translate-y-1/2 bg-white hover:bg-gray-100 text-gray-800 h-12 w-12 rounded-full flex items-center justify-center shadow-lg border border-gray-200 transition-all z-10 active:scale-95"
+                  title="Next Project"
+                >
+                  <i className="fa-solid fa-chevron-right text-lg"></i>
+                </button>
+              </>
+            )}
 
-          {/* Empty */}
-          {!loading && !error && projects.length === 0 && (
-            <div className="mt-10 max-w-xl mx-auto text-center bg-white rounded-2xl shadow-md p-10 border border-[#e2eff2]">
-              <i className="fa-regular fa-folder-open text-[#0a85a7] text-4xl mb-4"></i>
-              <h3 className="text-xl font-bold text-[#086B87] mb-2">Portfolio coming soon</h3>
-              <p className="text-gray-600 text-sm">
-                We're curating our latest projects. Check back shortly to see what we've been building.
-              </p>
+            <div className="slider-container mt-10">
+              <Slider ref={sliderRef} {...settings} className="testimonial-slider">
+                {displayProjects.map((project) => (
+                  <ProjectCard
+                    key={project._id}
+                    project={project}
+                    onEnlarge={handleEnlargeImage}
+                    onReadMore={setDetailProject}
+                  />
+                ))}
+              </Slider>
             </div>
-          )}
-
-          {/* Grid of compact cards */}
-          {!loading && !error && projects.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
-              {projects.map((project) => (
-                <ProjectCard
-                  key={project._id}
-                  project={project}
-                  onReadMore={setSelectedProject}
-                />
-              ))}
-            </div>
-          )}
+          </div>
         </div>
       </section>
 
-      {/* Detail modal */}
+      {/* Image Lightbox */}
+      <ImageLightboxModal
+        isOpen={modalState.isOpen}
+        image={modalState.image}
+        images={modalState.images}
+        title={modalState.title}
+        onClose={handleCloseModal}
+      />
+
+      {/* Project Detail Modal (Read More) */}
       <ProjectDetailModal
-        isOpen={!!selectedProject}
-        project={selectedProject}
-        onClose={() => setSelectedProject(null)}
+        isOpen={!!detailProject}
+        project={detailProject}
+        onClose={() => setDetailProject(null)}
       />
     </>
   );
@@ -402,7 +518,6 @@ export default function AboutUs() {
     <div className="min-h-screen bg-white">
       <Navbar />
 
-      {/* Hero Header Section */}
       <PageHeader
         title="About Us"
         description="Turning complex ideas into powerful, real-world results"
@@ -422,7 +537,7 @@ export default function AboutUs() {
             </p>
           </div>
 
-          <div className="flex justify-center max-w-5xl mx-auto" style={{ maxWidth: "600px" }}>
+          <div className="flex justify-center max-w-5xl mx-auto" style={{maxWidth:"600px"}}>
             <img
               src="/team/Group 48095451.png"
               alt="Leadership Team"
@@ -435,7 +550,6 @@ export default function AboutUs() {
       {/* Meet Our Experts Section */}
       <section className="py-24 bg-[#f4fbfc] relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Section Header */}
           <div className="text-center mb-16">
             <span className="text-[#086B87] font-bold text-sm sm:text-base tracking-widest uppercase mb-2 inline-block font-sans">
               OUR TEAM
@@ -448,10 +562,9 @@ export default function AboutUs() {
             </p>
           </div>
 
-          {/* Team Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {teamMembers.map((member, idx) => {
-              const isLastCentered = idx === 9; // Hassan Basra (10th item)
+              const isLastCentered = idx === 9;
               return (
                 <div
                   key={idx}
@@ -459,7 +572,6 @@ export default function AboutUs() {
                     isLastCentered ? 'lg:col-start-2' : ''
                   }`}
                 >
-                  {/* Avatar */}
                   <div className="w-32 h-32 sm:w-36 sm:h-36 shrink-0 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 shadow-xs">
                     <img
                       src={member.image}
@@ -467,8 +579,6 @@ export default function AboutUs() {
                       className="w-full h-full object-cover"
                     />
                   </div>
-
-                  {/* Info */}
                   <div className="text-left flex-1 min-w-0">
                     <h3 className="text-xl font-bold text-gray-900 mb-3 tracking-tight">
                       {member.name}
@@ -527,7 +637,6 @@ export default function AboutUs() {
               Our Core Values
             </p>
           </div>
-
           <div className="flex justify-center mt-12">
             <img
               src="/assets/aboutsec.png"
@@ -549,7 +658,6 @@ export default function AboutUs() {
               Trusted by Industry Leaders
             </p>
           </div>
-
           <div className="flex justify-center mt-12">
             <img
               src="/team/Group 48095430.png"
@@ -560,12 +668,8 @@ export default function AboutUs() {
         </div>
       </section>
 
-      {/* Testimonials Slider */}
       <TestimonialSlider />
-
-      {/* Portfolio Section */}
-      <PortfolioSection />
-
+      <PortfolioSlider />
       <Footer />
     </div>
   )
