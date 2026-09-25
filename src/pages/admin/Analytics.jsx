@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import axios from 'axios'
 import {
@@ -29,8 +29,16 @@ const fmtDuration = (ms = 0) => {
 }
 const fmtDateTime = (d) => (d ? new Date(d).toLocaleString() : '—')
 
+/* Auth header helper — reads the same token your admin login stores */
+const authHeaders = () => {
+  const token = localStorage.getItem('token')
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
+
 const api = (type, extra = '') =>
-  axios.get(`${ANALYTICS_URL}/analytics?type=${type}${extra}`).then((r) => r.data)
+  axios
+    .get(`${ANALYTICS_URL}/analytics?type=${type}${extra}`, { headers: authHeaders() })
+    .then((r) => r.data)
 
 /* ================= small inline components ================= */
 function BreakdownCard({ title, loading, data }) {
@@ -91,6 +99,7 @@ export default function Analytics() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [q, setQ] = useState('')
+  const [reloadKey, setReloadKey] = useState(0)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -113,7 +122,7 @@ export default function Analytics() {
         setSummary(s)
         setSeries(ts)
         setBreakdowns(b)
-        setVisitors(v)
+        setVisitors(Array.isArray(v) ? v : [])
       } catch (err) {
         console.error(err)
         if (!cancelled) setError('Failed to load analytics data.')
@@ -122,14 +131,16 @@ export default function Analytics() {
       }
     })()
     return () => { cancelled = true }
-  }, [range])
+  }, [range, reloadKey])
+
+  const refresh = useCallback(() => setReloadKey((k) => k + 1), [])
 
   const filteredVisitors = useMemo(() => {
     const term = q.trim().toLowerCase()
     if (!term) return visitors
     return visitors.filter((v) =>
       [v.ip, v.country, v.city, v.browser, v.os, v.visitor_id, v.device]
-        .some((f) => (f || '').toLowerCase().includes(term))
+        .some((f) => (f || '').toString().toLowerCase().includes(term))
     )
   }, [q, visitors])
 
@@ -139,17 +150,23 @@ export default function Analytics() {
         title="Analytics"
         description="Understand who visits your website and how they interact with it."
         actions={
-          <div className="flex flex-wrap gap-1 bg-white border border-line rounded-lg p-1">
-            {RANGES.map((r) => (
-              <button
-                key={r.key}
-                onClick={() => setRange(r.key)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition
-                  ${range === r.key ? 'bg-brand-600 text-white' : 'text-ink-muted hover:bg-gray-50'}`}
-              >
-                {r.label}
-              </button>
-            ))}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap gap-1 bg-white border border-line rounded-lg p-1">
+              {RANGES.map((r) => (
+                <button
+                  key={r.key}
+                  onClick={() => setRange(r.key)}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition
+                    ${range === r.key ? 'bg-brand-600 text-white' : 'text-ink-muted hover:bg-gray-50'}`}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+            <Button variant="ghost" size="sm" onClick={refresh} disabled={loading}>
+              <i className="fa-solid fa-rotate-right mr-1.5"></i>
+              Refresh
+            </Button>
           </div>
         }
       />
@@ -355,7 +372,8 @@ export function VisitorDetail() {
       setError('')
       try {
         const res = await axios.get(
-          `${ANALYTICS_URL}/analytics?type=visitor&id=${visitorId}`
+          `${ANALYTICS_URL}/analytics?type=visitor&id=${visitorId}`,
+          { headers: authHeaders() }
         )
         if (!cancelled) setData(res.data)
       } catch (err) {

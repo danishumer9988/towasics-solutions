@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { API_BASE_URL } from '../config'
 
@@ -32,6 +32,74 @@ const countries = [
   { name: 'United Kingdom', short: 'GB', code: '+44' },
 ]
 
+/* ------------------------------ Toast ------------------------------ */
+function Toast({ toast, onClose }) {
+  useEffect(() => {
+    if (!toast) return
+    const timer = setTimeout(onClose, 3500)
+    return () => clearTimeout(timer)
+  }, [toast, onClose])
+
+  if (!toast) return null
+
+  const isSuccess = toast.type === 'success'
+
+  return (
+    <>
+      <style>{`
+        @keyframes toastSlideIn {
+          from { opacity: 0; transform: translateX(24px) scale(0.96); }
+          to   { opacity: 1; transform: translateX(0) scale(1); }
+        }
+        .toast-anim { animation: toastSlideIn 0.28s cubic-bezier(0.22, 1, 0.36, 1); }
+      `}</style>
+
+      <div className="fixed top-6 right-6 z-[9999] toast-anim">
+        <div
+          className={`flex items-start gap-3 min-w-[300px] max-w-sm px-5 py-4 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.25)] border bg-white ${
+            isSuccess ? 'border-emerald-100' : 'border-red-100'
+          }`}
+        >
+          <div
+            className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
+              isSuccess ? 'bg-emerald-50' : 'bg-red-50'
+            }`}
+          >
+            {isSuccess ? (
+              <svg className="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            )}
+          </div>
+
+          <div className="flex-1 pt-0.5">
+            <p className={`text-sm font-bold ${isSuccess ? 'text-emerald-600' : 'text-red-600'}`}>
+              {isSuccess ? 'Message Sent' : 'Something Went Wrong'}
+            </p>
+            <p className="text-sm text-gray-500 mt-0.5 leading-snug">{toast.message}</p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-gray-300 hover:text-gray-500 transition-colors cursor-pointer -mr-1 -mt-0.5"
+            aria-label="Close notification"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
+
+/* --------------------------- Main Component --------------------------- */
 export default function ContactPageForm() {
   const [formData, setFormData] = useState({
     name: '',
@@ -42,6 +110,9 @@ export default function ContactPageForm() {
     phone: '',
     message: ''
   })
+
+  const [submitting, setSubmitting] = useState(false)
+  const [toast, setToast] = useState(null)
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -60,10 +131,13 @@ export default function ContactPageForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (submitting) return
+
+    setSubmitting(true)
     try {
       const res = await axios.post(`${API_BASE_URL}/contact`, formData)
       if (res.status === 200 || res.status === 201) {
-        alert('✅ Message sent successfully!')
+        setToast({ type: 'success', message: 'Thanks for reaching out! We will get back to you shortly.' })
         setFormData({
           name: '', email: '', service: '', budget: '',
           country: countries[0], phone: '', message: ''
@@ -71,14 +145,18 @@ export default function ContactPageForm() {
       }
     } catch (err) {
       console.error(err)
-      alert('❌ Something went wrong, please try again.')
+      setToast({ type: 'error', message: 'Please try again in a moment.' })
+    } finally {
+      setSubmitting(false)
     }
   }
 
   return (
     <section className="py-16 bg-[#EFFBFC] w-full font-inter">
+      <Toast toast={toast} onClose={() => setToast(null)} />
+
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Header Titles (Left Aligned) */}
         <div className="flex flex-col items-start text-left mb-10">
           <p className="text-[#3EB5D6] font-bold text-sm mb-1 tracking-wide">
@@ -95,7 +173,7 @@ export default function ContactPageForm() {
 
         {/* 2-Column Split: Form (Left) & Office Cards (Right) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
+
           {/* Left Column: Form */}
           <div className="lg:col-span-6 space-y-4">
             <form className="space-y-4" onSubmit={handleSubmit}>
@@ -105,15 +183,17 @@ export default function ContactPageForm() {
                 placeholder="your name"
                 value={formData.name}
                 onChange={handleChange}
+                required
                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#3EB5D6] transition"
               />
-              
+
               <input
                 type="email"
                 name="email"
                 placeholder="you@company.com"
                 value={formData.email}
                 onChange={handleChange}
+                required
                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#3EB5D6] transition"
               />
 
@@ -122,10 +202,11 @@ export default function ContactPageForm() {
                   name="service"
                   value={formData.service}
                   onChange={handleChange}
+                  required
                   className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#3EB5D6] appearance-none cursor-pointer pr-10"
                 >
                   <option value="" disabled hidden>Select a services</option>
-                  <option value="">Select a services</option>
+                  <option value="" disabled>Select a services</option>
                   <option>Bulk Data Scraping</option>
                   <option>Custom Web Scraping Software</option>
                   <option>Web Automation Bots</option>
@@ -148,10 +229,11 @@ export default function ContactPageForm() {
                   name="budget"
                   value={formData.budget}
                   onChange={handleChange}
+                  required
                   className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#3EB5D6] appearance-none cursor-pointer pr-10"
                 >
                   <option value="" disabled hidden>Select your estimated budget</option>
-                  <option value="">Select your estimated budget</option>
+                  <option value="" disabled>Select your estimated budget</option>
                   <option>$0 - $500</option>
                   <option>$501 - $1000</option>
                   <option>$1001 - $5000</option>
@@ -189,6 +271,7 @@ export default function ContactPageForm() {
                   placeholder="+1 (555) 000-0000"
                   value={formData.phone}
                   onChange={handlePhoneChange}
+                  required
                   className="flex-1 px-4 py-3 bg-transparent text-gray-800 text-sm font-medium focus:outline-none placeholder-gray-400"
                 />
               </div>
@@ -199,19 +282,21 @@ export default function ContactPageForm() {
                 placeholder="project brief"
                 value={formData.message}
                 onChange={handleChange}
+                required
                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#3EB5D6] resize-none transition"
               />
 
               <button
                 type="submit"
-                className="w-full py-3.5 bg-[#0a85a7] hover:bg-[#097390] text-white font-semibold text-sm rounded-lg transition shadow-md cursor-pointer"
+                disabled={submitting}
+                className="w-full py-3.5 bg-[#0a85a7] text-white font-semibold text-sm rounded-lg shadow-md cursor-pointer transition-all duration-150 ease-out active:scale-[0.97] active:bg-[#097390] disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
               >
-                Send message
+                {submitting ? 'Sending...' : 'Send message'}
               </button>
             </form>
           </div>
 
-          {/* Right Column: 3 Office Location Cards (Matching Design Image) */}
+          {/* Right Column: 3 Office Location Cards */}
           <div className="lg:col-span-6 space-y-4">
             {/* Texas Card */}
             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-4">

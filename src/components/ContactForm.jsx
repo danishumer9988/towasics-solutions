@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
 import { API_BASE_URL } from '../config'
 
@@ -74,6 +74,72 @@ const ChevronIcon = () => (
   </div>
 )
 
+/* ------------------------------ Toast ------------------------------ */
+function Toast({ toast, onClose }) {
+  useEffect(() => {
+    if (!toast) return
+    const timer = setTimeout(onClose, 3500)
+    return () => clearTimeout(timer)
+  }, [toast, onClose])
+
+  const isSuccess = toast?.type === 'success'
+
+  return (
+    <AnimatePresence>
+      {toast && (
+        <motion.div
+          initial={{ opacity: 0, x: 40, scale: 0.95 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          exit={{ opacity: 0, x: 40, scale: 0.95 }}
+          transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+          className="fixed top-6 right-6 z-[9999]"
+        >
+          <div
+            className={`flex items-start gap-3 min-w-[300px] max-w-sm px-5 py-4 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.25)] border bg-white ${
+              isSuccess ? 'border-emerald-100' : 'border-red-100'
+            }`}
+          >
+            <div
+              className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
+                isSuccess ? 'bg-emerald-50' : 'bg-red-50'
+              }`}
+            >
+              {isSuccess ? (
+                <svg className="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              )}
+            </div>
+
+            <div className="flex-1 pt-0.5">
+              <p className={`text-sm font-bold ${isSuccess ? 'text-emerald-600' : 'text-red-600'}`}>
+                {isSuccess ? 'Message Sent' : 'Something Went Wrong'}
+              </p>
+              <p className="text-sm text-gray-500 mt-0.5 leading-snug">{toast.message}</p>
+            </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-gray-300 hover:text-gray-500 transition-colors cursor-pointer -mr-1 -mt-0.5"
+              aria-label="Close notification"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
+
+/* --------------------------- Main Component --------------------------- */
 export default function ContactForm() {
   const [formData, setFormData] = useState({
     name: '',
@@ -84,6 +150,9 @@ export default function ContactForm() {
     phone: '',
     message: ''
   })
+
+  const [submitting, setSubmitting] = useState(false)
+  const [toast, setToast] = useState(null)
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -102,10 +171,13 @@ export default function ContactForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (submitting) return
+
+    setSubmitting(true)
     try {
       const res = await axios.post(`${API_BASE_URL}/contact`, formData)
       if (res.status === 200 || res.status === 201) {
-        alert('✅ Message sent successfully!')
+        setToast({ type: 'success', message: 'Thanks for reaching out! We will get back to you shortly.' })
         setFormData({
           name: '', email: '', service: '', budget: '',
           country: countries[0], phone: '', message: ''
@@ -113,7 +185,9 @@ export default function ContactForm() {
       }
     } catch (err) {
       console.error(err)
-      alert('❌ Something went wrong, please try again.')
+      setToast({ type: 'error', message: 'Please try again in a moment.' })
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -125,6 +199,8 @@ export default function ContactForm() {
       viewport={{ once: true, amount: 0.3 }}
       variants={containerVariants}
     >
+      <Toast toast={toast} onClose={() => setToast(null)} />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <motion.div variants={itemVariants}>
@@ -148,6 +224,7 @@ export default function ContactForm() {
                 placeholder="your name"
                 value={formData.name}
                 onChange={handleChange}
+                required
                 className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 text-base focus:outline-none focus:border-[#1aa4ac] transition-colors"
               />
 
@@ -157,6 +234,7 @@ export default function ContactForm() {
                 placeholder="you@company.com"
                 value={formData.email}
                 onChange={handleChange}
+                required
                 className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 text-base focus:outline-none focus:border-[#1aa4ac] transition-colors"
               />
 
@@ -166,9 +244,10 @@ export default function ContactForm() {
                   name="service"
                   value={formData.service}
                   onChange={handleChange}
+                  required
                   className={selectClass}
                 >
-                  <option value="">Select a service</option>
+                  <option value="" disabled>Select a service</option>
                   {services.map((service) => (
                     <option key={service} value={service}>
                       {service}
@@ -184,9 +263,10 @@ export default function ContactForm() {
                   name="budget"
                   value={formData.budget}
                   onChange={handleChange}
+                  required
                   className={selectClass}
                 >
-                  <option value="">Select your estimated budget</option>
+                  <option value="" disabled>Select your estimated budget</option>
                   {budgets.map((budget) => (
                     <option key={budget} value={budget}>
                       {budget}
@@ -222,6 +302,7 @@ export default function ContactForm() {
                   placeholder="(555) 000-0000"
                   value={formData.phone}
                   onChange={handlePhoneChange}
+                  required
                   className="flex-1 px-4 py-3.5 bg-transparent text-gray-800 text-base focus:outline-none placeholder-gray-400"
                 />
               </div>
@@ -232,16 +313,18 @@ export default function ContactForm() {
                 placeholder="project brief"
                 value={formData.message}
                 onChange={handleChange}
+                required
                 className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 text-base focus:outline-none focus:border-[#1aa4ac] resize-none transition-colors"
               />
 
               <motion.button
                 type="submit"
-                className="w-full py-4 bg-[#0a85a7] hover:bg-[#097390] text-white font-medium text-base rounded-xl cursor-pointer transition-colors shadow-sm mt-2"
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
+                disabled={submitting}
+                className="w-full py-4 bg-[#0a85a7] text-white font-medium text-base rounded-xl cursor-pointer transition-colors shadow-sm mt-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                whileTap={{ scale: 0.97 }}
+                transition={{ duration: 0.1 }}
               >
-                Send message
+                {submitting ? 'Sending...' : 'Send message'}
               </motion.button>
             </motion.form>
           </motion.div>
