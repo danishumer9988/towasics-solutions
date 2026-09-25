@@ -6,9 +6,10 @@ const STS  = 'an_sid_ts'
 const TTL  = 30 * 60 * 1000 // 30 min session window
 const DISABLED = !ANALYTICS_URL || typeof window === 'undefined'
 
-// 16-char hex instead of 36-char UUID — saves 40 bytes per row across 4 collections
+/* Short 16-char ID instead of 36-char UUID → saves ~40 bytes per row × 4 collections */
 const uuid = () =>
-  Array.from({ length: 16 }, () => Math.floor(Math.random() * 16).toString(16)).join('')
+  (crypto?.randomUUID?.().replace(/-/g, '').slice(0, 16)) ||
+  'xxxxxxxxxxxxxxxx'.replace(/x/g, () => ((Math.random() * 16) | 0).toString(16))
 
 const visitorId = () => {
   let v = localStorage.getItem(VKEY)
@@ -28,22 +29,31 @@ const sessionId = () => {
   return s
 }
 
+/* ------------------------------------------------------------
+   Reliable cross-origin post:
+   - fetch + keepalive (survives unload, unlike sendBeacon w/ JSON)
+   - falls back to text/plain beacon only if fetch throws
+   ------------------------------------------------------------ */
 const post = (body) => {
   if (DISABLED) return
   const url = `${ANALYTICS_URL}/track`
   const json = JSON.stringify(body)
+
   try {
-    if (navigator.sendBeacon) {
-      navigator.sendBeacon(url, new Blob([json], { type: 'application/json' }))
-      return
-    }
     fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: json,
       keepalive: true,
+      mode: 'cors',
+      credentials: 'omit',
     }).catch(() => {})
-  } catch { /* noop */ }
+  } catch {
+    // Last-ditch: fire-and-forget beacon (some very old browsers)
+    try {
+      if (navigator.sendBeacon) navigator.sendBeacon(url, json)
+    } catch { /* noop */ }
+  }
 }
 
 export const trackPageView = () => {
@@ -71,20 +81,32 @@ export const trackEvent = (type, data = {}) => {
   })
 }
 
+/* ------------------------------------------------------------
+   Click tracking — bound once, capture-phase, robust to
+   text-node targets, React Links, and dynamically added elements
+   ------------------------------------------------------------ */
 let bound = false
 export const initClickTracking = () => {
   if (DISABLED || bound) return
   bound = true
 
   document.addEventListener('click', (e) => {
-    const el = e.target.closest('a, button, [data-track]')
-    if (!el) return
-    const href = el.getAttribute?.('href') || ''
+    // Walk up from whatever was clicked until we hit a trackable node
+    let el = e.target
+    if (!el || typeof el.closest !== 'function') {
+      el = el?.parentElement
+    }
+    const target = el?.closest?.('a, button, [data-track]')
+    if (!target) return
+
+    const href = target.getAttribute?.('href') || ''
     if (href.startsWith('javascript:')) return
 
+    const text = (target.innerText || target.textContent || '').trim().slice(0, 60)
+
     trackEvent('click', {
-      element: el.tagName.toLowerCase(),
-      text: (el.innerText || el.textContent || '').trim().slice(0, 80),
+      element: target.tagName.toLowerCase(),
+      text,
       destination: href,
     })
   }, { capture: true })

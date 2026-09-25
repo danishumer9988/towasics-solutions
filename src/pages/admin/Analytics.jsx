@@ -28,8 +28,8 @@ const fmtDuration = (ms = 0) => {
   return `${Math.floor(s / 60)}m ${s % 60}s`
 }
 const fmtDateTime = (d) => (d ? new Date(d).toLocaleString() : '—')
+const fmtPct = (n) => `${Math.round((n || 0) * 100)}%`
 
-/* Auth header helper — reads the same token your admin login stores */
 const authHeaders = () => {
   const token = localStorage.getItem('token')
   return token ? { Authorization: `Bearer ${token}` } : {}
@@ -40,7 +40,7 @@ const api = (type, extra = '') =>
     .get(`${ANALYTICS_URL}/analytics?type=${type}${extra}`, { headers: authHeaders() })
     .then((r) => r.data)
 
-/* ================= small inline components ================= */
+/* ================= small components ================= */
 function BreakdownCard({ title, loading, data }) {
   const chartData = (data || []).map((d) => ({ name: d._id || 'Unknown', value: d.count }))
   return (
@@ -54,14 +54,8 @@ function BreakdownCard({ title, loading, data }) {
         <div className="p-5">
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
-              <Pie
-                data={chartData}
-                dataKey="value"
-                nameKey="name"
-                innerRadius={42}
-                outerRadius={72}
-                paddingAngle={2}
-              >
+              <Pie data={chartData} dataKey="value" nameKey="name"
+                innerRadius={42} outerRadius={72} paddingAngle={2}>
                 {chartData.map((_, i) => (
                   <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                 ))}
@@ -73,10 +67,8 @@ function BreakdownCard({ title, loading, data }) {
             {chartData.slice(0, 5).map((d, i) => (
               <li key={d.name} className="flex items-center justify-between text-xs">
                 <span className="flex items-center gap-2 text-ink-muted">
-                  <span
-                    className="w-2 h-2 rounded-full"
-                    style={{ background: PIE_COLORS[i % PIE_COLORS.length] }}
-                  />
+                  <span className="w-2 h-2 rounded-full"
+                    style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
                   {d.name}
                 </span>
                 <span className="text-ink font-medium">{d.value}</span>
@@ -84,6 +76,30 @@ function BreakdownCard({ title, loading, data }) {
             ))}
           </ul>
         </div>
+      )}
+    </Card>
+  )
+}
+
+function ListCard({ title, subtitle, loading, items, emptyText }) {
+  return (
+    <Card>
+      <CardHeader title={title} subtitle={subtitle} />
+      {loading ? (
+        <TableSkeleton rows={5} cols={2} />
+      ) : !items?.length ? (
+        <EmptyState icon="fa-list" title={emptyText || 'No data yet.'} />
+      ) : (
+        <ul className="divide-y divide-line">
+          {items.map((p) => (
+            <li key={p._id} className="px-5 py-3 flex items-center justify-between gap-3">
+              <span className="text-sm text-ink truncate">{p._id || '/'}</span>
+              <span className="text-xs text-ink-muted shrink-0">
+                {p.views ?? p.count} {p.unique !== undefined ? `· ${p.unique} unique` : ''}
+              </span>
+            </li>
+          ))}
+        </ul>
       )}
     </Card>
   )
@@ -113,10 +129,10 @@ export default function Analytics() {
       setError('')
       try {
         const [s, ts, b, v] = await Promise.all([
-          api('summary',     `&range=${range}`),
-          api('timeseries',  `&range=${range}`),
-          api('breakdowns',  `&range=${range}`),
-          api('visitors',    `&range=${range}`),
+          api('summary',    `&range=${range}`),
+          api('timeseries', `&range=${range}`),
+          api('breakdowns', `&range=${range}`),
+          api('visitors',   `&range=${range}`),
         ])
         if (cancelled) return
         setSummary(s)
@@ -151,14 +167,17 @@ export default function Analytics() {
         description="Understand who visits your website and how they interact with it."
         actions={
           <div className="flex flex-wrap items-center gap-2">
+            {!loading && summary && (
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 text-xs font-medium text-emerald-700">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                {summary.activeNow || 0} active now
+              </span>
+            )}
             <div className="flex flex-wrap gap-1 bg-white border border-line rounded-lg p-1">
               {RANGES.map((r) => (
-                <button
-                  key={r.key}
-                  onClick={() => setRange(r.key)}
+                <button key={r.key} onClick={() => setRange(r.key)}
                   className={`px-3 py-1.5 text-xs font-medium rounded-md transition
-                    ${range === r.key ? 'bg-brand-600 text-white' : 'text-ink-muted hover:bg-gray-50'}`}
-                >
+                    ${range === r.key ? 'bg-brand-600 text-white' : 'text-ink-muted hover:bg-gray-50'}`}>
                   {r.label}
                 </button>
               ))}
@@ -173,14 +192,12 @@ export default function Analytics() {
 
       {error && (
         <div className="mb-4">
-          <Card>
-            <div className="p-4 text-sm text-red-600">{error}</div>
-          </Card>
+          <Card><div className="p-4 text-sm text-red-600">{error}</div></Card>
         </div>
       )}
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+      {/* Primary stat cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
         {loading || !summary ? (
           Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-28" />)
         ) : (
@@ -194,6 +211,20 @@ export default function Analytics() {
         )}
       </div>
 
+      {/* Advanced stat cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {loading || !summary ? (
+          Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24" />)
+        ) : (
+          <>
+            <StatCard label="Bounce Rate"        value={fmtPct(summary.bounceRate)}        icon="fa-arrow-right-from-bracket" tone="warning" />
+            <StatCard label="New Visitors"       value={summary.newVisitors}               icon="fa-user-plus"                tone="success" />
+            <StatCard label="Returning Visitors" value={summary.returningVisitors}         icon="fa-rotate-right"             tone="info" />
+            <StatCard label="Avg. Pages/Session" value={summary.avgPagesPerSession}        icon="fa-file-lines"               tone="brand" />
+          </>
+        )}
+      </div>
+
       {/* Trend chart */}
       <Card className="mb-6">
         <CardHeader title="Visitors & Page Views Over Time" />
@@ -201,11 +232,9 @@ export default function Analytics() {
           {loading ? (
             <Skeleton className="h-64 w-full" />
           ) : series.length === 0 ? (
-            <EmptyState
-              icon="fa-chart-line"
+            <EmptyState icon="fa-chart-line"
               title="No visitor activity recorded yet."
-              description="Data will appear here once visitors reach your public site."
-            />
+              description="Data will appear here once visitors reach your public site." />
           ) : (
             <ResponsiveContainer width="100%" height={280}>
               <AreaChart data={series} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
@@ -231,55 +260,73 @@ export default function Analytics() {
         </div>
       </Card>
 
-      {/* Breakdown charts */}
+      {/* Hourly activity */}
+      <Card className="mb-6">
+        <CardHeader title="Hourly Activity" subtitle="Page views by hour of day" />
+        <div className="p-5">
+          {loading ? (
+            <Skeleton className="h-56 w-full" />
+          ) : !breakdowns?.hourly?.some((h) => h.count > 0) ? (
+            <EmptyState icon="fa-clock" title="No hourly data yet." />
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={breakdowns.hourly}>
+                <CartesianGrid vertical={false} stroke="#E5E7EB" />
+                <XAxis dataKey="hour" tick={{ fontSize: 11 }} stroke="#98A2B3"
+                  tickFormatter={(h) => `${h}:00`} />
+                <YAxis tick={{ fontSize: 11 }} stroke="#98A2B3" />
+                <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #E5E7EB', fontSize: 12 }}
+                  labelFormatter={(h) => `${h}:00 – ${h}:59`} />
+                <Bar dataKey="count" fill="#1AA7AD" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </Card>
+
+      {/* Pie breakdowns */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <BreakdownCard title="Devices"           loading={loading} data={breakdowns?.devices} />
         <BreakdownCard title="Browsers"          loading={loading} data={breakdowns?.browsers} />
         <BreakdownCard title="Operating Systems" loading={loading} data={breakdowns?.os} />
       </div>
 
+      {/* Top pages / referrers / entry / exit */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <Card>
-          <CardHeader title="Top Pages" subtitle="Most visited routes" />
-          {loading ? (
-            <TableSkeleton rows={5} cols={3} />
-          ) : !breakdowns?.topPages?.length ? (
-            <EmptyState icon="fa-file" title="No page views yet." />
-          ) : (
-            <ul className="divide-y divide-line">
-              {breakdowns.topPages.map((p) => (
-                <li key={p._id} className="px-5 py-3 flex items-center justify-between gap-3">
-                  <span className="text-sm text-ink truncate">{p._id || '/'}</span>
-                  <span className="text-xs text-ink-muted shrink-0">
-                    {p.views} views · {p.unique} unique
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-
-        <Card>
-          <CardHeader title="Visitors per Browser" />
-          {loading ? (
-            <Skeleton className="h-64 m-5" />
-          ) : !breakdowns?.browsers?.length ? (
-            <EmptyState icon="fa-chart-bar" title="No browser data yet." />
-          ) : (
-            <div className="p-5">
-              <ResponsiveContainer width="100%" height={240}>
-                <BarChart data={breakdowns.browsers.map((c) => ({ name: c._id || 'Other', count: c.count }))}>
-                  <CartesianGrid vertical={false} stroke="#E5E7EB" />
-                  <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="#98A2B3" />
-                  <YAxis tick={{ fontSize: 11 }} stroke="#98A2B3" />
-                  <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #E5E7EB', fontSize: 12 }} />
-                  <Bar dataKey="count" fill="#086B87" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </Card>
+        <ListCard title="Top Pages"    subtitle="Most visited routes" loading={loading}
+          items={breakdowns?.topPages} />
+        <ListCard title="Top Referrers" subtitle="Where visitors come from" loading={loading}
+          items={breakdowns?.referrers} emptyText="No referrer data yet." />
       </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <ListCard title="Entry Pages" subtitle="Where sessions begin" loading={loading}
+          items={breakdowns?.entryPages} emptyText="No entry data yet." />
+        <ListCard title="Exit Pages"  subtitle="Where sessions end"   loading={loading}
+          items={breakdowns?.exitPages} emptyText="No exit data yet." />
+      </div>
+
+      {/* Browsers bar chart */}
+      <Card className="mb-6">
+        <CardHeader title="Visitors per Browser" />
+        {loading ? (
+          <Skeleton className="h-64 m-5" />
+        ) : !breakdowns?.browsers?.length ? (
+          <EmptyState icon="fa-chart-bar" title="No browser data yet." />
+        ) : (
+          <div className="p-5">
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart data={breakdowns.browsers.map((c) => ({ name: c._id || 'Other', count: c.count }))}>
+                <CartesianGrid vertical={false} stroke="#E5E7EB" />
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="#98A2B3" />
+                <YAxis tick={{ fontSize: 11 }} stroke="#98A2B3" />
+                <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #E5E7EB', fontSize: 12 }} />
+                <Bar dataKey="count" fill="#086B87" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </Card>
 
       {/* Visitor table */}
       <Card className="overflow-hidden">
@@ -288,11 +335,8 @@ export default function Analytics() {
           subtitle={`${filteredVisitors.length} records`}
           actions={
             <div className="w-64">
-              <Input
-                placeholder="Search IP, browser, OS…"
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-              />
+              <Input placeholder="Search IP, browser, OS…"
+                value={q} onChange={(e) => setQ(e.target.value)} />
             </div>
           }
         />
@@ -322,9 +366,7 @@ export default function Analytics() {
                       <p className="font-medium text-ink truncate max-w-[200px]">{v.ip || 'Unknown IP'}</p>
                       <p className="text-xs text-ink-subtle truncate max-w-[200px]">{v.visitor_id}</p>
                     </td>
-                    <td className="px-5 py-3">
-                      <Badge tone="brand">{v.device || 'unknown'}</Badge>
-                    </td>
+                    <td className="px-5 py-3"><Badge tone="brand">{v.device || 'unknown'}</Badge></td>
                     <td className="px-5 py-3 text-ink-muted hidden md:table-cell">
                       {v.browser || '—'} · {v.os || '—'}
                     </td>
@@ -333,12 +375,8 @@ export default function Analytics() {
                     <td className="px-5 py-3 text-ink-muted hidden md:table-cell">{v.clicks ?? 0}</td>
                     <td className="px-5 py-3 text-ink-muted">{fmtDateTime(v.last_seen)}</td>
                     <td className="px-5 py-3 text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        as={Link}
-                        to={`/admin/analytics/visitor/${v.visitor_id}`}
-                      >
+                      <Button variant="ghost" size="sm" as={Link}
+                        to={`/admin/analytics/visitor/${v.visitor_id}`}>
                         Details
                       </Button>
                     </td>
@@ -353,7 +391,7 @@ export default function Analytics() {
   )
 }
 
-/* ================= VISITOR DETAIL ================= */
+/* ================= VISITOR DETAIL (unchanged from before) ================= */
 export function VisitorDetail() {
   const { visitorId } = useParams()
   const navigate = useNavigate()
@@ -396,10 +434,8 @@ export function VisitorDetail() {
         </Button>
       </div>
 
-      <PageHeader
-        title="Visitor Details"
-        description={visitorId ? `Anonymous visitor ID: ${visitorId}` : ''}
-      />
+      <PageHeader title="Visitor Details"
+        description={visitorId ? `Anonymous visitor ID: ${visitorId}` : ''} />
 
       {error && <Card><div className="p-6 text-red-600 text-sm">{error}</div></Card>}
 
@@ -438,9 +474,8 @@ export function VisitorDetail() {
                 ['OS',       data.visitor?.os || '—'],
                 ['Screen',   data.visitor?.screen_w ? `${data.visitor.screen_w} × ${data.visitor.screen_h}` : '—'],
                 ['Viewport', data.visitor?.viewport_w ? `${data.visitor.viewport_w} × ${data.visitor.viewport_h}` : '—'],
-                ['User Agent', data.visitor?.user_agent || '—'],
               ].map(([k, v]) => (
-                <div key={k} className={k === 'User Agent' ? 'col-span-2 md:col-span-4' : ''}>
+                <div key={k}>
                   <p className="text-xs uppercase tracking-wide text-ink-subtle font-medium">{k}</p>
                   <p className="text-ink mt-1 break-all">{v}</p>
                 </div>
@@ -524,7 +559,7 @@ export function VisitorDetail() {
                         <td className="px-5 py-3 text-ink-muted whitespace-nowrap">{fmtDateTime(p.timestamp)}</td>
                         <td className="px-5 py-3 text-ink font-medium">{p.path || '/'}</td>
                         <td className="px-5 py-3 text-ink-muted">{p.title || '—'}</td>
-                        <td className="px-5 py-3 text-ink-muted truncate max-w-[240px]">{p.referrer || '—'}</td>
+                        <td className="px-5 py-3 text-ink-muted truncate max-w-[240px]">{p.ref_host || '—'}</td>
                       </tr>
                     ))}
                   </tbody>
