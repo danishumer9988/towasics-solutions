@@ -15,6 +15,7 @@ export default function ProjectForm({ mode = 'create' }) {
   const [projectNumber, setProjectNumber] = useState('')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [link, setLink] = useState('')
   const [images, setImages] = useState([])
   const [urlInput, setUrlInput] = useState('')
   const [saving, setSaving] = useState(false)
@@ -36,6 +37,7 @@ export default function ProjectForm({ mode = 'create' }) {
         setProjectNumber(p.projectNumber)
         setTitle(p.title)
         setDescription(p.description)
+        setLink(p.link || '')
         setImages(p.images || [])
       } catch (err) {
         console.error(err)
@@ -88,7 +90,13 @@ export default function ProjectForm({ mode = 'create' }) {
       return
     }
     setSaving(true); setError('')
-    const postData = { projectNumber: Number(projectNumber), title, description, images }
+    const postData = {
+      projectNumber: Number(projectNumber),
+      title,
+      description,
+      link: link.trim(),
+      images,
+    }
     try {
       const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       if (isEdit) await axios.put(`${API_BASE_URL}/projects/${id}`, postData, config)
@@ -124,6 +132,18 @@ export default function ProjectForm({ mode = 'create' }) {
                 </Field>
               </div>
             </div>
+
+            <Field label="External Link (optional)">
+              <Input
+                type="url"
+                value={link}
+                onChange={(e) => setLink(e.target.value)}
+                placeholder="https://example.com/case-study"
+              />
+              <p className="text-xs text-ink-subtle mt-1.5">
+                If provided, the "Read More" button on the About page will open this link in a new tab. Leave blank to show the built-in detail modal instead.
+              </p>
+            </Field>
 
             <Field label="Description">
               <Textarea rows={6} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Write project description…" required />
