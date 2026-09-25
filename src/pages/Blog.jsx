@@ -42,7 +42,7 @@ export default function Blog() {
       {/* Welcome To Our Data Scraping Insights Section */}
       <section className="py-12 bg-white max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div className="space-y-4 font-inter w-full mx-auto">
-          <h2 
+          <h2
             className="font-bold text-[20px] sm:text-[24px] capitalize"
             style={{
               fontFamily: 'Inter, sans-serif',
@@ -56,24 +56,7 @@ export default function Blog() {
             Welcome to Our Data Scraping Insights
           </h2>
 
-          <h3 
-            className="font-medium text-[16px] capitalize"
-            style={{
-              fontFamily: 'Inter, sans-serif',
-              fontWeight: 500,
-              fontSize: '16px',
-              lineHeight: '130%',
-              letterSpacing: '0%',
-              textTransform: 'capitalize',
-              color: '#3EB5D6'
-            }}
-          >
-          {/*
-            Towasic Solutions
-          */}
-          </h3>
-
-          <p 
+          <p
             className="font-medium text-[16px] text-slate-600 leading-relaxed max-w-4xl mx-auto"
             style={{
               fontFamily: 'Inter, sans-serif',
@@ -85,7 +68,7 @@ export default function Blog() {
             Welcome to our blog, where we share insights, tips, and trends in data scraping, industry applications, and data-driven strategies. Dive into our latest articles to learn how data can empower your business and keep you ahead of the curve.
           </p>
 
-          <p 
+          <p
             className="font-medium text-[16px] text-slate-600 leading-relaxed pt-1 max-w-4xl mx-auto"
             style={{
               fontFamily: 'Inter, sans-serif',
@@ -116,22 +99,22 @@ export default function Blog() {
               const tempDiv = document.createElement('div')
               tempDiv.innerHTML = blog.content || ''
               const textExcerpt = tempDiv.textContent || tempDiv.innerText || ''
-              
+
               return (
-                <div 
-                  key={blog._id} 
+                <div
+                  key={blog._id}
                   className="bg-white rounded-xl overflow-hidden shadow-lg border border-gray-100 flex flex-col justify-between hover:shadow-2xl transition duration-300"
                 >
                   {/* Top Featured Image */}
                   <div className="h-52 w-full overflow-hidden bg-gray-100">
-                    <img 
-                      src={blog.featuredImage || "/assets/blogimage.png"} 
-                      alt={blog.title} 
-                      className="w-full h-full object-cover" 
+                    <img
+                      src={blog.featuredImage || "/assets/blogimage.png"}
+                      alt={blog.title}
+                      className="w-full h-full object-cover"
                       onError={(e) => { e.target.src = "/assets/blogimage.png" }}
                     />
                   </div>
-                  
+
                   {/* Content Body */}
                   <div className="p-6 flex flex-col flex-grow justify-between">
                     <div>
@@ -142,10 +125,10 @@ export default function Blog() {
                         {textExcerpt}
                       </p>
                     </div>
-                    
+
                     <div>
-                      <Link 
-                        to={`/blogs/${blog.slug}`} 
+                      <Link
+                        to={`/blogs/${blog.slug}`}
                         className="inline-block border border-[#0A85A7] text-[#0A85A7] hover:bg-[#EEFCFD] font-semibold text-sm px-6 py-2 rounded-lg transition"
                       >
                         Read More

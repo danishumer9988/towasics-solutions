@@ -393,8 +393,7 @@ export default function Industries() {
                 <img 
                   src="/assets/section2.png" 
                   alt="webservice" 
-                  className="animate-float max-h-[350px] object-contain" 
-                  style={{ width: "80%" }}
+                  className="animate-float max-h-[550px] w-full object-contain"
                 />
               </motion.div>
             </motion.div>
