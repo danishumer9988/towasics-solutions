@@ -347,10 +347,8 @@ export default function FAQ() {
             Still Have Questions? Visit Our Contact Us Page. We're Here To Help!
           </h3>
 
-          <Link 
-            to="/contactus" 
-            className="inline-block text-[#3EB5D6] hover:text-[#096078] text-xl font-bold transition"
-          >
+          <Link to="/contactus" className="inline-block text-[#3EB5D6] hover:text-[#096078] text-xl font-bold underline transition">
+
             Let's Talk
           </Link>
         </div>
