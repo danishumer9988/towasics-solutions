@@ -259,7 +259,7 @@ export default function Industries() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <motion.div className="flex justify-center" variants={imageVariants}>
               <motion.div whileHover={{ scale: 1.05, rotate: 2, transition: { duration: 0.3 } }}>
-                <img src="/assets/main2.png" alt="webservice" className="animate-float max-h-[460px] lg:max-h-[520px] object-contain transform scale-110 lg:scale-125 origin-center" />
+                <img src="/assets/gaming.png" alt="webservice" className="animate-float max-h-[460px] lg:max-h-[520px] object-contain transform scale-110 lg:scale-125 origin-center" />
               </motion.div>
             </motion.div>
             <motion.div className="space-y-8 text-left" variants={itemVariants}>
@@ -450,7 +450,7 @@ export default function Industries() {
             <motion.div className="flex justify-center" variants={imageVariants}>
               <motion.div whileHover={{ scale: 1.05, rotate: 2, transition: { duration: 0.3 } }}>
                 <img 
-                  src="/assets/brand.png" 
+                  src="/assets/googlemapscraping.png"
                   alt="webservice" 
                   className="animate-float max-h-[400px] object-contain" 
                   style={{ width: "100%" }}
