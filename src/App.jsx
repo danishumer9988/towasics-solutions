@@ -30,7 +30,10 @@ import ProjectEdit from './pages/admin/ProjectEdit'
 import Analytics, { VisitorDetail } from './pages/admin/Analytics'
 
 import WhatsAppButton from './components/WhatsAppButton'
+import CookieConsent from './components/CookieConsent'
 import { trackPageView, initClickTracking } from './lib/analytics'
+
+import VerifyInvite from './pages/admin/VerifyInvite'
 
 /* ---------- Analytics tracker ---------- */
 const SKIP_PREFIXES = [
@@ -58,12 +61,40 @@ function TrackerMount() {
   return null
 }
 
+/* ---------- Admin-route detection helper ---------- */
+function useIsAdminArea() {
+  const { pathname } = useLocation()
+  return (
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/auth') ||
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/blogs') ||
+    pathname.startsWith('/subscriptions') ||
+    pathname.startsWith('/addfaq')
+  )
+}
+
+/* ---------- WhatsApp — hidden on admin/auth routes ---------- */
+function ConditionalWhatsApp() {
+  const isAdminArea = useIsAdminArea()
+  if (isAdminArea) return null
+  return <WhatsAppButton />
+}
+
+/* ---------- Cookie consent — hidden on admin/auth routes ---------- */
+function ConditionalCookieConsent() {
+  const isAdminArea = useIsAdminArea()
+  if (isAdminArea) return null
+  return <CookieConsent />
+}
+
 /* ---------- App ---------- */
 function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
-      <WhatsAppButton />
+      <ConditionalWhatsApp />
+      <ConditionalCookieConsent />
       <TrackerMount />
 
       <Routes>
@@ -96,9 +127,11 @@ function App() {
         <Route path="/subscriptions" element={<Subscriptions />} />
         <Route path="/addfaq" element={<AddFAQ />} />
 
-        {/* Admin — new analytics */}
+        {/* Admin — analytics */}
         <Route path="/admin/analytics" element={<Analytics />} />
         <Route path="/admin/analytics/visitor/:visitorId" element={<VisitorDetail />} />
+
+        <Route path="/admin/verify-invite" element={<VerifyInvite />} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>

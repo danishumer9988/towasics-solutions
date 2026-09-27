@@ -5,6 +5,9 @@ import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
   BarChart, Bar, PieChart, Pie, Cell,
 } from 'recharts'
+import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet'
+import 'leaflet/dist/leaflet.css'
+
 import { ANALYTICS_URL } from '../../config'
 import AdminLayout from '../../components/admin/AdminLayout'
 import {
@@ -21,6 +24,7 @@ const RANGES = [
   { key: '90d',       label: 'Last 90 days' },
 ]
 const PIE_COLORS = ['#086B87', '#1AA7AD', '#44D9E7', '#6FDDEB', '#A5EEF5', '#CBD5E1']
+const ACTIVE_MS = 5 * 60 * 1000
 
 const fmtDuration = (ms = 0) => {
   const s = Math.round(ms / 1000)
@@ -29,6 +33,7 @@ const fmtDuration = (ms = 0) => {
 }
 const fmtDateTime = (d) => (d ? new Date(d).toLocaleString() : '—')
 const fmtPct = (n) => `${Math.round((n || 0) * 100)}%`
+const isActive = (v) => v.last_seen && Date.now() - new Date(v.last_seen).getTime() < ACTIVE_MS
 
 const authHeaders = () => {
   const token = localStorage.getItem('token')
@@ -40,9 +45,89 @@ const api = (type, extra = '') =>
     .get(`${ANALYTICS_URL}/analytics?type=${type}${extra}`, { headers: authHeaders() })
     .then((r) => r.data)
 
-/* ================= small components ================= */
+/* ================= Map ================= */
+function VisitorsMap({ visitors, height = 380 }) {
+  const withCoords = (visitors || []).filter(
+    (v) => typeof v.lat === 'number' && typeof v.lon === 'number'
+  )
+
+  if (withCoords.length === 0) {
+    return (
+      <div
+        className="flex flex-col items-center justify-center text-center bg-gray-50 rounded-lg border border-dashed border-gray-200"
+        style={{ height }}
+      >
+        <i className="fa-solid fa-earth-americas text-3xl text-gray-300 mb-3"></i>
+        <p className="text-sm text-gray-500 font-medium">No location data yet</p>
+        <p className="text-xs text-gray-400 mt-1">
+          Locations appear once visitors grant permission or their IP is resolved
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="rounded-lg overflow-hidden border border-line" style={{ height }}>
+      <MapContainer
+        center={[20, 0]}
+        zoom={2}
+        minZoom={2}
+        maxZoom={12}
+        scrollWheelZoom
+        style={{ height: '100%', width: '100%' }}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+        />
+        {withCoords.map((v) => {
+          const active = isActive(v)
+          return (
+            <CircleMarker
+              key={v.visitor_id}
+              center={[v.lat, v.lon]}
+              radius={active ? 9 : 6}
+              pathOptions={{
+                color: active ? '#10b981' : '#086B87',
+                fillColor: active ? '#10b981' : '#086B87',
+                fillOpacity: active ? 0.85 : 0.5,
+                weight: active ? 3 : 1.5,
+              }}
+            >
+              <Popup>
+                <div style={{ fontSize: 12, lineHeight: 1.5 }}>
+                  <strong style={{ color: '#086B87' }}>
+                    {v.city || 'Unknown city'}
+                    {v.region ? `, ${v.region}` : ''}
+                  </strong>
+                  <br />
+                  {v.countryName || v.country || 'Unknown country'}
+                  <br />
+                  <span style={{ color: '#6b7280' }}>IP: {v.ip || '—'}</span>
+                  <br />
+                  <span style={{ color: '#6b7280' }}>
+                    {active ? '🟢 Active now' : `Last seen: ${fmtDateTime(v.last_seen)}`}
+                  </span>
+                  <br />
+                  <span style={{ color: '#6b7280' }}>
+                    Coordinates: {v.lat.toFixed(4)}, {v.lon.toFixed(4)}
+                  </span>
+                </div>
+              </Popup>
+            </CircleMarker>
+          )
+        })}
+      </MapContainer>
+    </div>
+  )
+}
+
+/* ================= Small components ================= */
 function BreakdownCard({ title, loading, data }) {
-  const chartData = (data || []).map((d) => ({ name: d._id || 'Unknown', value: d.count }))
+  const chartData = (data || []).map((d) => ({
+    name: typeof d._id === 'object' ? d._id?.name || d._id?.code || 'Unknown' : d._id || 'Unknown',
+    value: d.count,
+  }))
   return (
     <Card>
       <CardHeader title={title} />
@@ -91,8 +176,8 @@ function ListCard({ title, subtitle, loading, items, emptyText }) {
         <EmptyState icon="fa-list" title={emptyText || 'No data yet.'} />
       ) : (
         <ul className="divide-y divide-line">
-          {items.map((p) => (
-            <li key={p._id} className="px-5 py-3 flex items-center justify-between gap-3">
+          {items.map((p, idx) => (
+            <li key={idx} className="px-5 py-3 flex items-center justify-between gap-3">
               <span className="text-sm text-ink truncate">{p._id || '/'}</span>
               <span className="text-xs text-ink-muted shrink-0">
                 {p.views ?? p.count} {p.unique !== undefined ? `· ${p.unique} unique` : ''}
@@ -105,7 +190,7 @@ function ListCard({ title, subtitle, loading, items, emptyText }) {
   )
 }
 
-/* ================= MAIN DASHBOARD ================= */
+/* ================= MAIN ================= */
 export default function Analytics() {
   const [range, setRange] = useState('7d')
   const [summary, setSummary] = useState(null)
@@ -125,8 +210,7 @@ export default function Analytics() {
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      setLoading(true)
-      setError('')
+      setLoading(true); setError('')
       try {
         const [s, ts, b, v] = await Promise.all([
           api('summary',    `&range=${range}`),
@@ -151,20 +235,32 @@ export default function Analytics() {
 
   const refresh = useCallback(() => setReloadKey((k) => k + 1), [])
 
+  const activeVisitors = useMemo(
+    () => visitors.filter(isActive),
+    [visitors]
+  )
+
   const filteredVisitors = useMemo(() => {
     const term = q.trim().toLowerCase()
     if (!term) return visitors
     return visitors.filter((v) =>
-      [v.ip, v.country, v.city, v.browser, v.os, v.visitor_id, v.device]
+      [v.ip, v.country, v.countryName, v.region, v.city, v.browser, v.os, v.visitor_id, v.device]
         .some((f) => (f || '').toString().toLowerCase().includes(term))
     )
   }, [q, visitors])
+
+  const fmtCountry = (c) => {
+    if (typeof c._id === 'object' && c._id) {
+      return c._id.name || c._id.code || 'Unknown'
+    }
+    return c._id || 'Unknown'
+  }
 
   return (
     <AdminLayout>
       <PageHeader
         title="Analytics"
-        description="Understand who visits your website and how they interact with it."
+        description="Track who visits your site, where they are, and what they do."
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {!loading && summary && (
@@ -190,13 +286,9 @@ export default function Analytics() {
         }
       />
 
-      {error && (
-        <div className="mb-4">
-          <Card><div className="p-4 text-sm text-red-600">{error}</div></Card>
-        </div>
-      )}
+      {error && <div className="mb-4"><Card><div className="p-4 text-sm text-red-600">{error}</div></Card></div>}
 
-      {/* Primary stat cards */}
+      {/* Primary stats */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
         {loading || !summary ? (
           Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-28" />)
@@ -211,27 +303,83 @@ export default function Analytics() {
         )}
       </div>
 
-      {/* Advanced stat cards */}
+      {/* Advanced stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {loading || !summary ? (
           Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24" />)
         ) : (
           <>
-            <StatCard label="Bounce Rate"        value={fmtPct(summary.bounceRate)}        icon="fa-arrow-right-from-bracket" tone="warning" />
-            <StatCard label="New Visitors"       value={summary.newVisitors}               icon="fa-user-plus"                tone="success" />
-            <StatCard label="Returning Visitors" value={summary.returningVisitors}         icon="fa-rotate-right"             tone="info" />
-            <StatCard label="Avg. Pages/Session" value={summary.avgPagesPerSession}        icon="fa-file-lines"               tone="brand" />
+            <StatCard label="Bounce Rate"        value={fmtPct(summary.bounceRate)} icon="fa-arrow-right-from-bracket" tone="warning" />
+            <StatCard label="New Visitors"       value={summary.newVisitors}        icon="fa-user-plus"                tone="success" />
+            <StatCard label="Returning Visitors" value={summary.returningVisitors}  icon="fa-rotate-right"             tone="info" />
+            <StatCard label="Avg. Pages/Session" value={summary.avgPagesPerSession} icon="fa-file-lines"               tone="brand" />
           </>
         )}
       </div>
+
+      {/* ===================== LIVE MAP ===================== */}
+      <Card className="mb-6">
+        <CardHeader
+          title="Live Visitor Map"
+          subtitle="Green = active in last 5 min · Blue = inactive"
+          actions={
+            <div className="flex items-center gap-3 text-xs text-ink-muted">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Active
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#086B87]" /> Inactive
+              </span>
+            </div>
+          }
+        />
+        <div className="p-5">
+          {loading ? <Skeleton className="h-96 w-full" /> : <VisitorsMap visitors={visitors} />}
+        </div>
+      </Card>
+
+      {/* ===================== LIVE NOW PANEL ===================== */}
+      {!loading && activeVisitors.length > 0 && (
+        <Card className="mb-6">
+          <CardHeader
+            title="Live Now"
+            subtitle={`${activeVisitors.length} visitor${activeVisitors.length === 1 ? '' : 's'} active in the last 5 min`}
+          />
+          <ul className="divide-y divide-line">
+            {activeVisitors.slice(0, 8).map((v) => (
+              <li key={v.visitor_id} className="px-5 py-3 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm text-ink font-medium truncate">
+                    {[v.city, v.region, v.countryName || v.country].filter(Boolean).join(', ') || 'Unknown location'}
+                  </p>
+                  <p className="text-xs text-ink-subtle truncate">
+                    {v.ip} · {v.browser} on {v.os} · {v.device}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    Active
+                  </span>
+                  <Link
+                    to={`/admin/analytics/visitor/${v.visitor_id}`}
+                    className="text-xs font-medium text-brand-600 hover:text-brand-700"
+                  >
+                    Details →
+                  </Link>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       {/* Trend chart */}
       <Card className="mb-6">
         <CardHeader title="Visitors & Page Views Over Time" />
         <div className="p-5">
-          {loading ? (
-            <Skeleton className="h-64 w-full" />
-          ) : series.length === 0 ? (
+          {loading ? <Skeleton className="h-64 w-full" /> :
+           series.length === 0 ? (
             <EmptyState icon="fa-chart-line"
               title="No visitor activity recorded yet."
               description="Data will appear here once visitors reach your public site." />
@@ -260,13 +408,40 @@ export default function Analytics() {
         </div>
       </Card>
 
+      {/* ===================== GEO CARDS ===================== */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <ListCard
+          title="Top Countries"
+          subtitle="By visitor count"
+          loading={loading}
+          items={(breakdowns?.countries || []).map(c => ({
+            _id: fmtCountry(c),
+            count: c.count,
+          }))}
+          emptyText="No country data yet."
+        />
+        <ListCard
+          title="Top Regions / States"
+          subtitle="By visitor count"
+          loading={loading}
+          items={breakdowns?.regions}
+          emptyText="No region data yet."
+        />
+        <ListCard
+          title="Top Cities"
+          subtitle="By visitor count"
+          loading={loading}
+          items={breakdowns?.cities}
+          emptyText="No city data yet."
+        />
+      </div>
+
       {/* Hourly activity */}
       <Card className="mb-6">
         <CardHeader title="Hourly Activity" subtitle="Page views by hour of day" />
         <div className="p-5">
-          {loading ? (
-            <Skeleton className="h-56 w-full" />
-          ) : !breakdowns?.hourly?.some((h) => h.count > 0) ? (
+          {loading ? <Skeleton className="h-56 w-full" /> :
+           !breakdowns?.hourly?.some((h) => h.count > 0) ? (
             <EmptyState icon="fa-clock" title="No hourly data yet." />
           ) : (
             <ResponsiveContainer width="100%" height={220}>
@@ -291,51 +466,26 @@ export default function Analytics() {
         <BreakdownCard title="Operating Systems" loading={loading} data={breakdowns?.os} />
       </div>
 
-      {/* Top pages / referrers / entry / exit */}
+      {/* Lists row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <ListCard title="Top Pages"    subtitle="Most visited routes" loading={loading}
-          items={breakdowns?.topPages} />
-        <ListCard title="Top Referrers" subtitle="Where visitors come from" loading={loading}
-          items={breakdowns?.referrers} emptyText="No referrer data yet." />
+        <ListCard title="Top Pages"     subtitle="Most visited routes"          loading={loading} items={breakdowns?.topPages} />
+        <ListCard title="Top Referrers" subtitle="Where visitors come from"     loading={loading} items={breakdowns?.referrers} emptyText="No referrer data yet." />
       </div>
 
+      {/* Lists row 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <ListCard title="Entry Pages" subtitle="Where sessions begin" loading={loading}
-          items={breakdowns?.entryPages} emptyText="No entry data yet." />
-        <ListCard title="Exit Pages"  subtitle="Where sessions end"   loading={loading}
-          items={breakdowns?.exitPages} emptyText="No exit data yet." />
+        <ListCard title="Entry Pages" subtitle="Where sessions begin" loading={loading} items={breakdowns?.entryPages} emptyText="No entry data yet." />
+        <ListCard title="Exit Pages"  subtitle="Where sessions end"   loading={loading} items={breakdowns?.exitPages}  emptyText="No exit data yet." />
       </div>
-
-      {/* Browsers bar chart */}
-      <Card className="mb-6">
-        <CardHeader title="Visitors per Browser" />
-        {loading ? (
-          <Skeleton className="h-64 m-5" />
-        ) : !breakdowns?.browsers?.length ? (
-          <EmptyState icon="fa-chart-bar" title="No browser data yet." />
-        ) : (
-          <div className="p-5">
-            <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={breakdowns.browsers.map((c) => ({ name: c._id || 'Other', count: c.count }))}>
-                <CartesianGrid vertical={false} stroke="#E5E7EB" />
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="#98A2B3" />
-                <YAxis tick={{ fontSize: 11 }} stroke="#98A2B3" />
-                <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #E5E7EB', fontSize: 12 }} />
-                <Bar dataKey="count" fill="#086B87" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-      </Card>
 
       {/* Visitor table */}
       <Card className="overflow-hidden">
         <CardHeader
           title="Visitors"
-          subtitle={`${filteredVisitors.length} records`}
+          subtitle={`${filteredVisitors.length} record${filteredVisitors.length === 1 ? '' : 's'}`}
           actions={
             <div className="w-64">
-              <Input placeholder="Search IP, browser, OS…"
+              <Input placeholder="Search IP, city, browser…"
                 value={q} onChange={(e) => setQ(e.target.value)} />
             </div>
           }
@@ -349,39 +499,68 @@ export default function Analytics() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs uppercase tracking-wider text-ink-subtle border-b border-line bg-gray-50/60">
-                  <th className="px-5 py-3 font-medium">Visitor</th>
-                  <th className="px-5 py-3 font-medium">Device</th>
-                  <th className="px-5 py-3 font-medium hidden md:table-cell">Browser / OS</th>
-                  <th className="px-5 py-3 font-medium">Sessions</th>
-                  <th className="px-5 py-3 font-medium hidden md:table-cell">Views</th>
-                  <th className="px-5 py-3 font-medium hidden md:table-cell">Clicks</th>
+                  <th className="px-5 py-3 font-medium">Status</th>
+                  <th className="px-5 py-3 font-medium">Location</th>
+                  <th className="px-5 py-3 font-medium">IP / Visitor</th>
+                  <th className="px-5 py-3 font-medium hidden md:table-cell">Device</th>
+                  <th className="px-5 py-3 font-medium hidden lg:table-cell">Sessions</th>
+                  <th className="px-5 py-3 font-medium hidden lg:table-cell">Views</th>
                   <th className="px-5 py-3 font-medium">Last Seen</th>
                   <th className="px-5 py-3 font-medium text-right">Details</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredVisitors.map((v) => (
-                  <tr key={v.visitor_id} className="border-b border-line last:border-0 hover:bg-gray-50/60">
-                    <td className="px-5 py-3">
-                      <p className="font-medium text-ink truncate max-w-[200px]">{v.ip || 'Unknown IP'}</p>
-                      <p className="text-xs text-ink-subtle truncate max-w-[200px]">{v.visitor_id}</p>
-                    </td>
-                    <td className="px-5 py-3"><Badge tone="brand">{v.device || 'unknown'}</Badge></td>
-                    <td className="px-5 py-3 text-ink-muted hidden md:table-cell">
-                      {v.browser || '—'} · {v.os || '—'}
-                    </td>
-                    <td className="px-5 py-3 text-ink-muted">{v.sessions ?? 0}</td>
-                    <td className="px-5 py-3 text-ink-muted hidden md:table-cell">{v.pages ?? 0}</td>
-                    <td className="px-5 py-3 text-ink-muted hidden md:table-cell">{v.clicks ?? 0}</td>
-                    <td className="px-5 py-3 text-ink-muted">{fmtDateTime(v.last_seen)}</td>
-                    <td className="px-5 py-3 text-right">
-                      <Button variant="ghost" size="sm" as={Link}
-                        to={`/admin/analytics/visitor/${v.visitor_id}`}>
-                        Details
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
+                {filteredVisitors.map((v) => {
+                  const active = isActive(v)
+                  const location = [v.city, v.region, v.countryName || v.country].filter(Boolean).join(', ') || '—'
+                  return (
+                    <tr key={v.visitor_id} className="border-b border-line last:border-0 hover:bg-gray-50/60">
+                      <td className="px-5 py-3">
+                        {active ? (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            Active
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-muted">
+                            <span className="w-2 h-2 rounded-full bg-gray-300" />
+                            Inactive
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-5 py-3">
+                        <p className="font-medium text-ink truncate max-w-[220px]">{location}</p>
+                        {typeof v.lat === 'number' && (
+                          <a
+                            href={`https://www.google.com/maps?q=${v.lat},${v.lon}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-brand-600 hover:text-brand-700 inline-flex items-center gap-1"
+                          >
+                            <i className="fa-solid fa-location-dot"></i>
+                            {v.lat.toFixed(3)}, {v.lon.toFixed(3)}
+                          </a>
+                        )}
+                      </td>
+                      <td className="px-5 py-3">
+                        <p className="text-ink-muted text-xs truncate max-w-[160px]">{v.ip || 'Unknown IP'}</p>
+                        <p className="text-ink-subtle text-[10px] truncate max-w-[160px]">{v.visitor_id}</p>
+                      </td>
+                      <td className="px-5 py-3 hidden md:table-cell">
+                        <Badge tone="brand">{v.device || 'unknown'}</Badge>
+                      </td>
+                      <td className="px-5 py-3 text-ink-muted hidden lg:table-cell">{v.sessions ?? 0}</td>
+                      <td className="px-5 py-3 text-ink-muted hidden lg:table-cell">{v.pages ?? 0}</td>
+                      <td className="px-5 py-3 text-ink-muted whitespace-nowrap">{fmtDateTime(v.last_seen)}</td>
+                      <td className="px-5 py-3 text-right">
+                        <Button variant="ghost" size="sm" as={Link}
+                          to={`/admin/analytics/visitor/${v.visitor_id}`}>
+                          Details
+                        </Button>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -391,7 +570,7 @@ export default function Analytics() {
   )
 }
 
-/* ================= VISITOR DETAIL (unchanged from before) ================= */
+/* ================= VISITOR DETAIL ================= */
 export function VisitorDetail() {
   const { visitorId } = useParams()
   const navigate = useNavigate()
@@ -406,8 +585,7 @@ export function VisitorDetail() {
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      setLoading(true)
-      setError('')
+      setLoading(true); setError('')
       try {
         const res = await axios.get(
           `${ANALYTICS_URL}/analytics?type=visitor&id=${visitorId}`,
@@ -425,6 +603,9 @@ export function VisitorDetail() {
   }, [visitorId])
 
   const clicks = data?.activities?.filter((a) => a.type === 'click') || []
+  const visitor = data?.visitor
+  const hasCoords = typeof visitor?.lat === 'number' && typeof visitor?.lon === 'number'
+  const active = visitor ? isActive(visitor) : false
 
   return (
     <AdminLayout>
@@ -434,8 +615,25 @@ export function VisitorDetail() {
         </Button>
       </div>
 
-      <PageHeader title="Visitor Details"
-        description={visitorId ? `Anonymous visitor ID: ${visitorId}` : ''} />
+      <PageHeader
+        title="Visitor Details"
+        description={visitorId ? `Visitor ID: ${visitorId}` : ''}
+        actions={
+          visitor && (
+            active ? (
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 text-xs font-medium text-emerald-700">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                Active now
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-200 text-xs font-medium text-gray-600">
+                <span className="w-2 h-2 rounded-full bg-gray-400" />
+                Inactive
+              </span>
+            )
+          )
+        }
+      />
 
       {error && <Card><div className="p-6 text-red-600 text-sm">{error}</div></Card>}
 
@@ -446,16 +644,105 @@ export function VisitorDetail() {
         </div>
       ) : !data ? null : (
         <>
+          {/* Location card */}
+          <Card className="mb-6">
+            <CardHeader
+              title="Location"
+              subtitle={
+                hasCoords
+                  ? (visitor.accuracy && visitor.accuracy < 1000
+                      ? '📍 GPS precision'
+                      : '🌐 Approximate (IP-based)')
+                  : 'No coordinates captured'
+              }
+            />
+            <div className="p-5 grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Map */}
+              <div>
+                {hasCoords ? (
+                  <div className="rounded-lg overflow-hidden border border-line" style={{ height: 280 }}>
+                    <MapContainer
+                      center={[visitor.lat, visitor.lon]}
+                      zoom={11}
+                      scrollWheelZoom
+                      style={{ height: '100%', width: '100%' }}
+                    >
+                      <TileLayer
+                        attribution='&copy; OpenStreetMap'
+                        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                      />
+                      <CircleMarker
+                        center={[visitor.lat, visitor.lon]}
+                        radius={12}
+                        pathOptions={{
+                          color: active ? '#10b981' : '#086B87',
+                          fillColor: active ? '#10b981' : '#086B87',
+                          fillOpacity: 0.7,
+                          weight: 3,
+                        }}
+                      >
+                        <Popup>
+                          {visitor.city}, {visitor.countryName || visitor.country}
+                        </Popup>
+                      </CircleMarker>
+                    </MapContainer>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center text-center bg-gray-50 rounded-lg border border-dashed border-gray-200" style={{ height: 280 }}>
+                    <i className="fa-solid fa-location-slash text-3xl text-gray-300 mb-3"></i>
+                    <p className="text-sm text-gray-500 font-medium">No coordinates captured</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      This visitor declined location or their IP could not be resolved
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Location details */}
+              <div className="grid grid-cols-2 gap-5 text-sm content-start">
+                {[
+                  ['Country', visitor.countryName || visitor.country || '—'],
+                  ['Country Code', visitor.country || '—'],
+                  ['Region / State', visitor.region || '—'],
+                  ['City', visitor.city || '—'],
+                  ['Latitude', hasCoords ? visitor.lat.toFixed(6) : '—'],
+                  ['Longitude', hasCoords ? visitor.lon.toFixed(6) : '—'],
+                  ['Precision', hasCoords ? (visitor.accuracy ? `±${Math.round(visitor.accuracy)} m` : 'IP-based') : '—'],
+                  ['IP Address', visitor.ip || '—'],
+                ].map(([k, v]) => (
+                  <div key={k}>
+                    <p className="text-xs uppercase tracking-wide text-ink-subtle font-medium">{k}</p>
+                    <p className="text-ink mt-1 break-words">{v}</p>
+                  </div>
+                ))}
+                {hasCoords && (
+                  <div className="col-span-2">
+                    <a
+                      href={`https://www.google.com/maps?q=${visitor.lat},${visitor.lon}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-brand-600 hover:text-brand-700 font-medium text-sm"
+                    >
+                      <i className="fa-solid fa-map-location-dot"></i>
+                      Open in Google Maps →
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
+
+          {/* Overview */}
           <Card className="mb-6">
             <CardHeader title="Overview" />
             <div className="p-5 grid grid-cols-2 md:grid-cols-4 gap-5 text-sm">
               {[
-                ['IP Address', data.visitor?.ip || '—'],
-                ['First Visit', fmtDateTime(data.visitor?.first_seen)],
-                ['Last Visit',  fmtDateTime(data.visitor?.last_seen)],
+                ['First Visit', fmtDateTime(visitor.first_seen)],
+                ['Last Visit',  fmtDateTime(visitor.last_seen)],
                 ['Total Sessions', data.sessions?.length ?? 0],
                 ['Total Page Views', data.pageViews?.length ?? 0],
                 ['Total Clicks', clicks.length],
+                ['Role', visitor.role || 'user'],
               ].map(([k, v]) => (
                 <div key={k}>
                   <p className="text-xs uppercase tracking-wide text-ink-subtle font-medium">{k}</p>
@@ -465,15 +752,16 @@ export function VisitorDetail() {
             </div>
           </Card>
 
+          {/* Device & Environment */}
           <Card className="mb-6">
             <CardHeader title="Device & Environment" />
             <div className="p-5 grid grid-cols-2 md:grid-cols-4 gap-5 text-sm">
               {[
-                ['Device',   data.visitor?.device || '—'],
-                ['Browser',  data.visitor?.browser || '—'],
-                ['OS',       data.visitor?.os || '—'],
-                ['Screen',   data.visitor?.screen_w ? `${data.visitor.screen_w} × ${data.visitor.screen_h}` : '—'],
-                ['Viewport', data.visitor?.viewport_w ? `${data.visitor.viewport_w} × ${data.visitor.viewport_h}` : '—'],
+                ['Device',   visitor.device || '—'],
+                ['Browser',  visitor.browser || '—'],
+                ['OS',       visitor.os || '—'],
+                ['Screen',   visitor.screen_w ? `${visitor.screen_w} × ${visitor.screen_h}` : '—'],
+                ['Viewport', visitor.viewport_w ? `${visitor.viewport_w} × ${visitor.viewport_h}` : '—'],
               ].map(([k, v]) => (
                 <div key={k}>
                   <p className="text-xs uppercase tracking-wide text-ink-subtle font-medium">{k}</p>
@@ -483,13 +771,14 @@ export function VisitorDetail() {
             </div>
           </Card>
 
+          {/* Timeline + Sessions */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <Card className="overflow-hidden">
               <CardHeader title="Activity Timeline" subtitle="Most recent events first" />
               {data.activities?.length === 0 ? (
                 <EmptyState icon="fa-timeline" title="No recorded events." />
               ) : (
-                <ol className="relative p-5 ml-3 border-l border-line">
+                <ol className="relative p-5 ml-3 border-l border-line max-h-[500px] overflow-y-auto">
                   {data.activities.slice(0, 40).map((a) => (
                     <li key={a.id} className="mb-5 ml-5">
                       <span className="absolute -left-[7px] mt-1 w-3.5 h-3.5 rounded-full bg-brand-600 border-2 border-white" />
@@ -498,9 +787,6 @@ export function VisitorDetail() {
                         <Badge tone={a.type === 'click' ? 'info' : 'neutral'}>{a.type}</Badge>
                         <span className="ml-2">{a.text || a.element || a.path}</span>
                       </p>
-                      {a.destination && (
-                        <p className="text-xs text-ink-muted mt-1 break-all">→ {a.destination}</p>
-                      )}
                     </li>
                   ))}
                 </ol>
@@ -512,10 +798,10 @@ export function VisitorDetail() {
               {data.sessions?.length === 0 ? (
                 <EmptyState icon="fa-clock" title="No sessions recorded." />
               ) : (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
                   <table className="w-full text-sm">
-                    <thead>
-                      <tr className="text-left text-xs uppercase tracking-wider text-ink-subtle border-b border-line bg-gray-50/60">
+                    <thead className="sticky top-0 bg-gray-50/90 backdrop-blur">
+                      <tr className="text-left text-xs uppercase tracking-wider text-ink-subtle border-b border-line">
                         <th className="px-5 py-3 font-medium">Date</th>
                         <th className="px-5 py-3 font-medium">Duration</th>
                         <th className="px-5 py-3 font-medium">Views</th>
@@ -538,6 +824,7 @@ export function VisitorDetail() {
             </Card>
           </div>
 
+          {/* Page view history */}
           <Card className="overflow-hidden mb-6">
             <CardHeader title="Page View History" subtitle={`${data.pageViews?.length ?? 0} views`} />
             {data.pageViews?.length === 0 ? (
@@ -568,6 +855,7 @@ export function VisitorDetail() {
             )}
           </Card>
 
+          {/* Clicks */}
           <Card className="overflow-hidden">
             <CardHeader title="Click History" subtitle={`${clicks.length} clicks`} />
             {clicks.length === 0 ? (

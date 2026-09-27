@@ -3,10 +3,9 @@ import { ANALYTICS_URL } from '../config'
 const VKEY = 'an_vid'
 const SKEY = 'an_sid'
 const STS  = 'an_sid_ts'
-const TTL  = 30 * 60 * 1000 // 30 min session window
+const TTL  = 30 * 60 * 1000
 const DISABLED = !ANALYTICS_URL || typeof window === 'undefined'
 
-/* Short 16-char ID instead of 36-char UUID → saves ~40 bytes per row × 4 collections */
 const uuid = () =>
   (crypto?.randomUUID?.().replace(/-/g, '').slice(0, 16)) ||
   'xxxxxxxxxxxxxxxx'.replace(/x/g, () => ((Math.random() * 16) | 0).toString(16))
@@ -29,16 +28,10 @@ const sessionId = () => {
   return s
 }
 
-/* ------------------------------------------------------------
-   Reliable cross-origin post:
-   - fetch + keepalive (survives unload, unlike sendBeacon w/ JSON)
-   - falls back to text/plain beacon only if fetch throws
-   ------------------------------------------------------------ */
 const post = (body) => {
   if (DISABLED) return
   const url = `${ANALYTICS_URL}/track`
   const json = JSON.stringify(body)
-
   try {
     fetch(url, {
       method: 'POST',
@@ -49,10 +42,18 @@ const post = (body) => {
       credentials: 'omit',
     }).catch(() => {})
   } catch {
-    // Last-ditch: fire-and-forget beacon (some very old browsers)
     try {
       if (navigator.sendBeacon) navigator.sendBeacon(url, json)
     } catch { /* noop */ }
+  }
+}
+
+const getClientGeo = () => {
+  try {
+    const coords = JSON.parse(localStorage.getItem('loc_coords_v1') || 'null')
+    return coords || null
+  } catch {
+    return null
   }
 }
 
@@ -67,6 +68,7 @@ export const trackPageView = () => {
     referrer: document.referrer || '',
     screen:   { w: window.screen.width, h: window.screen.height },
     viewport: { w: window.innerWidth,   h: window.innerHeight },
+    clientGeo: window.__userGeo || getClientGeo() || null,
   })
 }
 
@@ -81,29 +83,20 @@ export const trackEvent = (type, data = {}) => {
   })
 }
 
-/* ------------------------------------------------------------
-   Click tracking — bound once, capture-phase, robust to
-   text-node targets, React Links, and dynamically added elements
-   ------------------------------------------------------------ */
 let bound = false
 export const initClickTracking = () => {
   if (DISABLED || bound) return
   bound = true
 
   document.addEventListener('click', (e) => {
-    // Walk up from whatever was clicked until we hit a trackable node
     let el = e.target
-    if (!el || typeof el.closest !== 'function') {
-      el = el?.parentElement
-    }
+    if (!el || typeof el.closest !== 'function') el = el?.parentElement
     const target = el?.closest?.('a, button, [data-track]')
     if (!target) return
-
     const href = target.getAttribute?.('href') || ''
     if (href.startsWith('javascript:')) return
 
     const text = (target.innerText || target.textContent || '').trim().slice(0, 60)
-
     trackEvent('click', {
       element: target.tagName.toLowerCase(),
       text,
