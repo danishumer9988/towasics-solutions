@@ -26,6 +26,28 @@ const RANGES = [
 const PIE_COLORS = ['#086B87', '#1AA7AD', '#44D9E7', '#6FDDEB', '#A5EEF5', '#CBD5E1']
 const ACTIVE_MS = 5 * 60 * 1000
 
+/* ISO 3166-2 subdivision codes → readable names */
+const REGION_NAMES = {
+  // Pakistan
+  PB: 'Punjab', SD: 'Sindh', IS: 'Islamabad', KP: 'Khyber Pakhtunkhwa',
+  BA: 'Balochistan', GB: 'Gilgit-Baltistan', TA: 'FATA', JK: 'Azad Kashmir',
+  // USA
+  CA: 'California', NY: 'New York', TX: 'Texas', FL: 'Florida', WA: 'Washington',
+  IL: 'Illinois', PA: 'Pennsylvania', OH: 'Ohio', GA: 'Georgia', NC: 'North Carolina',
+  MI: 'Michigan', NJ: 'New Jersey', VA: 'Virginia', AZ: 'Arizona', MA: 'Massachusetts',
+  // UK
+  ENG: 'England', SCT: 'Scotland', WLS: 'Wales', NIR: 'Northern Ireland',
+  // Canada
+  ON: 'Ontario', QC: 'Quebec', BC: 'British Columbia', AB: 'Alberta',
+  // UAE / Gulf
+  DXB: 'Dubai', AUH: 'Abu Dhabi', SHJ: 'Sharjah',
+  // India
+  MH: 'Maharashtra', UP: 'Uttar Pradesh', DL: 'Delhi', KA: 'Karnataka',
+  // Australia
+  NSW: 'New South Wales', VIC: 'Victoria', QLD: 'Queensland',
+}
+const regionLabel = (code) => REGION_NAMES[code] || code || 'Unknown'
+
 const fmtDuration = (ms = 0) => {
   const s = Math.round(ms / 1000)
   if (s < 60) return `${s}s`
@@ -46,7 +68,55 @@ const api = (type, extra = '') =>
     .then((r) => r.data)
 
 /* ================= Map ================= */
-function VisitorsMap({ visitors, height = 380 }) {
+function MapTiles({ layer }) {
+  if (layer === 'satellite') {
+    return (
+      <TileLayer
+        attribution='Tiles &copy; Esri'
+        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+        maxZoom={19}
+      />
+    )
+  }
+  return (
+    <TileLayer
+      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+      maxZoom={19}
+    />
+  )
+}
+
+function LayerToggle({ layer, onChange }) {
+  return (
+    <div className="absolute top-3 right-3 z-[400] flex bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+      <button
+        type="button"
+        onClick={() => onChange('satellite')}
+        className={`px-3 py-1.5 text-xs font-semibold transition ${
+          layer === 'satellite' ? 'bg-[#0a85a7] text-white' : 'text-gray-600 hover:bg-gray-50'
+        }`}
+      >
+        <i className="fa-solid fa-satellite mr-1"></i>
+        Satellite
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange('streets')}
+        className={`px-3 py-1.5 text-xs font-semibold transition ${
+          layer === 'streets' ? 'bg-[#0a85a7] text-white' : 'text-gray-600 hover:bg-gray-50'
+        }`}
+      >
+        <i className="fa-solid fa-map mr-1"></i>
+        Streets
+      </button>
+    </div>
+  )
+}
+
+function VisitorsMap({ visitors, height = 420 }) {
+  const [layer, setLayer] = useState('satellite')
+
   const withCoords = (visitors || []).filter(
     (v) => typeof v.lat === 'number' && typeof v.lon === 'number'
   )
@@ -67,20 +137,19 @@ function VisitorsMap({ visitors, height = 380 }) {
   }
 
   return (
-    <div className="rounded-lg overflow-hidden border border-line" style={{ height }}>
+    <div className="relative rounded-lg overflow-hidden border border-line" style={{ height }}>
+      <LayerToggle layer={layer} onChange={setLayer} />
+
       <MapContainer
-        center={[20, 0]}
-        zoom={2}
+        center={[30, 70]}
+        zoom={3}
         minZoom={2}
-        maxZoom={12}
+        maxZoom={19}
         scrollWheelZoom
         style={{ height: '100%', width: '100%' }}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-          maxZoom={19}
-        />
+        <MapTiles layer={layer} />
+
         {withCoords.map((v) => {
           const active = isActive(v)
           return (
@@ -89,17 +158,17 @@ function VisitorsMap({ visitors, height = 380 }) {
               center={[v.lat, v.lon]}
               radius={active ? 9 : 6}
               pathOptions={{
-                color: active ? '#10b981' : '#086B87',
-                fillColor: active ? '#10b981' : '#086B87',
-                fillOpacity: active ? 0.85 : 0.5,
-                weight: active ? 3 : 1.5,
+                color: active ? '#10b981' : '#0866ff',
+                fillColor: active ? '#10b981' : '#0866ff',
+                fillOpacity: active ? 0.9 : 0.7,
+                weight: 3,
               }}
             >
               <Popup>
                 <div style={{ fontSize: 12, lineHeight: 1.5 }}>
                   <strong style={{ color: '#086B87' }}>
                     {v.city || 'Unknown city'}
-                    {v.region ? `, ${v.region}` : ''}
+                    {v.region ? `, ${regionLabel(v.region)}` : ''}
                   </strong>
                   <br />
                   {v.countryName || v.country || 'Unknown country'}
@@ -123,7 +192,7 @@ function VisitorsMap({ visitors, height = 380 }) {
   )
 }
 
-/* ================= Small components ================= */
+/* ================= small components ================= */
 function BreakdownCard({ title, loading, data }) {
   const chartData = (data || []).map((d) => ({
     name: typeof d._id === 'object' ? d._id?.name || d._id?.code || 'Unknown' : d._id || 'Unknown',
@@ -191,7 +260,7 @@ function ListCard({ title, subtitle, loading, items, emptyText }) {
   )
 }
 
-/* ================= MAIN ================= */
+/* ================= MAIN DASHBOARD ================= */
 export default function Analytics() {
   const [range, setRange] = useState('7d')
   const [summary, setSummary] = useState(null)
@@ -236,10 +305,7 @@ export default function Analytics() {
 
   const refresh = useCallback(() => setReloadKey((k) => k + 1), [])
 
-  const activeVisitors = useMemo(
-    () => visitors.filter(isActive),
-    [visitors]
-  )
+  const activeVisitors = useMemo(() => visitors.filter(isActive), [visitors])
 
   const filteredVisitors = useMemo(() => {
     const term = q.trim().toLowerCase()
@@ -329,7 +395,7 @@ export default function Analytics() {
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Active
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#086B87]" /> Inactive
+                <span className="w-2.5 h-2.5 rounded-full bg-[#0866ff]" /> Inactive
               </span>
             </div>
           }
@@ -351,7 +417,7 @@ export default function Analytics() {
               <li key={v.visitor_id} className="px-5 py-3 flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-sm text-ink font-medium truncate">
-                    {[v.city, v.region, v.countryName || v.country].filter(Boolean).join(', ') || 'Unknown location'}
+                    {[v.city, regionLabel(v.region), v.countryName || v.country].filter(Boolean).join(', ') || 'Unknown location'}
                   </p>
                   <p className="text-xs text-ink-subtle truncate">
                     {v.ip} · {v.browser} on {v.os} · {v.device}
@@ -425,7 +491,10 @@ export default function Analytics() {
           title="Top Regions / States"
           subtitle="By visitor count"
           loading={loading}
-          items={breakdowns?.regions}
+          items={(breakdowns?.regions || []).map(r => ({
+            _id: regionLabel(r._id),
+            count: r.count,
+          }))}
           emptyText="No region data yet."
         />
         <ListCard
@@ -469,8 +538,8 @@ export default function Analytics() {
 
       {/* Lists row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <ListCard title="Top Pages"     subtitle="Most visited routes"          loading={loading} items={breakdowns?.topPages} />
-        <ListCard title="Top Referrers" subtitle="Where visitors come from"     loading={loading} items={breakdowns?.referrers} emptyText="No referrer data yet." />
+        <ListCard title="Top Pages"     subtitle="Most visited routes"      loading={loading} items={breakdowns?.topPages} />
+        <ListCard title="Top Referrers" subtitle="Where visitors come from" loading={loading} items={breakdowns?.referrers} emptyText="No referrer data yet." />
       </div>
 
       {/* Lists row 2 */}
@@ -513,7 +582,7 @@ export default function Analytics() {
               <tbody>
                 {filteredVisitors.map((v) => {
                   const active = isActive(v)
-                  const location = [v.city, v.region, v.countryName || v.country].filter(Boolean).join(', ') || '—'
+                  const location = [v.city, regionLabel(v.region), v.countryName || v.country].filter(Boolean).join(', ') || '—'
                   return (
                     <tr key={v.visitor_id} className="border-b border-line last:border-0 hover:bg-gray-50/60">
                       <td className="px-5 py-3">
@@ -578,6 +647,7 @@ export function VisitorDetail() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [layer, setLayer] = useState('satellite')
 
   useEffect(() => {
     if (!localStorage.getItem('user')) navigate('/auth/login')
@@ -651,8 +721,8 @@ export function VisitorDetail() {
               title="Location"
               subtitle={
                 hasCoords
-                  ? (visitor.accuracy && visitor.accuracy < 1000
-                      ? '📍 GPS precision'
+                  ? (visitor.geoSource === 'gps'
+                      ? `📍 GPS precision${visitor.accuracy ? ` (≈ ${Math.round(visitor.accuracy)} m)` : ''}`
                       : '🌐 Approximate (IP-based)')
                   : 'No coordinates captured'
               }
@@ -661,35 +731,38 @@ export function VisitorDetail() {
               {/* Map */}
               <div>
                 {hasCoords ? (
-                  <div className="rounded-lg overflow-hidden border border-line" style={{ height: 280 }}>
+                  <div className="relative rounded-lg overflow-hidden border border-line" style={{ height: 320 }}>
+                    <LayerToggle layer={layer} onChange={setLayer} />
                     <MapContainer
                       center={[visitor.lat, visitor.lon]}
-                      zoom={11}
+                      zoom={13}
+                      minZoom={2}
+                      maxZoom={19}
                       scrollWheelZoom
                       style={{ height: '100%', width: '100%' }}
                     >
-                      <TileLayer
-                        attribution='&copy; OpenStreetMap'
-                        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-                      />
+                      <MapTiles layer={layer} />
                       <CircleMarker
                         center={[visitor.lat, visitor.lon]}
                         radius={12}
                         pathOptions={{
-                          color: active ? '#10b981' : '#086B87',
-                          fillColor: active ? '#10b981' : '#086B87',
-                          fillOpacity: 0.7,
+                          color: active ? '#10b981' : '#0866ff',
+                          fillColor: active ? '#10b981' : '#0866ff',
+                          fillOpacity: 0.75,
                           weight: 3,
                         }}
                       >
                         <Popup>
-                          {visitor.city}, {visitor.countryName || visitor.country}
+                          {visitor.city || 'Unknown city'}
+                          {visitor.region ? `, ${regionLabel(visitor.region)}` : ''}
+                          <br />
+                          {visitor.countryName || visitor.country || ''}
                         </Popup>
                       </CircleMarker>
                     </MapContainer>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center text-center bg-gray-50 rounded-lg border border-dashed border-gray-200" style={{ height: 280 }}>
+                  <div className="flex flex-col items-center justify-center text-center bg-gray-50 rounded-lg border border-dashed border-gray-200" style={{ height: 320 }}>
                     <i className="fa-solid fa-location-slash text-3xl text-gray-300 mb-3"></i>
                     <p className="text-sm text-gray-500 font-medium">No coordinates captured</p>
                     <p className="text-xs text-gray-400 mt-1">
@@ -704,12 +777,18 @@ export function VisitorDetail() {
                 {[
                   ['Country', visitor.countryName || visitor.country || '—'],
                   ['Country Code', visitor.country || '—'],
-                  ['Region / State', visitor.region || '—'],
+                  ['Region / State', visitor.region ? regionLabel(visitor.region) : '—'],
+                  ['Region Code', visitor.region || '—'],
                   ['City', visitor.city || '—'],
                   ['Latitude', hasCoords ? visitor.lat.toFixed(6) : '—'],
                   ['Longitude', hasCoords ? visitor.lon.toFixed(6) : '—'],
-                  ['Precision', hasCoords ? (visitor.accuracy ? `±${Math.round(visitor.accuracy)} m` : 'IP-based') : '—'],
+                  ['Precision', hasCoords
+                    ? (visitor.geoSource === 'gps'
+                        ? (visitor.accuracy ? `±${Math.round(visitor.accuracy)} m` : 'GPS')
+                        : 'IP-based')
+                    : '—'],
                   ['IP Address', visitor.ip || '—'],
+                  ['Source', visitor.geoSource || '—'],
                 ].map(([k, v]) => (
                   <div key={k}>
                     <p className="text-xs uppercase tracking-wide text-ink-subtle font-medium">{k}</p>
