@@ -67,22 +67,25 @@ const api = (type, extra = '') =>
     .get(`${ANALYTICS_URL}/analytics?type=${type}${extra}`, { headers: authHeaders() })
     .then((r) => r.data)
 
-/* ================= Map ================= */
+/* ================= Map tiles ================= */
 function MapTiles({ layer }) {
   if (layer === 'satellite') {
     return (
       <TileLayer
         attribution='Tiles &copy; Esri'
         url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-        maxZoom={19}
+        maxNativeZoom={19}
+        maxZoom={22}
       />
     )
   }
+  // Carto Voyager — looks like Google Maps, no API key needed
   return (
     <TileLayer
-      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-      maxZoom={19}
+      attribution='&copy; <a href="https://carto.com/attributions">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+      maxNativeZoom={20}
+      maxZoom={22}
     />
   )
 }
@@ -90,16 +93,6 @@ function MapTiles({ layer }) {
 function LayerToggle({ layer, onChange }) {
   return (
     <div className="absolute top-3 right-3 z-[400] flex bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
-      <button
-        type="button"
-        onClick={() => onChange('satellite')}
-        className={`px-3 py-1.5 text-xs font-semibold transition ${
-          layer === 'satellite' ? 'bg-[#0a85a7] text-white' : 'text-gray-600 hover:bg-gray-50'
-        }`}
-      >
-        <i className="fa-solid fa-satellite mr-1"></i>
-        Satellite
-      </button>
       <button
         type="button"
         onClick={() => onChange('streets')}
@@ -110,12 +103,23 @@ function LayerToggle({ layer, onChange }) {
         <i className="fa-solid fa-map mr-1"></i>
         Streets
       </button>
+      <button
+        type="button"
+        onClick={() => onChange('satellite')}
+        className={`px-3 py-1.5 text-xs font-semibold transition ${
+          layer === 'satellite' ? 'bg-[#0a85a7] text-white' : 'text-gray-600 hover:bg-gray-50'
+        }`}
+      >
+        <i className="fa-solid fa-satellite mr-1"></i>
+        Satellite
+      </button>
     </div>
   )
 }
 
+/* ================= Live visitors map ================= */
 function VisitorsMap({ visitors, height = 420 }) {
-  const [layer, setLayer] = useState('satellite')
+  const [layer, setLayer] = useState('streets')
 
   const withCoords = (visitors || []).filter(
     (v) => typeof v.lat === 'number' && typeof v.lon === 'number'
@@ -144,7 +148,7 @@ function VisitorsMap({ visitors, height = 420 }) {
         center={[30, 70]}
         zoom={3}
         minZoom={2}
-        maxZoom={19}
+        maxZoom={22}
         scrollWheelZoom
         style={{ height: '100%', width: '100%' }}
       >
@@ -647,7 +651,7 @@ export function VisitorDetail() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [layer, setLayer] = useState('satellite')
+  const [layer, setLayer] = useState('streets')
 
   useEffect(() => {
     if (!localStorage.getItem('user')) navigate('/auth/login')
@@ -735,9 +739,9 @@ export function VisitorDetail() {
                     <LayerToggle layer={layer} onChange={setLayer} />
                     <MapContainer
                       center={[visitor.lat, visitor.lon]}
-                      zoom={13}
+                      zoom={14}
                       minZoom={2}
-                      maxZoom={19}
+                      maxZoom={22}
                       scrollWheelZoom
                       style={{ height: '100%', width: '100%' }}
                     >
