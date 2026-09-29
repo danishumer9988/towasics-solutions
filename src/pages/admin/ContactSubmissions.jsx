@@ -9,6 +9,27 @@ import {
 } from '../../components/admin/ui'
 import { exportData, DownloadMenu } from '../../lib/exportData'
 
+/* ================= FULL OPTION LISTS ================= */
+const ALL_SERVICES = [
+  'Bulk Data Scraping',
+  'Custom Web Scraping Software',
+  'Web Automation Bots',
+  'AI-Powered Bots',
+  'Daily Data Feeds',
+  'Third-Party API Integration',
+  'Server Setup for Bots & Scripts',
+  'PowerBI Dashboard Design',
+  'Others',
+]
+
+const ALL_BUDGETS = [
+  '$0 - $500',
+  '$501 - $1000',
+  '$1001 - $5000',
+  '$5001 - $10000',
+  '$10000+',
+]
+
 export default function ContactSubmissions() {
   const [contacts, setContacts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -25,7 +46,7 @@ export default function ContactSubmissions() {
   /* Selection + modals */
   const [selected, setSelected] = useState([])
   const [viewContact, setViewContact] = useState(null)
-  const [confirmDelete, setConfirmDelete] = useState(null) // { ids: [] }
+  const [confirmDelete, setConfirmDelete] = useState(null)
   const [deleting, setDeleting] = useState(false)
 
   const navigate = useNavigate()
@@ -60,16 +81,6 @@ export default function ContactSubmissions() {
     const t = setTimeout(() => setToast(null), 3000)
     return () => clearTimeout(t)
   }, [toast])
-
-  /* ---------------- Filter options ---------------- */
-  const serviceOptions = useMemo(
-    () => Array.from(new Set(contacts.map(c => c.service).filter(Boolean))).sort(),
-    [contacts]
-  )
-  const budgetOptions = useMemo(
-    () => Array.from(new Set(contacts.map(c => c.budget).filter(Boolean))).sort(),
-    [contacts]
-  )
 
   /* ---------------- Filtered list ---------------- */
   const filtered = useMemo(() => {
@@ -273,7 +284,9 @@ export default function ContactSubmissions() {
               onChange={(e) => setQ(e.target.value)}
             />
           </div>
-          <div className="w-[150px]">
+
+          {/* Service — now shows ALL services */}
+          <div className="w-[210px]">
             <label className="block text-xs font-medium text-ink-subtle mb-1">Service</label>
             <select
               value={serviceFilter}
@@ -281,10 +294,12 @@ export default function ContactSubmissions() {
               className="w-full px-3 py-2 text-sm border border-line rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
             >
               <option value="all">All services</option>
-              {serviceOptions.map(s => <option key={s} value={s}>{s}</option>)}
+              {ALL_SERVICES.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
-          <div className="w-[150px]">
+
+          {/* Budget — now shows ALL budgets */}
+          <div className="w-[170px]">
             <label className="block text-xs font-medium text-ink-subtle mb-1">Budget</label>
             <select
               value={budgetFilter}
@@ -292,9 +307,10 @@ export default function ContactSubmissions() {
               className="w-full px-3 py-2 text-sm border border-line rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
             >
               <option value="all">All budgets</option>
-              {budgetOptions.map(b => <option key={b} value={b}>{b}</option>)}
+              {ALL_BUDGETS.map(b => <option key={b} value={b}>{b}</option>)}
             </select>
           </div>
+
           <div className="w-[150px]">
             <label className="block text-xs font-medium text-ink-subtle mb-1">From date</label>
             <input
