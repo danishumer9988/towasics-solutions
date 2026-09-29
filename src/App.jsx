@@ -35,6 +35,8 @@ import { trackPageView, initClickTracking } from './lib/analytics'
 
 import VerifyInvite from './pages/admin/VerifyInvite'
 
+import ContactSubmissions from './pages/admin/ContactSubmissions'
+
 /* ---------- Analytics tracker ---------- */
 const SKIP_PREFIXES = [
   '/admin',
@@ -132,6 +134,8 @@ function App() {
         <Route path="/admin/analytics/visitor/:visitorId" element={<VisitorDetail />} />
 
         <Route path="/admin/verify-invite" element={<VerifyInvite />} />
+
+        <Route path="/admin/contacts" element={<ContactSubmissions />} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>
