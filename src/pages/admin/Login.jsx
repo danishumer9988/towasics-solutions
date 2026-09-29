@@ -50,8 +50,7 @@ export default function Login() {
             </div>
             <div>
               <p className="font-bold text-lg leading-tight">Towasic</p>
-              <p className="text-[11px] uppercase tracking-widest text-white/70 leading-tight">
-                Solutions
+              <p className="text-[11px] uppercase tracking-widest text-white/70 leading-tight">Solutions
               </p>
             </div>
           </Link>
@@ -76,7 +75,7 @@ export default function Login() {
           </div>
 
           <div className="flex items-center justify-between text-xs text-white/60">
-            <span>© {new Date().getFullYear()} Towasic Solutions</span>
+            <span>© {new Date().getFullYear()} TowasicSolutions</span>
             <Link to="/" className="hover:text-white transition inline-flex items-center gap-1.5">
               <i className="fa-solid fa-arrow-left text-[10px]"></i>
               Back to website
@@ -94,8 +93,7 @@ export default function Login() {
             </div>
             <div>
               <p className="font-bold text-base text-[#086B87] leading-tight">Towasic</p>
-              <p className="text-[10px] uppercase tracking-widest text-[#0a85a7]/70 leading-tight">
-                Solutions
+              <p className="text-[10px] uppercase tracking-widest text-[#0a85a7]/70 leading-tight">Solutions
               </p>
             </div>
           </Link>
