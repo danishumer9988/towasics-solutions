@@ -1,93 +1,65 @@
 import { useEffect, useState } from 'react'
 
-const CONSENT_KEY = 'loc_consent_v1'
-const COORDS_KEY  = 'loc_coords_v1'
+const CONSENT_KEY = 'cookie_consent_v1'
 
 export default function CookieConsent() {
   const [visible, setVisible] = useState(false)
-  const [requesting, setRequesting] = useState(false)
 
-  // On mount — reapply saved consent
   useEffect(() => {
     const saved = localStorage.getItem(CONSENT_KEY)
-    if (saved === 'granted') {
-      try {
-        const coords = JSON.parse(localStorage.getItem(COORDS_KEY) || 'null')
-        if (coords) window.__userGeo = coords
-      } catch { /* ignore */ }
-      return
-    }
-    if (saved === 'declined') return
-
-    const t = setTimeout(() => setVisible(true), 1500)
+    if (saved) return // already chose — don't show again
+    // Small delay so the page doesn't slam the popup immediately
+    const t = setTimeout(() => setVisible(true), 1200)
     return () => clearTimeout(t)
   }, [])
 
   const finish = (decision) => {
     localStorage.setItem(CONSENT_KEY, decision)
     setVisible(false)
-    setRequesting(false)
   }
 
-  const handleAllow = () => {
-    if (!navigator.geolocation) return finish('declined')
-    setRequesting(true)
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const coords = {
-          lat: pos.coords.latitude,
-          lon: pos.coords.longitude,
-          accuracy: pos.coords.accuracy,
-        }
-        localStorage.setItem(COORDS_KEY, JSON.stringify(coords))
-        window.__userGeo = coords
-        finish('granted')
-      },
-      () => finish('declined'),
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 5 * 60 * 1000 }
-    )
-  }
-
-  const handleDecline = () => {
-    window.__userGeo = null
-    finish('declined')
-  }
+  const handleAccept = () => finish('accepted')
+  const handleDecline = () => finish('declined')
 
   if (!visible) return null
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:bottom-6 sm:max-w-sm z-[9997]">
-      <div className="bg-white rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.25)] border border-gray-100 p-5">
-        <div className="flex items-start gap-3 mb-3">
-          <div className="w-10 h-10 rounded-full bg-[#EEFAFD] flex items-center justify-center flex-shrink-0">
-            <i className="fa-solid fa-location-dot text-[#0a85a7]"></i>
-          </div>
+    <div className="fixed bottom-0 left-0 right-0 z-[9997] p-4 sm:p-6">
+      <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.25)] border border-gray-100 overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6 p-6 sm:p-7 items-center">
+
+          {/* ---------- Text ---------- */}
           <div>
-            <h3 className="font-bold text-gray-900 text-sm">Allow location access?</h3>
-            <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-              We can show you more relevant content with your precise location.
-              If you decline, we'll use approximate location from your IP address.
+            <h3 className="text-lg font-bold text-gray-900 mb-2.5">
+              Consent to Cookies &amp; Data Processing
+            </h3>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              On this website we use cookies and similar functions to process end
+              device information and personal data (such as IP addresses or browser
+              information). The processing is used for purposes such as to integrate
+              content, external services and elements from third parties, statistical
+              analysis, and measurement of site traffic. Depending on the function,
+              data may be passed to third parties and processed by them.
             </p>
           </div>
-        </div>
 
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={handleDecline}
-            disabled={requesting}
-            className="flex-1 py-2 rounded-lg text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 transition disabled:opacity-50"
-          >
-            Not now
-          </button>
-          <button
-            type="button"
-            onClick={handleAllow}
-            disabled={requesting}
-            className="flex-1 py-2 rounded-lg text-xs font-semibold text-white bg-[#0a85a7] hover:bg-[#097390] transition disabled:opacity-50"
-          >
-            {requesting ? 'Getting…' : 'Allow'}
-          </button>
+          {/* ---------- Buttons ---------- */}
+          <div className="flex flex-col sm:flex-row lg:flex-col gap-2.5 lg:w-[200px] lg:shrink-0">
+            <button
+              type="button"
+              onClick={handleDecline}
+              className="w-full py-3 rounded-xl font-semibold text-sm border-2 border-gray-200 text-gray-700 bg-white hover:bg-gray-50 transition"
+            >
+              Reject all
+            </button>
+            <button
+              type="button"
+              onClick={handleAccept}
+              className="w-full py-3 rounded-xl font-semibold text-sm text-white bg-[#0a85a7] hover:bg-[#097390] transition"
+            >
+              Accept all
+            </button>
+          </div>
         </div>
       </div>
     </div>
