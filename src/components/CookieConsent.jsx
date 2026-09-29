@@ -7,8 +7,7 @@ export default function CookieConsent() {
 
   useEffect(() => {
     const saved = localStorage.getItem(CONSENT_KEY)
-    if (saved) return // already chose — don't show again
-    // Small delay so the page doesn't slam the popup immediately
+    if (saved) return
     const t = setTimeout(() => setVisible(true), 1200)
     return () => clearTimeout(t)
   }, [])
@@ -31,15 +30,16 @@ export default function CookieConsent() {
           {/* ---------- Text ---------- */}
           <div>
             <h3 className="text-lg font-bold text-gray-900 mb-2.5">
-              Consent to Cookies &amp; Data Processing
+              Cookies &amp; Privacy at Trizic Solutions
             </h3>
             <p className="text-sm text-gray-600 leading-relaxed">
-              On this website we use cookies and similar functions to process end
-              device information and personal data (such as IP addresses or browser
-              information). The processing is used for purposes such as to integrate
-              content, external services and elements from third parties, statistical
-              analysis, and measurement of site traffic. Depending on the function,
-              data may be passed to third parties and processed by them.
+              Trizic Solutions uses cookies and similar technologies to keep our
+              website running smoothly and to understand how visitors use it.
+              This may include collecting basic technical details such as your
+              IP address, browser type, and the pages you view. The information
+              helps us improve performance, measure traffic, and deliver a better
+              browsing experience. You are free to accept or decline — either way,
+              you can continue using our site without any restrictions.
             </p>
           </div>
 
@@ -50,14 +50,14 @@ export default function CookieConsent() {
               onClick={handleDecline}
               className="w-full py-3 rounded-xl font-semibold text-sm border-2 border-gray-200 text-gray-700 bg-white hover:bg-gray-50 transition"
             >
-              Reject all
+              Decline
             </button>
             <button
               type="button"
               onClick={handleAccept}
               className="w-full py-3 rounded-xl font-semibold text-sm text-white bg-[#0a85a7] hover:bg-[#097390] transition"
             >
-              Accept all
+              Accept
             </button>
           </div>
         </div>
