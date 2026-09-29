@@ -20,8 +20,9 @@ const nav = [
   {
     section: 'Audience',
     items: [
-      { to: '/subscriptions', label: 'Subscriptions', icon: 'fa-envelope' },
-      { to: '/admin/users',   label: 'Users',         icon: 'fa-users' },
+      { to: '/admin/contacts', label: 'Contact Submissions', icon: 'fa-inbox' },
+      { to: '/subscriptions',  label: 'Subscriptions',       icon: 'fa-envelope' },
+      { to: '/admin/users',    label: 'Users',               icon: 'fa-users' },
     ],
   },
 ]
