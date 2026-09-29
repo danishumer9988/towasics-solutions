@@ -30,10 +30,10 @@ export default function CookieConsent() {
           {/* ---------- Text ---------- */}
           <div>
             <h3 className="text-lg font-bold text-gray-900 mb-2.5">
-              Cookies &amp; Privacy at Trizic Solutions
+              Cookies &amp; Privacy at Towasic Solutions
             </h3>
             <p className="text-sm text-gray-600 leading-relaxed">
-              Trizic Solutions uses cookies and similar technologies to keep our
+              Towasic Solutions uses cookies and similar technologies to keep our
               website running smoothly and to understand how visitors use it.
               This may include collecting basic technical details such as your
               IP address, browser type, and the pages you view. The information
