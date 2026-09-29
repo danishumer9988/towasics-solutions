@@ -242,7 +242,7 @@ export default function Home() {
             <div className="space-y-6">
               <p className="text-brand-600 text-lg font-semibold uppercase tracking-wider">Beyond scraping — we extract meaning</p>
               <h2 className="text-3xl md:text-4xl font-extrabold text-[#086B87] leading-tight">
-                Intelligent Web Scraping with AI-Powered Data Enrichment
+                Intelligent Web Scraping With AI-Powered Data Enrichment
               </h2>
               <p className="text-gray-600 text-lg leading-relaxed">
                 Our advanced web scraping engine doesn't just collect raw HTML. It integrates AI-powered data enrichment, enabling real-time entity recognition, sentiment analysis, data classification, and even trend forecasting across scraped datasets.
