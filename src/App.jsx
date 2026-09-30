@@ -14,6 +14,7 @@ import ServicePage from './pages/ServicePage'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import TermsOfService from './pages/TermsOfService'
 import NotFound from './pages/NotFound'
+import Portfolio from './pages/Portfolio'
 
 import Dashboard from './pages/admin/Dashboard'
 import BlogAdmin from './pages/admin/BlogAdmin'
@@ -26,6 +27,7 @@ import AddFAQ from './pages/admin/AddFAQ'
 import ProjectAdmin from './pages/admin/ProjectAdmin'
 import ProjectNew from './pages/admin/ProjectNew'
 import ProjectEdit from './pages/admin/ProjectEdit'
+import IndustryAdmin from './pages/admin/IndustryAdmin'
 
 import Analytics, { VisitorDetail } from './pages/admin/Analytics'
 
@@ -34,7 +36,6 @@ import CookieConsent from './components/CookieConsent'
 import { trackPageView, initClickTracking } from './lib/analytics'
 
 import VerifyInvite from './pages/admin/VerifyInvite'
-
 import ContactSubmissions from './pages/admin/ContactSubmissions'
 
 /* ---------- Analytics tracker ---------- */
@@ -49,21 +50,16 @@ const SKIP_PREFIXES = [
 
 function TrackerMount() {
   const location = useLocation()
-
-  useEffect(() => {
-    initClickTracking()
-  }, [])
-
+  useEffect(() => { initClickTracking() }, [])
   useEffect(() => {
     const p = location.pathname
     if (SKIP_PREFIXES.some((prefix) => p.startsWith(prefix))) return
     trackPageView()
   }, [location.pathname, location.search])
-
   return null
 }
 
-/* ---------- Admin-route detection helper ---------- */
+/* ---------- Admin route detection ---------- */
 function useIsAdminArea() {
   const { pathname } = useLocation()
   return (
@@ -76,21 +72,16 @@ function useIsAdminArea() {
   )
 }
 
-/* ---------- WhatsApp — hidden on admin/auth routes ---------- */
 function ConditionalWhatsApp() {
-  const isAdminArea = useIsAdminArea()
-  if (isAdminArea) return null
+  if (useIsAdminArea()) return null
   return <WhatsAppButton />
 }
 
-/* ---------- Cookie consent — hidden on admin/auth routes ---------- */
 function ConditionalCookieConsent() {
-  const isAdminArea = useIsAdminArea()
-  if (isAdminArea) return null
+  if (useIsAdminArea()) return null
   return <CookieConsent />
 }
 
-/* ---------- App ---------- */
 function App() {
   return (
     <BrowserRouter>
@@ -112,19 +103,26 @@ function App() {
         <Route path="/services/:serviceName" element={<ServicePage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
+        <Route path="/portfolio" element={<Portfolio />} />
 
-        {/* Admin — existing */}
+        {/* Admin — auth */}
         <Route path="/auth/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
 
+        {/* Admin — projects */}
         <Route path="/admin/projects" element={<ProjectAdmin />} />
         <Route path="/admin/projects/new" element={<ProjectNew />} />
         <Route path="/admin/projects/edit/:id" element={<ProjectEdit />} />
 
+        {/* Admin — industries */}
+        <Route path="/admin/industries" element={<IndustryAdmin />} />
+
+        {/* Admin — blogs */}
         <Route path="/blogs" element={<BlogAdmin />} />
         <Route path="/blogs/new" element={<BlogNew />} />
         <Route path="/blogs/edit/:id" element={<BlogEdit />} />
 
+        {/* Admin — misc */}
         <Route path="/admin/users" element={<AdminUsers />} />
         <Route path="/subscriptions" element={<Subscriptions />} />
         <Route path="/addfaq" element={<AddFAQ />} />
@@ -134,7 +132,6 @@ function App() {
         <Route path="/admin/analytics/visitor/:visitorId" element={<VisitorDetail />} />
 
         <Route path="/admin/verify-invite" element={<VerifyInvite />} />
-
         <Route path="/admin/contacts" element={<ContactSubmissions />} />
 
         <Route path="*" element={<NotFound />} />

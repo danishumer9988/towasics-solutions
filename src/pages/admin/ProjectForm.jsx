@@ -16,16 +16,30 @@ export default function ProjectForm({ mode = 'create' }) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [link, setLink] = useState('')
+  const [industry, setIndustry] = useState('')
   const [images, setImages] = useState([])
   const [urlInput, setUrlInput] = useState('')
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [loading, setLoading] = useState(isEdit)
   const [error, setError] = useState('')
+  const [industries, setIndustries] = useState([])
 
   useEffect(() => {
     if (!localStorage.getItem('user')) navigate('/auth/login')
   }, [navigate])
+
+  /* Load industries for the dropdown */
+  useEffect(() => {
+    ;(async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/industries`)
+        setIndustries(Array.isArray(res.data) ? res.data : [])
+      } catch (err) {
+        console.error('Failed to load industries', err)
+      }
+    })()
+  }, [])
 
   useEffect(() => {
     if (!isEdit || !id) return
@@ -38,6 +52,7 @@ export default function ProjectForm({ mode = 'create' }) {
         setTitle(p.title)
         setDescription(p.description)
         setLink(p.link || '')
+        setIndustry(p.industry || '')
         setImages(p.images || [])
       } catch (err) {
         console.error(err)
@@ -95,6 +110,7 @@ export default function ProjectForm({ mode = 'create' }) {
       title,
       description,
       link: link.trim(),
+      industry,
       images,
     }
     try {
@@ -133,17 +149,36 @@ export default function ProjectForm({ mode = 'create' }) {
               </div>
             </div>
 
-            <Field label="External Link (optional)">
-              <Input
-                type="url"
-                value={link}
-                onChange={(e) => setLink(e.target.value)}
-                placeholder="https://example.com/case-study"
-              />
-              <p className="text-xs text-ink-subtle mt-1.5">
-                If provided, the "Read More" button on the About page will open this link in a new tab. Leave blank to show the built-in detail modal instead.
-              </p>
-            </Field>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <Field
+                label="Industry"
+                hint={
+                  industries.length === 0
+                    ? 'No industries yet — create them in Admin → Industries'
+                    : 'Choose the industry this project belongs to'
+                }
+              >
+                <select
+                  value={industry}
+                  onChange={(e) => setIndustry(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-sm bg-white border border-line rounded-lg text-ink focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition"
+                >
+                  <option value="">— None —</option>
+                  {industries.map((ind) => (
+                    <option key={ind._id} value={ind.slug}>{ind.name}</option>
+                  ))}
+                </select>
+              </Field>
+
+              <Field label="External Link (optional)">
+                <Input
+                  type="url"
+                  value={link}
+                  onChange={(e) => setLink(e.target.value)}
+                  placeholder="https://example.com/case-study"
+                />
+              </Field>
+            </div>
 
             <Field label="Description">
               <Textarea rows={6} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Write project description…" required />
