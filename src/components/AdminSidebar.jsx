@@ -12,9 +12,10 @@ const nav = [
   {
     section: 'Content',
     items: [
-      { to: '/admin/projects', label: 'Projects',   icon: 'fa-diagram-project' },
-      { to: '/blogs',          label: 'Blog Posts', icon: 'fa-newspaper' },
-      { to: '/addfaq',         label: 'FAQs',       icon: 'fa-circle-question' },
+      { to: '/admin/projects',   label: 'Projects',    icon: 'fa-diagram-project' },
+      { to: '/admin/industries', label: 'Industries',  icon: 'fa-tags' },
+      { to: '/blogs',            label: 'Blog Posts',  icon: 'fa-newspaper' },
+      { to: '/addfaq',           label: 'FAQs',        icon: 'fa-circle-question' },
     ],
   },
   {

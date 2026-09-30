@@ -8,7 +8,7 @@ import { API_BASE_URL } from '../config'
 
 const PER_PAGE = 20
 
-/* ===================== Detail Modal ===================== */
+/* ===================== Project Detail Modal ===================== */
 function ProjectDetailModal({ isOpen, project, onClose }) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const images = project?.images?.length ? project.images : ['/assets/slider.png']
@@ -231,6 +231,7 @@ export default function Portfolio() {
     <div className="min-h-screen bg-white">
       <Navbar />
 
+      {/* ===================== HERO ===================== */}
       <PageHeader
         title="Our Portfolio"
         description="Real solutions we've delivered across industries — from web scraping and automation to AI-powered systems."
@@ -238,7 +239,7 @@ export default function Portfolio() {
         imageAlt="Portfolio"
       />
 
-      {/* ===================== Industry Tab Bar ===================== */}
+      {/* ===================== INDUSTRY TAB BAR ===================== */}
       <section className="bg-white border-b border-gray-100 sticky top-16 z-30 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-4 overflow-x-auto scrollbar-thin">
@@ -292,7 +293,7 @@ export default function Portfolio() {
         </div>
       </section>
 
-      {/* ===================== Project Grid ===================== */}
+      {/* ===================== PROJECT GRID ===================== */}
       <section className="py-12 sm:py-16 bg-[#F7FBFD] min-h-[400px]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
