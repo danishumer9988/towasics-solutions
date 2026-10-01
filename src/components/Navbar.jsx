@@ -61,9 +61,9 @@ export default function Navbar() {
               )}
             </div>
 
-            <Link to="/portfolio" className={linkClass('/portfolio')}>Portfolio</Link>
             <Link to="/industries" className={linkClass('/industries')}>Industries</Link>
             <Link to="/howworks" className={linkClass('/howworks')}>How It Works</Link>
+            <Link to="/portfolio" className={linkClass('/portfolio')}>Portfolio</Link>
             <Link to="/blog" className={linkClass('/blog')}>Blog</Link>
             <Link to="/faq" className={linkClass('/faq')}>FAQs</Link>
           </div>
