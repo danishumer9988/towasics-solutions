@@ -8,6 +8,103 @@ import { API_BASE_URL } from '../config'
 
 const PER_PAGE = 20
 
+/* ===================== Image Lightbox (enlarge) ===================== */
+function ImageLightboxModal({ isOpen, image, title, images = [], blurImage = false, onClose }) {
+  const [currentIndex, setCurrentIndex] = useState(0)
+
+  useEffect(() => {
+    if (images && image) {
+      const idx = images.indexOf(image)
+      if (idx !== -1) setCurrentIndex(idx)
+      else setCurrentIndex(0)
+    }
+  }, [image, images])
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose()
+      if (e.key === 'ArrowRight' && images.length > 1) {
+        setCurrentIndex((prev) => (prev + 1) % images.length)
+      }
+      if (e.key === 'ArrowLeft' && images.length > 1) {
+        setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)
+      }
+    }
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = 'hidden'
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = 'unset'
+    }
+  }, [isOpen, images, onClose])
+
+  if (!isOpen) return null
+
+  const currentImg = images.length > 0 ? images[currentIndex] : image
+
+  return (
+    <div
+      className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 transition-all duration-300"
+      onClick={onClose}
+    >
+      <div
+        className="relative max-w-5xl max-h-[90vh] w-full flex flex-col items-center justify-center"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute -top-12 right-0 sm:-top-5 sm:-right-10 bg-white/20 hover:bg-red-600 text-white rounded-full w-10 h-10 flex items-center justify-center transition-all shadow-xl text-xl cursor-pointer"
+          title="Close (Esc)"
+        >
+          <i className="fa-solid fa-xmark"></i>
+        </button>
+
+        <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/20 bg-black/40 flex items-center justify-center max-h-[80vh] w-full">
+          <img
+            src={currentImg}
+            alt={title || 'Enlarged Project View'}
+            className={`max-h-[80vh] max-w-full object-contain ${blurImage ? 'img-blur-modal' : ''}`}
+            onError={(e) => { e.target.src = '/assets/slider.png' }}
+          />
+          {blurImage && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <span className="bg-black/60 backdrop-blur-sm text-white px-4 py-2 rounded-full text-xs font-semibold inline-flex items-center gap-2 shadow-lg">
+                <i className="fa-solid fa-lock text-xs"></i>
+                Confidential project — image blurred
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-4 flex items-center justify-between w-full max-w-2xl px-2 text-white">
+          <p className="text-sm sm:text-base font-semibold truncate font-inter text-white/90">
+            {title} {images.length > 1 && `(${currentIndex + 1} of ${images.length})`}
+          </p>
+
+          {images.length > 1 && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)}
+                className="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <i className="fa-solid fa-chevron-left text-xs"></i> Prev
+              </button>
+              <button
+                onClick={() => setCurrentIndex((prev) => (prev + 1) % images.length)}
+                className="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5 cursor-pointer"
+              >
+                Next <i className="fa-solid fa-chevron-right text-xs"></i>
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /* ===================== Project Detail Modal ===================== */
 function ProjectDetailModal({ isOpen, project, onClose }) {
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -128,7 +225,7 @@ function ProjectDetailModal({ isOpen, project, onClose }) {
 }
 
 /* ===================== Project Card ===================== */
-function ProjectCard({ project, onReadMore }) {
+function ProjectCard({ project, onReadMore, onEnlarge }) {
   const cover = project.images?.[0] || '/assets/slider.png'
   const hasLink = project.link && project.link.trim().length > 0
 
@@ -144,7 +241,11 @@ function ProjectCard({ project, onReadMore }) {
 
   return (
     <div className="bg-white rounded-3xl shadow-lg overflow-hidden border border-white/40 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
-      <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
+      <div
+        className="relative aspect-[4/3] overflow-hidden bg-gray-100 cursor-pointer group"
+        onClick={() => onEnlarge && onEnlarge(cover, project.images?.length ? project.images : [cover], project.title, project.blurImage)}
+        title="Click to enlarge image"
+      >
         <img
           src={cover}
           alt={project.title}
@@ -165,6 +266,12 @@ function ProjectCard({ project, onReadMore }) {
         <span className="absolute top-3 left-3 bg-[#0a85a7] text-white px-3 py-1 rounded-full text-xs font-bold shadow-md z-10">
           #{project.projectNumber?.toString().padStart(2, '0') || '—'}
         </span>
+
+        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+          <span className="bg-black/75 text-white text-xs font-semibold px-3.5 py-2 rounded-full flex items-center gap-2 shadow-lg">
+            <i className="fa-solid fa-magnifying-glass-plus text-sm"></i> Click to Enlarge
+          </span>
+        </div>
       </div>
 
       <div className="p-5 flex flex-col flex-1 text-left">
@@ -207,6 +314,7 @@ export default function Portfolio() {
   const [selectedIndustry, setSelectedIndustry] = useState('all')
   const [page, setPage] = useState(1)
   const [selectedProject, setSelectedProject] = useState(null)
+  const [lightbox, setLightbox] = useState({ isOpen: false, image: '', images: [], title: '', blurImage: false })
 
   useEffect(() => {
     let cancelled = false
@@ -251,6 +359,20 @@ export default function Portfolio() {
     if (p < 1 || p > totalPages) return
     setPage(p)
     window.scrollTo({ top: 320, behavior: 'smooth' })
+  }
+
+  const handleEnlargeImage = (image, images, title, blurImage = false) => {
+    setLightbox({
+      isOpen: true,
+      image,
+      images: images && images.length > 0 ? images : [image],
+      title,
+      blurImage,
+    })
+  }
+
+  const handleCloseLightbox = () => {
+    setLightbox({ isOpen: false, image: '', images: [], title: '', blurImage: false })
   }
 
   const countForIndustry = (slug) =>
@@ -365,6 +487,7 @@ export default function Portfolio() {
                     key={project._id}
                     project={project}
                     onReadMore={setSelectedProject}
+                    onEnlarge={handleEnlargeImage}
                   />
                 ))}
               </div>
@@ -458,6 +581,15 @@ export default function Portfolio() {
         isOpen={!!selectedProject}
         project={selectedProject}
         onClose={() => setSelectedProject(null)}
+      />
+
+      <ImageLightboxModal
+        isOpen={lightbox.isOpen}
+        image={lightbox.image}
+        images={lightbox.images}
+        title={lightbox.title}
+        blurImage={lightbox.blurImage}
+        onClose={handleCloseLightbox}
       />
 
       <Footer />

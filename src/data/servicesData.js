@@ -34,7 +34,7 @@ export const servicesData = {
   "powerbi-design": {
     title: "Power BI dashboard  ",
     heroImage: "heroman.png",
-    serviceTagline: "Services — Power BI Dashboard",
+    serviceTagline: "Services — Power BI Dashboard Design",
     whatsappContact: {
       phone: "+97466847104",
       message: "Hi! I'm interested in your Power BI Dashboard services. Could you please provide more information about creating interactive, visual reports?"
@@ -66,7 +66,7 @@ export const servicesData = {
   "server-setup": {
     title: "Server setup for bots & script",
     heroImage: "heroman.png",
-    serviceTagline: "Services — Server setup for bots & script ",
+    serviceTagline: "Services — Server Setup for Bots & Script ",
     whatsappContact: {
       phone: "+97466847104",
       message: "Hi! I'm interested in your Server Setup for bots & script services. Could you please provide more information about running your bots and scripts with maximum performance?"
@@ -130,7 +130,7 @@ export const servicesData = {
   "daily-data": {
     title: "Daily data feeds",
     heroImage: "heroman.png",
-    serviceTagline: "Services — Daily data feeds",
+    serviceTagline: "Services — Daily Data Feeds",
     whatsappContact: {
       phone: "+97466847104",
       message: "Hi! I'm interested in your Daily Data Feeds services. Could you please provide more information about delivering fresh, accurate, and ready-to-use information straight to you every day?"
@@ -162,7 +162,7 @@ export const servicesData = {
   "ai-powered-bots": {
     title: "AI powered bots",
     heroImage: "heroman.png",
-    serviceTagline: "Services — AI powered bots",
+    serviceTagline: "Services — AI Powered Bots",
     whatsappContact: {
       phone: "+97466847104",
       message: "Hi! I'm interested in your AI Powered Bots services. Could you please provide more information about supercharging your business with our AI-powered automation bots?"
@@ -194,7 +194,7 @@ export const servicesData = {
   "web-automation": {
     title: "Web automation bots",
     heroImage: "heroman.png",
-    serviceTagline: "Services — Web automation bots",
+    serviceTagline: "Services — Web Automation Bots",
     whatsappContact: {
       phone: "+97466847104",
       message: "Hi! I'm interested in your Web Automation Bots services. Could you please provide more information about streamlining your workflow with our custom web automation bots?"
@@ -226,7 +226,7 @@ export const servicesData = {
   "custom-web-scraping": {
     title: "Custom web scraping software",
     heroImage: "heroman.png",
-    serviceTagline: "Services — Custom web scraping software",
+    serviceTagline: "Services — Custom Web Scraping Software",
     whatsappContact: {
       phone: "+97466847104",
       message: "Hi! I'm interested in your Custom Web Scraping Software services. Could you please provide more information about getting a custom-built web scraper tailored to your business needs?"
