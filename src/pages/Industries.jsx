@@ -51,7 +51,7 @@ export default function Industries() {
       <PageHeader
         title="Industries"
         description="Our data scraping solutions are designed to empower businesses across diverse industries by providing real-time, structured data for actionable insights. Discover how we can help your industry turn data into growth."
-        image="/assets/works.png"
+        image="/assets/portfolio.png"
         imageAlt="Industries"
       />
 

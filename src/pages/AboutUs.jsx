@@ -570,7 +570,7 @@ export default function AboutUs() {
 
       <PageHeader
         title="About Us"
-        description="Turning complex ideas into powerful, real-world results"
+        description="Turning complex ideas into powerful, real-world results."
         image="/assets/abutus.png"
         imageAlt="About Us"
       />

@@ -264,7 +264,7 @@ export default function Portfolio() {
       <PageHeader
         title="Portfolio"
         description="Explore the projects we've delivered across industries, from web scraping and automation to full-stack AI-powered IoT systems."
-        image="/assets/portfolio.png"
+        image="/assets/works.png"
         imageAlt="Portfolio"
       />
 
