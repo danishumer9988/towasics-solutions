@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import Slider from 'react-slick'
 import axios from 'axios'
@@ -276,7 +277,7 @@ function ProjectCard({ project, onEnlarge, onReadMore }) {
   );
 }
 
-/* -------------------- Portfolio Section -------------------- */
+/* -------------------- Portfolio Section (About Page) -------------------- */
 function PortfolioSlider() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -288,7 +289,10 @@ function PortfolioSlider() {
     const fetchProjects = async () => {
       try {
         const res = await axios.get(`${API_BASE_URL}/projects`);
-        setProjects(res.data);
+        // Show only the first 4 projects on the About page.
+        // Full list is on the /portfolio page.
+        const all = Array.isArray(res.data) ? res.data : [];
+        setProjects(all.slice(0, 4));
       } catch (err) {
         console.error('Error loading portfolio projects:', err);
       } finally {
@@ -385,6 +389,17 @@ function PortfolioSlider() {
                 ))}
               </Slider>
             </div>
+          </div>
+
+          {/* View All Projects CTA */}
+          <div className="text-center mt-10">
+            <Link
+              to="/portfolio"
+              className="inline-flex items-center gap-3 bg-[#0a85a7] hover:bg-[#097390] text-white px-8 py-3 rounded-lg font-semibold transition-colors shadow-md"
+            >
+              View All Projects
+              <i className="fa-solid fa-arrow-right text-sm"></i>
+            </Link>
           </div>
         </div>
       </section>
