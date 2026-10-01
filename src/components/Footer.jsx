@@ -67,6 +67,7 @@ const usefulLinks = [
   { name: 'About Us', href: '/aboutus' },
   { name: 'Industries', href: '/industries' },
   { name: 'How It Works', href: '/howworks' },
+  { name: 'Portfolio', href: '/portfolio' },
   { name: "Let's Talk", href: '/contactus' },
   { name: 'Blog', href: '/blog' },
   { name: 'FAQ', href: '/faq' },

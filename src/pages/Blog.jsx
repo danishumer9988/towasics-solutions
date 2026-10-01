@@ -57,18 +57,6 @@ export default function Blog() {
           </h2>
 
           <p
-            className="font-medium text-[16px] text-slate-600 leading-relaxed max-w-4xl mx-auto"
-            style={{
-              fontFamily: 'Inter, sans-serif',
-              fontWeight: 500,
-              fontSize: '16px',
-              letterSpacing: '0%'
-            }}
-          >
-            Welcome to our blog, where we share insights, tips, and trends in data scraping, industry applications, and data-driven strategies. Dive into our latest articles to learn how data can empower your business and keep you ahead of the curve.
-          </p>
-
-          <p
             className="font-medium text-[16px] text-slate-600 leading-relaxed pt-1 max-w-4xl mx-auto"
             style={{
               fontFamily: 'Inter, sans-serif',
