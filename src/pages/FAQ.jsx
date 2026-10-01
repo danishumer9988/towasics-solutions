@@ -151,7 +151,7 @@ export default function FAQ() {
         title="FAQ"
         description={
           <>
-            Find Answers To Common Questions About Our Data Scraping Services, Process, Delivery Formats, And Compliance Practices. If You Have A Question That's Not Covered Here, Feel Free To{' '}
+            Find answers to common questions about our data scraping services, process, delivery formats, and compliance practices. If you have a question that's not covered here, feel free to{' '}
             <Link to="/contactus" className="text-[#3EB5D6] underline hover:text-white transition font-bold">Let's Talk.</Link>
           </>
         }

@@ -11,7 +11,7 @@ export default function TermsOfService() {
       {/* Main Top Hero Banner */}
       <PageHeader
         title="Terms Of Services"
-        description="Defines The Rules, Rights, And Responsibilities Between The Company And Users, Covering Usage Guidelines, Limitations, And Legal Protections To Ensure A Safe And Fair Service Experience."
+        description="Defines the rules, rights, and responsibilities between the company and users, covering usage guidelines, limitations, and legal protections to ensure a safe and fair service experience."
         image="/assets/terms.png"
         imageAlt="Terms of Service Illustration"
       />

@@ -219,8 +219,7 @@ export default function ProjectForm({ mode = 'create' }) {
                     <img
                       src={images[0]}
                       alt="Preview"
-                      className="w-full h-full object-cover"
-                      style={{ filter: blurImage ? 'blur(10px)' : 'none', transform: 'scale(1.1)' }}
+                      className={`w-full h-full object-cover ${blurImage ? 'img-blur-preview' : ''}`}
                       onError={(e) => { e.target.src = '/assets/slider.png' }}
                     />
                   </div>
@@ -274,8 +273,7 @@ export default function ProjectForm({ mode = 'create' }) {
                       <img
                         src={src}
                         alt=""
-                        className="w-full h-full object-cover"
-                        style={{ filter: blurImage ? 'blur(10px)' : 'none', transform: 'scale(1.1)' }}
+                        className={`w-full h-full object-cover ${blurImage ? 'img-blur-preview' : ''}`}
                       />
                       {idx === 0 && (
                         <span className="absolute top-2 left-2 bg-brand-600 text-white text-[10px] font-semibold px-2 py-0.5 rounded z-10">

@@ -65,11 +65,7 @@ function ProjectDetailModal({ isOpen, project, onClose }) {
             <img
               src={images[currentIndex]}
               alt={project.title}
-              className="w-full h-full object-contain"
-              style={{
-                filter: project.blurImage ? 'blur(18px)' : 'none',
-                transform: project.blurImage ? 'scale(1.08)' : undefined,
-              }}
+              className={`w-full h-full object-contain ${project.blurImage ? 'img-blur-modal' : ''}`}
               onError={(e) => { e.target.src = '/assets/slider.png' }}
             />
             {project.blurImage && (
@@ -97,11 +93,7 @@ function ProjectDetailModal({ isOpen, project, onClose }) {
                     src={img}
                     alt={`Thumb ${i + 1}`}
                     loading="lazy"
-                    className="w-full h-full object-cover"
-                    style={{
-                      filter: project.blurImage ? 'blur(8px)' : 'none',
-                      transform: project.blurImage ? 'scale(1.1)' : undefined,
-                    }}
+                    className={`w-full h-full object-cover ${project.blurImage ? 'img-blur-thumb' : ''}`}
                   />
                 </button>
               ))}
@@ -157,11 +149,9 @@ function ProjectCard({ project, onReadMore }) {
           src={cover}
           alt={project.title}
           loading="lazy"
-          className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-          style={{
-            filter: project.blurImage ? 'blur(14px)' : 'none',
-            transform: project.blurImage ? 'scale(1.15)' : undefined,
-          }}
+          className={`w-full h-full object-cover transition-transform duration-500 hover:scale-105 ${
+            project.blurImage ? 'img-blur-cover' : ''
+          }`}
           onError={(e) => { e.target.src = '/assets/slider.png' }}
         />
 
@@ -274,19 +264,19 @@ export default function Portfolio() {
       <PageHeader
         title="Portfolio"
         description="Explore the projects we've delivered across industries, from web scraping and automation to full-stack AI-powered IoT systems."
-        image="/assets/works.png"
+        image="/assets/portfolio.png"
         imageAlt="Portfolio"
       />
 
       {/* ===================== INDUSTRY TAB BAR ===================== */}
-      <section className="bg-white border-b border-gray-100 sticky top-16 z-30 shadow-sm">
+      <section className="bg-white border-b border-gray-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-4 overflow-x-auto scrollbar-thin">
-            <div className="flex gap-2 min-w-max">
+          <div className="py-5">
+            <div className="flex flex-wrap justify-center gap-2 sm:gap-2.5">
               <button
                 type="button"
                 onClick={() => handleSelectIndustry('all')}
-                className={`px-4 sm:px-5 py-2.5 rounded-full text-sm font-semibold transition-all whitespace-nowrap ${
+                className={`px-4 sm:px-5 py-2.5 rounded-full text-sm font-semibold transition-all ${
                   selectedIndustry === 'all'
                     ? 'bg-[#0a85a7] text-white shadow-md'
                     : 'bg-white text-gray-700 border border-gray-200 hover:border-[#0a85a7] hover:text-[#0a85a7]'
@@ -310,7 +300,7 @@ export default function Portfolio() {
                     key={ind._id}
                     type="button"
                     onClick={() => handleSelectIndustry(ind.slug)}
-                    className={`px-4 sm:px-5 py-2.5 rounded-full text-sm font-semibold transition-all whitespace-nowrap ${
+                    className={`px-4 sm:px-5 py-2.5 rounded-full text-sm font-semibold transition-all ${
                       active
                         ? 'bg-[#0a85a7] text-white shadow-md'
                         : 'bg-white text-gray-700 border border-gray-200 hover:border-[#0a85a7] hover:text-[#0a85a7]'

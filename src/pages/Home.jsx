@@ -109,12 +109,12 @@ export default function Home() {
               </motion.h1>
               <motion.p
                 style={{ lineHeight: '1.25' }}
-                className="font-inter font-medium text-base sm:text-lg md:text-[20px] text-white tracking-normal capitalize opacity-95 mb-6 sm:mb-8 max-w-2xl mx-auto lg:mx-0"
+                className="font-inter font-medium text-base sm:text-lg md:text-[20px] text-white tracking-normal capitalize opacity-95 mb-6 sm:mb-8 max-w-2xl mx-auto lg:mx-0"className="font-inter font-medium text-base sm:text-lg md:text-[20px] text-white tracking-normal opacity-95 mb-6 sm:mb-8 max-w-2xl mx-auto lg:mx-0"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
               >
-                Our Company Specializes In Providing Cutting-Edge, Accurate, And Scalable Data Scraping Solutions That Empower Businesses To Unlock The Wealth Of Data Hidden Behind Online Interfaces.
+                Our company specializes in providing cutting-edge, accurate, and scalable data scraping solutions that empower businesses to unlock the wealth of data hidden behind online interfaces.
               </motion.p>
               <div className="pt-2 sm:pt-4">
                 <Link to="/contactus">
@@ -200,20 +200,20 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 pt-6 max-w-5xl mx-auto">
             {[
               {
-                title: 'Our Mission',
-                img: '/assets/our mission.png',
-                text: 'At The Core Of Our Company, We Are Driven By A Mission To Revolutionize The Way Businesses Access And Utilize Data. We Believe That The Power Of Web Scraping Can Unlock Unprecedented Insights, Driving Innovation And Fueling Strategic Decision-Making.'
-              },
-              {
-                title: 'Our Expertise',
-                img: '/assets/our experise.png',
-                text: 'With A Team Of Seasoned Data Engineers, Web Scraping Specialists, And Software Developers, We Possess A Deep Understanding Of The Latest Techniques And Technologies In The Field. Our Expertise Spans Everything From Custom Scraper Development To Scalable Data Extraction Solutions.'
-              },
-              {
-                title: 'Our Commitment',
-                img: '/assets/our comitment.png',
-                text: 'We Are Dedicated To Providing Our Clients With Exceptional Service, Tailored Solutions, And A Seamless Experience. Our Commitment To Customer Satisfaction Is At The Heart Of Everything We Do, Ensuring That Our Clients Can Focus On Leveraging The Data They Need To Drive Their Business Forward.'
-              }
+                  title: 'Our Mission',
+                  img: '/assets/our mission.png',
+                  text: 'At the core of our company, we are driven by a mission to revolutionize the way businesses access and utilize data. We believe that the power of web scraping can unlock unprecedented insights, driving innovation and fueling strategic decision-making.'
+                },
+                {
+                  title: 'Our Expertise',
+                  img: '/assets/our experise.png',
+                  text: 'With a team of seasoned data engineers, web scraping specialists, and software developers, we possess a deep understanding of the latest techniques and technologies in the field. Our expertise spans everything from custom scraper development to scalable data extraction solutions.'
+                },
+                {
+                  title: 'Our Commitment',
+                  img: '/assets/our comitment.png',
+                  text: 'We are dedicated to providing our clients with exceptional service, tailored solutions, and a seamless experience. Our commitment to customer satisfaction is at the heart of everything we do, ensuring that our clients can focus on leveraging the data they need to drive their business forward.'
+                }
             ].map((col, idx) => (
               <motion.div 
                 key={idx}

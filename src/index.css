@@ -290,7 +290,7 @@ body {
   line-height: 135% !important;
   letter-spacing: 0.01em !important;
   text-align: center !important;
-  text-transform: capitalize !important;
+  text-transform: none !important;
   color: #6b686b;
 }
 
@@ -723,4 +723,26 @@ img {
 
 .subscribe-btn:hover {
   background: #e0f9fb;
+}
+
+
+/* ===== Force blur past the global img filter reset ===== */
+.img-blur-cover {
+  filter: blur(14px) !important;
+  transform: scale(1.15) !important;
+}
+
+.img-blur-modal {
+  filter: blur(18px) !important;
+  transform: scale(1.08) !important;
+}
+
+.img-blur-thumb {
+  filter: blur(8px) !important;
+  transform: scale(1.1) !important;
+}
+
+.img-blur-preview {
+  filter: blur(10px) !important;
+  transform: scale(1.1) !important;
 }

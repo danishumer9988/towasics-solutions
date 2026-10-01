@@ -56,7 +56,7 @@ export default function Industries() {
       />
 
       {/* Intro Description & First 6 Cards */}
-      <motion.section 
+      <motion.section
         className="bg-white py-16"
         initial="hidden"
         whileInView="visible"
@@ -64,8 +64,8 @@ export default function Industries() {
         variants={containerVariants}
       >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.h2 
-            className="text-3xl font-bold text-brand-800 mb-4" 
+          <motion.h2
+            className="text-3xl font-bold text-brand-800 mb-4"
             style={{ color: "#0A85A7", fontSize: "20px" }}
             variants={itemVariants}
           >
@@ -80,8 +80,8 @@ export default function Industries() {
           {/* Row 1 */}
           <motion.div className="flex flex-wrap justify-center gap-8 mb-12" variants={containerVariants}>
             {/* Card 1 - E-Commerce */}
-            <motion.div 
-              className="bg-white cardslider2 hover-lift text-center" 
+            <motion.div
+              className="bg-white cardslider2 hover-lift text-center"
               variants={cardVariants}
               whileHover={{ scale: 1.02, y: -5, transition: { duration: 0.3 } }}
             >
@@ -90,13 +90,13 @@ export default function Industries() {
               </motion.div>
               <h3 style={{ color: "#0A85A7" }}>E-Commerce</h3>
               <p>
-                Get The Best Ecommerce Data Scraping Services For Extracting Competitive Data And Scraping Ecommerce Websites Like Amazon, EBay, Alibaba, Walmart, Target, AliExpress, And Many More.
+                Get the best ecommerce data scraping services for extracting competitive data and scraping ecommerce websites like Amazon, eBay, Alibaba, Walmart, Target, AliExpress, and many more.
               </p>
             </motion.div>
 
             {/* Card 2 - Healthcare */}
-            <motion.div 
-              className="bg-white cardslider2 hover-lift text-center" 
+            <motion.div
+              className="bg-white cardslider2 hover-lift text-center"
               variants={cardVariants}
               whileHover={{ scale: 1.02, y: -5, transition: { duration: 0.3 } }}
             >
@@ -105,13 +105,13 @@ export default function Industries() {
               </motion.div>
               <h3 style={{ color: "#0A85A7" }}>Healthcare</h3>
               <p>
-                We Empower Healthcare Organizations By Providing Data From Medical Research, Drug Pricing, And Clinical Trials. This Information Helps Them Innovate, Improve Efficiency, And Make Well-Informed Decisions For Better Patient Outcomes.
+                We empower healthcare organizations by providing data from medical research, drug pricing, and clinical trials. This information helps them innovate, improve efficiency, and make well-informed decisions for better patient outcomes.
               </p>
             </motion.div>
 
             {/* Card 3 - Financial */}
-            <motion.div 
-              className="bg-white cardslider2 hover-lift text-center" 
+            <motion.div
+              className="bg-white cardslider2 hover-lift text-center"
               variants={cardVariants}
               whileHover={{ scale: 1.02, y: -5, transition: { duration: 0.3 } }}
             >
@@ -120,7 +120,7 @@ export default function Industries() {
               </motion.div>
               <h3 style={{ color: "#0A85A7" }}>Financial</h3>
               <p>
-                Our Solutions Help Financial Corporations Gather Stock Market Trends, Trading Data, And Commodity Prices. With Our Services, Businesses Can Analyze Real-Time Data To Make Strategic Financial Decisions And Stay Ahead Of Market Dynamics.
+                Our solutions help financial corporations gather stock market trends, trading data, and commodity prices. With our services, businesses can analyze real-time data to make strategic financial decisions and stay ahead of market dynamics.
               </p>
             </motion.div>
           </motion.div>
@@ -128,8 +128,8 @@ export default function Industries() {
           {/* Row 2 */}
           <motion.div className="flex flex-wrap justify-center gap-8 mb-16" variants={containerVariants}>
             {/* Card 4 - Hotel & Restaurant */}
-            <motion.div 
-              className="bg-white cardslider2 hover-lift text-center" 
+            <motion.div
+              className="bg-white cardslider2 hover-lift text-center"
               variants={cardVariants}
               whileHover={{ scale: 1.02, y: -5, transition: { duration: 0.3 } }}
             >
@@ -138,13 +138,13 @@ export default function Industries() {
               </motion.div>
               <h3 style={{ color: "#0A85A7" }}>Hotel & Restaurant</h3>
               <p>
-                We Assist Hotels And Restaurants By Automating The Tracking Of Reviews, Customer Preferences, And Competitor Pricing. This Data Helps Improve Customer Satisfaction, Optimize Pricing, And Streamline Operations.
+                We assist hotels and restaurants by automating the tracking of reviews, customer preferences, and competitor pricing. This data helps improve customer satisfaction, optimize pricing, and streamline operations.
               </p>
             </motion.div>
 
             {/* Card 5 - News & Events */}
-            <motion.div 
-              className="bg-white cardslider2 hover-lift text-center" 
+            <motion.div
+              className="bg-white cardslider2 hover-lift text-center"
               variants={cardVariants}
               whileHover={{ scale: 1.02, y: -5, transition: { duration: 0.3 } }}
             >
@@ -153,13 +153,13 @@ export default function Industries() {
               </motion.div>
               <h3 style={{ color: "#0A85A7" }}>News & Events</h3>
               <p>
-                Our Services Help Organizations Monitor Trending News, Event Schedules, And Public Sentiment. This Enables Timely Decision-Making And Enhances Event Management And Media Coverage Strategies.
+                Our services help organizations monitor trending news, event schedules, and public sentiment. This enables timely decision-making and enhances event management and media coverage strategies.
               </p>
             </motion.div>
 
             {/* Card 6 - Social Media */}
-            <motion.div 
-              className="bg-white cardslider2 hover-lift text-center" 
+            <motion.div
+              className="bg-white cardslider2 hover-lift text-center"
               variants={cardVariants}
               whileHover={{ scale: 1.02, y: -5, transition: { duration: 0.3 } }}
             >
@@ -168,7 +168,7 @@ export default function Industries() {
               </motion.div>
               <h3 style={{ color: "#0A85A7" }}>Social Media</h3>
               <p>
-                We Gather Insights From Social Media Platforms, Including Audience Behavior, Trending Hashtags, And Competitor Performance. This Helps Businesses Refine Their Social Strategies And Boost Online Engagement.
+                We gather insights from social media platforms, including audience behavior, trending hashtags, and competitor performance. This helps businesses refine their social strategies and boost online engagement.
               </p>
             </motion.div>
           </motion.div>
@@ -176,7 +176,7 @@ export default function Industries() {
       </motion.section>
 
       {/* Section 3 - Real Estate & Marketing (bg-brand-50) */}
-      <motion.section 
+      <motion.section
         className="bg-brand-50 py-16"
         initial="hidden"
         whileInView="visible"
@@ -192,13 +192,13 @@ export default function Industries() {
             </motion.div>
             <motion.div className="space-y-8 text-left" variants={itemVariants}>
               <motion.div variants={itemVariants}>
-                <p className="text-[#086B87] text-lg font-bold mb-4">Real Estate & county data</p>
+                <p className="text-[#086B87] text-lg font-bold mb-4">Real Estate &amp; county data</p>
                 <p className="text-gray-600 text-lg leading-relaxed">
                   Our tools scrape real estate listings, zoning information, and county records. Automating these processes provides valuable insights for real estate professionals and investors to make informed decisions.
                 </p>
               </motion.div>
               <motion.div variants={itemVariants}>
-                <p className="text-[#086B87] text-lg font-bold mb-4">Marketing & Advertising</p>
+                <p className="text-[#086B87] text-lg font-bold mb-4">Marketing &amp; Advertising</p>
                 <p className="text-gray-600 text-lg leading-relaxed">
                   Discover trends, campaigns, and strategies shaping the marketing world. Extract actionable insights from advertisements, customer reviews, and social media platforms.
                 </p>
@@ -209,8 +209,8 @@ export default function Industries() {
       </motion.section>
 
       {/* Section 4 - Legal & Retailer */}
-      <motion.section 
-        className="bg-white py-16" 
+      <motion.section
+        className="bg-white py-16"
         style={{ paddingTop: "70px" }}
         initial="hidden"
         whileInView="visible"
@@ -221,7 +221,7 @@ export default function Industries() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <motion.div className="space-y-8 text-left" variants={itemVariants}>
               <motion.div variants={itemVariants}>
-                <p className="text-[#086B87] text-lg font-bold mb-4 uppercase tracking-wide">courts & legal data</p>
+                <p className="text-[#086B87] text-lg font-bold mb-4 uppercase tracking-wide">courts &amp; legal data</p>
                 <p className="text-gray-600 text-lg leading-relaxed">
                   We provide legal professionals with access to court records, case details, and legal precedents. Automating these data extractions ensures timely and accurate insights for effective case management.
                 </p>
@@ -235,10 +235,10 @@ export default function Industries() {
             </motion.div>
             <motion.div className="flex justify-center lg:justify-end" variants={imageVariants}>
               <motion.div whileHover={{ scale: 1.05, rotate: 2, transition: { duration: 0.3 } }}>
-                <img 
-                  src="/assets/main.png" 
-                  alt="webservice" 
-                  className="animate-float max-h-[460px] lg:max-h-[520px] object-contain transform scale-110 lg:scale-125 origin-center" 
+                <img
+                  src="/assets/main.png"
+                  alt="webservice"
+                  className="animate-float max-h-[460px] lg:max-h-[520px] object-contain transform scale-110 lg:scale-125 origin-center"
                 />
               </motion.div>
             </motion.div>
@@ -247,8 +247,8 @@ export default function Industries() {
       </motion.section>
 
       {/* Section 5 - Betting & Jobs */}
-      <motion.section 
-        className="bg-white py-16" 
+      <motion.section
+        className="bg-white py-16"
         style={{ paddingBottom: "70px" }}
         initial="hidden"
         whileInView="visible"
@@ -264,13 +264,13 @@ export default function Industries() {
             </motion.div>
             <motion.div className="space-y-8 text-left" variants={itemVariants}>
               <motion.div variants={itemVariants}>
-                <p className="text-[#086B87] text-lg font-bold mb-4 uppercase tracking-wide">betting & Gaming</p>
+                <p className="text-[#086B87] text-lg font-bold mb-4 uppercase tracking-wide">betting &amp; Gaming</p>
                 <p className="text-gray-600 text-lg leading-relaxed">
                   Extract real-time odds, game statistics, and player engagement data from leading betting and gaming platforms. Analyze competitor offerings and user preferences for market advantage. Drive decisions with data from this dynamic industry.
                 </p>
               </motion.div>
               <motion.div variants={itemVariants}>
-                <p className="text-[#086B87] text-lg font-bold mb-4 uppercase tracking-wide">Jobs & education data</p>
+                <p className="text-[#086B87] text-lg font-bold mb-4 uppercase tracking-wide">Jobs &amp; education data</p>
                 <p className="text-gray-600 text-lg leading-relaxed">
                   We help businesses and institutions track job postings, educational trends, and candidate profiles. Automating these processes simplifies recruitment and education planning for better outcomes.
                 </p>
@@ -281,8 +281,8 @@ export default function Industries() {
       </motion.section>
 
       {/* Section 6 - Agriculture, Lead Gen & Crypto (bg-brand-50) */}
-      <motion.section 
-        className="bg-brand-50 py-20" 
+      <motion.section
+        className="bg-brand-50 py-20"
         style={{ paddingBottom: "10px" }}
         initial="hidden"
         whileInView="visible"
@@ -292,23 +292,23 @@ export default function Industries() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div className="flex flex-wrap justify-center gap-8 mb-16" variants={containerVariants}>
             {/* Card 1 - Agriculture */}
-            <motion.div 
-              className="bg-white cardslider2 hover-lift text-center" 
+            <motion.div
+              className="bg-white cardslider2 hover-lift text-center"
               variants={cardVariants}
               whileHover={{ scale: 1.02, y: -5, transition: { duration: 0.3 } }}
             >
               <motion.div className="flex items-center justify-center mx-auto mb-3 mt-1 h-[110px]" whileHover={{ scale: 1.05 }} transition={{ duration: 0.3 }}>
                 <img src="/assets/storage.png" alt="Agriculture" className="max-h-[110px] max-w-[140px] w-auto h-auto object-contain imagestock" />
               </motion.div>
-              <h3 style={{ color: "#0A85A7" }}>Agriculture & Food Industry</h3>
+              <h3 style={{ color: "#0A85A7" }}>Agriculture &amp; Food Industry</h3>
               <p>
                 Scrape crop prices, production statistics, and supply chain data to understand market trends. Gather consumer insights on food preferences and emerging products. Leverage data to optimize agricultural and food industry operations.
               </p>
             </motion.div>
 
             {/* Card 2 - Business Lead Gen */}
-            <motion.div 
-              className="bg-white cardslider2 hover-lift text-center" 
+            <motion.div
+              className="bg-white cardslider2 hover-lift text-center"
               variants={cardVariants}
               whileHover={{ scale: 1.02, y: -5, transition: { duration: 0.3 } }}
             >
@@ -322,15 +322,15 @@ export default function Industries() {
             </motion.div>
 
             {/* Card 3 - Stock Market & Crypto */}
-            <motion.div 
-              className="bg-white cardslider2 hover-lift text-center" 
+            <motion.div
+              className="bg-white cardslider2 hover-lift text-center"
               variants={cardVariants}
               whileHover={{ scale: 1.02, y: -5, transition: { duration: 0.3 } }}
             >
               <motion.div className="flex items-center justify-center mx-auto mb-3 mt-1 h-[110px]" whileHover={{ scale: 1.05 }} transition={{ duration: 0.3 }}>
                 <img src="/assets/works.png" alt="Stock Market" className="max-h-[110px] max-w-[140px] w-auto h-auto object-contain imagestock" />
               </motion.div>
-              <h3 style={{ color: "#0A85A7" }}>Stock Market & Crypto</h3>
+              <h3 style={{ color: "#0A85A7" }}>Stock Market &amp; Crypto</h3>
               <p>
                 Track stock prices, cryptocurrency rates, and market sentiment across global platforms. Gather real-time data on financial trends and key market movements. Make informed investment decisions with precise analytics.
               </p>
@@ -340,8 +340,8 @@ export default function Industries() {
       </motion.section>
 
       {/* Section 7 - Travel & Blockchain */}
-      <motion.section 
-        className="bg-white py-16" 
+      <motion.section
+        className="bg-white py-16"
         style={{ marginTop: "70px" }}
         initial="hidden"
         whileInView="visible"
@@ -352,13 +352,13 @@ export default function Industries() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <motion.div className="space-y-8 text-left" variants={itemVariants}>
               <motion.div variants={itemVariants}>
-                <p className="text-[#086B87] text-lg font-bold mb-4 uppercase tracking-wide">Travel & Hospitality</p>
+                <p className="text-[#086B87] text-lg font-bold mb-4 uppercase tracking-wide">Travel &amp; Hospitality</p>
                 <p className="text-gray-600 text-lg leading-relaxed">
                   Scrape hotel prices, flight details, and customer reviews from travel booking platforms. Analyze trends in tourism and hospitality to offer better services. Use data to enhance customer experiences and improve marketing strategies.
                 </p>
               </motion.div>
               <motion.div variants={itemVariants}>
-                <p className="text-[#086B87] text-lg font-bold mb-4 uppercase tracking-wide">blockchain & web3</p>
+                <p className="text-[#086B87] text-lg font-bold mb-4 uppercase tracking-wide">blockchain &amp; web3</p>
                 <p className="text-gray-600 text-lg leading-relaxed">
                   Collect data on blockchain networks, token prices, and smart contract activity. Monitor Web3 projects, trends, and developments in decentralized finance. Stay informed about emerging technologies shaping the future of the internet.
                 </p>
@@ -366,10 +366,10 @@ export default function Industries() {
             </motion.div>
             <motion.div className="flex justify-center lg:justify-end" variants={imageVariants}>
               <motion.div whileHover={{ scale: 1.05, rotate: 2, transition: { duration: 0.3 } }}>
-                <img 
-                  src="/assets/sectionn1.png" 
-                  alt="webservice" 
-                  className="animate-float max-h-[350px] object-contain" 
+                <img
+                  src="/assets/sectionn1.png"
+                  alt="webservice"
+                  className="animate-float max-h-[350px] object-contain"
                   style={{ width: "80%" }}
                 />
               </motion.div>
@@ -379,7 +379,7 @@ export default function Industries() {
       </motion.section>
 
       {/* Section 8 - Datasets & LLM Writing */}
-      <motion.section 
+      <motion.section
         className="bg-white py-16 marg"
         initial="hidden"
         whileInView="visible"
@@ -390,9 +390,9 @@ export default function Industries() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <motion.div className="flex justify-center lg:justify-start" variants={imageVariants}>
               <motion.div whileHover={{ scale: 1.05, rotate: 2, transition: { duration: 0.3 } }}>
-                <img 
-                  src="/assets/section2.png" 
-                  alt="webservice" 
+                <img
+                  src="/assets/section2.png"
+                  alt="webservice"
                   className="animate-float max-h-[550px] w-full object-contain"
                 />
               </motion.div>
@@ -416,8 +416,8 @@ export default function Industries() {
       </motion.section>
 
       {/* Section 9 - Maps, Fashion & Dark Web (bg-brand-50) */}
-      <motion.section 
-        className="bg-brand-50 py-20" 
+      <motion.section
+        className="bg-brand-50 py-20"
         style={{ paddingBottom: "10px" }}
         initial="hidden"
         whileInView="visible"
@@ -434,13 +434,13 @@ export default function Industries() {
                 </p>
               </motion.div>
               <motion.div variants={itemVariants}>
-                <p className="text-[#086B87] text-lg font-bold mb-4 uppercase tracking-wide">fashion & lifestyle</p>
+                <p className="text-[#086B87] text-lg font-bold mb-4 uppercase tracking-wide">fashion &amp; lifestyle</p>
                 <p className="text-gray-600 text-lg leading-relaxed">
                   Scrape data on fashion trends, product launches, and lifestyle influencers from top websites. Analyze consumer preferences and market trends for business growth.
                 </p>
               </motion.div>
               <motion.div variants={itemVariants}>
-                <p className="text-[#086B87] text-lg font-bold mb-4 uppercase tracking-wide">deep & Dark web</p>
+                <p className="text-[#086B87] text-lg font-bold mb-4 uppercase tracking-wide">deep &amp; Dark web</p>
                 <p className="text-gray-600 text-lg leading-relaxed">
                   Collect data securely from deep and dark web platforms for research or cybersecurity purposes. Monitor market trends, threats, and hidden opportunities.
                 </p>
@@ -448,10 +448,10 @@ export default function Industries() {
             </motion.div>
             <motion.div className="flex justify-center" variants={imageVariants}>
               <motion.div whileHover={{ scale: 1.05, rotate: 2, transition: { duration: 0.3 } }}>
-                <img 
+                <img
                   src="/assets/googlemapscraping.png"
-                  alt="webservice" 
-                  className="animate-float max-h-[400px] object-contain" 
+                  alt="webservice"
+                  className="animate-float max-h-[400px] object-contain"
                   style={{ width: "100%" }}
                 />
               </motion.div>
@@ -461,8 +461,8 @@ export default function Industries() {
       </motion.section>
 
       {/* Section 10 - API, Bot, Restful (cards with background #EEFCFD) */}
-      <motion.section 
-        className="bg-white py-20" 
+      <motion.section
+        className="bg-white py-20"
         style={{ paddingBottom: "10px" }}
         initial="hidden"
         whileInView="visible"
@@ -472,8 +472,8 @@ export default function Industries() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div className="flex flex-wrap justify-center gap-8 mb-16" variants={containerVariants}>
             {/* Card 1 - API */}
-            <motion.div 
-              className="cardslider2 hover-lift text-center" 
+            <motion.div
+              className="cardslider2 hover-lift text-center"
               style={{ backgroundColor: "#EEFCFD" }}
               variants={cardVariants}
               whileHover={{ scale: 1.02, y: -5, transition: { duration: 0.3 } }}
@@ -488,8 +488,8 @@ export default function Industries() {
             </motion.div>
 
             {/* Card 2 - Automation Bot */}
-            <motion.div 
-              className="cardslider2 hover-lift text-center" 
+            <motion.div
+              className="cardslider2 hover-lift text-center"
               style={{ backgroundColor: "#EEFCFD" }}
               variants={cardVariants}
               whileHover={{ scale: 1.02, y: -5, transition: { duration: 0.3 } }}
@@ -504,8 +504,8 @@ export default function Industries() {
             </motion.div>
 
             {/* Card 3 - Restful API */}
-            <motion.div 
-              className="cardslider2 hover-lift text-center" 
+            <motion.div
+              className="cardslider2 hover-lift text-center"
               style={{ backgroundColor: "#EEFCFD" }}
               variants={cardVariants}
               whileHover={{ scale: 1.02, y: -5, transition: { duration: 0.3 } }}
@@ -523,8 +523,8 @@ export default function Industries() {
       </motion.section>
 
       {/* Footer CTA Section */}
-      <motion.section 
-        className="bg-white py-20" 
+      <motion.section
+        className="bg-white py-20"
         style={{ paddingBottom: "10px" }}
         initial="hidden"
         whileInView="visible"
@@ -532,8 +532,8 @@ export default function Industries() {
         variants={containerVariants}
       >
         <div className="text-center px-4 max-w-4xl mx-auto">
-          <motion.h2 
-            className="titlemain2 text-4xl font-bold uppercase mb-4 text-[#086B87]" 
+          <motion.h2
+            className="titlemain2 text-4xl font-bold uppercase mb-4 text-[#086B87]"
             variants={itemVariants}
           >
             Ready to Transform Your Industry?

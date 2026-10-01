@@ -10,7 +10,7 @@ import TestimonialSlider from '../components/TestimonialSlider'
 import { API_BASE_URL } from '../config'
 
 /* -------------------- Image Lightbox (gallery) -------------------- */
-function ImageLightboxModal({ isOpen, image, title, images = [], onClose }) {
+function ImageLightboxModal({ isOpen, image, title, images = [], blurImage = false, onClose }) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
@@ -66,9 +66,17 @@ function ImageLightboxModal({ isOpen, image, title, images = [], onClose }) {
           <img
             src={currentImg}
             alt={title || "Enlarged Project View"}
-            className="max-h-[80vh] max-w-full object-contain"
+            className={`max-h-[80vh] max-w-full object-contain ${blurImage ? 'img-blur-modal' : ''}`}
             onError={(e) => { e.target.src = '/assets/slider.png' }}
           />
+          {blurImage && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <span className="bg-black/60 backdrop-blur-sm text-white px-4 py-2 rounded-full text-xs font-semibold inline-flex items-center gap-2 shadow-lg">
+                <i className="fa-solid fa-lock text-xs"></i>
+                Confidential project — image blurred
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="mt-4 flex items-center justify-between w-full max-w-2xl px-2 text-white">
@@ -151,17 +159,25 @@ function ProjectDetailModal({ isOpen, project, onClose }) {
 
         {/* Scrollable body */}
         <div className="overflow-y-auto p-5 sm:p-7">
-          {/* Main image */}
-          <div className="rounded-2xl overflow-hidden bg-gray-50 aspect-video mb-4 flex items-center justify-center">
+          {/* Main image (with blur if enabled) */}
+          <div className="rounded-2xl overflow-hidden bg-gray-50 aspect-video mb-4 flex items-center justify-center relative">
             <img
               src={images[currentIndex]}
               alt={project.title}
-              className="w-full h-full object-contain"
+              className={`w-full h-full object-contain ${project.blurImage ? 'img-blur-modal' : ''}`}
               onError={(e) => { e.target.src = '/assets/slider.png' }}
             />
+            {project.blurImage && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <span className="bg-black/60 backdrop-blur-sm text-white px-4 py-2 rounded-full text-xs font-semibold inline-flex items-center gap-2 shadow-lg">
+                  <i className="fa-solid fa-lock text-xs"></i>
+                  Confidential project — image blurred
+                </span>
+              </div>
+            )}
           </div>
 
-          {/* Thumbnails */}
+          {/* Thumbnails (with blur if enabled) */}
           {images.length > 1 && (
             <div className="flex gap-2 overflow-x-auto pb-2 mb-5 scrollbar-thin">
               {images.map((img, i) => (
@@ -172,7 +188,12 @@ function ProjectDetailModal({ isOpen, project, onClose }) {
                     currentIndex === i ? 'border-[#0a85a7] scale-105 shadow-sm' : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  <img src={img} alt={`Thumb ${i + 1}`} loading="lazy" className="w-full h-full object-cover" />
+                  <img
+                    src={img}
+                    alt={`Thumb ${i + 1}`}
+                    loading="lazy"
+                    className={`w-full h-full object-cover ${project.blurImage ? 'img-blur-thumb' : ''}`}
+                  />
                 </button>
               ))}
             </div>
@@ -238,16 +259,24 @@ function ProjectCard({ project, onEnlarge, onReadMore }) {
           {/* Images */}
           <div className="flex flex-col gap-4">
             <div
-              onClick={() => onEnlarge && onEnlarge(activeImage, project.images, project.title)}
+              onClick={() => onEnlarge && onEnlarge(activeImage, project.images, project.title, project.blurImage)}
               className="rounded-2xl overflow-hidden border border-gray-100 aspect-video shadow-md bg-gray-50 flex items-center justify-center cursor-pointer group relative"
               title="Click to enlarge image"
             >
               <img
                 src={activeImage}
                 alt={project.title}
-                className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
+                className={`w-full h-full object-cover transition-all duration-300 group-hover:scale-105 ${
+                  project.blurImage ? 'img-blur-cover' : ''
+                }`}
                 onError={(e) => { e.target.src = '/assets/slider.png' }}
               />
+              {project.blurImage && (
+                <span className="absolute top-3 right-3 bg-black/70 backdrop-blur-sm text-white px-3 py-1 rounded-full text-[11px] font-semibold shadow-md inline-flex items-center gap-1.5 z-10">
+                  <i className="fa-solid fa-eye-slash"></i>
+                  Confidential
+                </span>
+              )}
               <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <span className="bg-black/75 text-white text-xs font-semibold px-3.5 py-2 rounded-full flex items-center gap-2 shadow-lg backdrop-blur-xs">
                   <i className="fa-solid fa-magnifying-glass-plus text-sm"></i> Click to Enlarge
@@ -265,7 +294,11 @@ function ProjectCard({ project, onEnlarge, onReadMore }) {
                       activeImage === img ? 'border-[#0a85a7] scale-105 shadow-sm' : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    <img src={img} alt={`Thumb ${i}`} className="w-full h-full object-cover" />
+                    <img
+                      src={img}
+                      alt={`Thumb ${i}`}
+                      className={`w-full h-full object-cover ${project.blurImage ? 'img-blur-thumb' : ''}`}
+                    />
                   </button>
                 ))}
               </div>
@@ -281,7 +314,7 @@ function ProjectCard({ project, onEnlarge, onReadMore }) {
 function PortfolioSlider() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [modalState, setModalState] = useState({ isOpen: false, image: '', images: [], title: '' });
+  const [modalState, setModalState] = useState({ isOpen: false, image: '', images: [], title: '', blurImage: false });
   const [detailProject, setDetailProject] = useState(null);
   const sliderRef = useRef(null);
 
@@ -302,17 +335,18 @@ function PortfolioSlider() {
     fetchProjects();
   }, []);
 
-  const handleEnlargeImage = (image, images, title) => {
+  const handleEnlargeImage = (image, images, title, blurImage = false) => {
     setModalState({
       isOpen: true,
       image,
       images: images && images.length > 0 ? images : [image],
-      title
+      title,
+      blurImage,
     });
   };
 
   const handleCloseModal = () => {
-    setModalState({ isOpen: false, image: '', images: [], title: '' });
+    setModalState({ isOpen: false, image: '', images: [], title: '', blurImage: false });
   };
 
   if (loading) {
@@ -391,13 +425,13 @@ function PortfolioSlider() {
             </div>
           </div>
 
-          {/* View All Projects CTA */}
+          {/* View More CTA */}
           <div className="text-center mt-10">
             <Link
               to="/portfolio"
               className="inline-flex items-center gap-3 bg-[#0a85a7] hover:bg-[#097390] text-white px-8 py-3 rounded-lg font-semibold transition-colors shadow-md"
             >
-              View All Projects
+              View More
               <i className="fa-solid fa-arrow-right text-sm"></i>
             </Link>
           </div>
@@ -410,6 +444,7 @@ function PortfolioSlider() {
         image={modalState.image}
         images={modalState.images}
         title={modalState.title}
+        blurImage={modalState.blurImage}
         onClose={handleCloseModal}
       />
 
@@ -548,7 +583,8 @@ export default function AboutUs() {
               Leadership Team
             </h2>
             <p className="text-gray-600 text-base sm:text-lg leading-relaxed font-medium font-inter">
-              At Towasic Solutions, We Are A Team Of Experienced Developers Specializing In Web Scraping, Automation, AI Agents, Machine Learning, Website Development, IoT Projects, And Full-Stack Development. With Over 5 Years Of Expertise And 235+ Successful Projects Delivered, We Pride Ourselves On Building Intelligent, Reliable, And Efficient Solutions For Clients Worldwide.
+              At Towasic Solutions, we are a team of experienced developers specializing in web scraping, automation, AI agents, machine learning, website development, IoT projects, and full-stack development. With over 5 years of expertise and 235+ successful projects delivered, we pride ourselves on building intelligent, reliable, and efficient solutions for clients worldwide.
+
             </p>
           </div>
 

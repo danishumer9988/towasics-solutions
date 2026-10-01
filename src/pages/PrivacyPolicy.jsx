@@ -11,7 +11,7 @@ export default function PrivacyPolicy() {
       {/* Main Top Hero Banner */}
       <PageHeader
         title="Privacy Policies"
-        description="Our Privacy Policy Outlines How We Collect, Use, And Protect Your Personal Information. We Are Committed To Ensuring Your Data Remains Safe And Confidential, And We Only Use It To Improve Your Experience With Our Services."
+        description="Our privacy policy outlines how we collect, use, and protect your personal information. We are committed to ensuring your data remains safe and confidential, and we only use it to improve your experience with our services."
         image="/assets/privacypolicy.png"
         imageAlt="Privacy Policy Illustration"
       />

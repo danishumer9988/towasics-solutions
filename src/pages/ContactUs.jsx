@@ -13,7 +13,7 @@ export default function ContactUs() {
       {/* Main Top Hero Banner */}
       <PageHeader
         title="Let's Talk"
-        description="Have A Question, Project Idea, Or Need Expert Advice? We're Here To Help You Every Step Of The Way."
+        description="Have a question, project idea, or need expert advice? We're here to help you every step of the way."
         image="/assets/contactus.png"
         imageAlt="Contact Us Hero"
       />
@@ -108,11 +108,11 @@ export default function ContactUs() {
           Ready To Explore Our Services?
         </h2>
         <p className="text-slate-600 text-base md:text-lg font-medium leading-relaxed max-w-2xl mx-auto">
-          Head Back To Our{' '}
+          Head back to our{' '}
           <Link to="/" className="text-[#3EB5D6] underline hover:text-[#096078] font-semibold transition">
             Home Page
           </Link>{' '}
-          And See What Towasic Solutions Can Do For You.
+          and see what Towasic Solutions can do for you.
         </p>
       </section>
 
