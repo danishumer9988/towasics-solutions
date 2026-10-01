@@ -17,6 +17,7 @@ export default function ProjectForm({ mode = 'create' }) {
   const [description, setDescription] = useState('')
   const [link, setLink] = useState('')
   const [industry, setIndustry] = useState('')
+  const [blurImage, setBlurImage] = useState(false)
   const [images, setImages] = useState([])
   const [urlInput, setUrlInput] = useState('')
   const [saving, setSaving] = useState(false)
@@ -29,7 +30,7 @@ export default function ProjectForm({ mode = 'create' }) {
     if (!localStorage.getItem('user')) navigate('/auth/login')
   }, [navigate])
 
-  /* Load industries for the dropdown */
+  /* Load industries */
   useEffect(() => {
     ;(async () => {
       try {
@@ -53,6 +54,7 @@ export default function ProjectForm({ mode = 'create' }) {
         setDescription(p.description)
         setLink(p.link || '')
         setIndustry(p.industry || '')
+        setBlurImage(!!p.blurImage)
         setImages(p.images || [])
       } catch (err) {
         console.error(err)
@@ -111,6 +113,7 @@ export default function ProjectForm({ mode = 'create' }) {
       description,
       link: link.trim(),
       industry,
+      blurImage,
       images,
     }
     try {
@@ -180,6 +183,59 @@ export default function ProjectForm({ mode = 'create' }) {
               </Field>
             </div>
 
+            {/* ===================== Blur Toggle ===================== */}
+            <div className="border border-line rounded-lg p-4 bg-gray-50">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-ink">Blur project images</p>
+                  <p className="text-xs text-ink-muted mt-1 leading-relaxed">
+                    Enable this to blur the images on your public portfolio — useful for
+                    confidential or private client projects that shouldn't be shown in full detail.
+                  </p>
+                </div>
+
+                {/* On/Off toggle */}
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={blurImage}
+                  onClick={() => setBlurImage((b) => !b)}
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors shrink-0 mt-0.5 ${
+                    blurImage ? 'bg-[#0a85a7]' : 'bg-gray-300'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                      blurImage ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Live preview when images exist */}
+              {images.length > 0 && (
+                <div className="mt-4 flex items-center gap-3">
+                  <div className="relative w-24 h-16 rounded-lg overflow-hidden border border-line bg-gray-100 shrink-0">
+                    <img
+                      src={images[0]}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                      style={{ filter: blurImage ? 'blur(10px)' : 'none', transform: 'scale(1.1)' }}
+                      onError={(e) => { e.target.src = '/assets/slider.png' }}
+                    />
+                  </div>
+                  <div className="text-xs">
+                    <p className="font-semibold text-ink">
+                      {blurImage ? '👁️ Blurred preview' : '👁️ Full preview'}
+                    </p>
+                    <p className="text-ink-subtle mt-0.5">
+                      This is how the first image will appear on the site.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <Field label="Description">
               <Textarea rows={6} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Write project description…" required />
             </Field>
@@ -215,9 +271,14 @@ export default function ProjectForm({ mode = 'create' }) {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
                   {images.map((src, idx) => (
                     <div key={idx} className="relative group rounded-lg overflow-hidden border border-line aspect-video bg-gray-50">
-                      <img src={src} alt="" className="w-full h-full object-cover" />
+                      <img
+                        src={src}
+                        alt=""
+                        className="w-full h-full object-cover"
+                        style={{ filter: blurImage ? 'blur(10px)' : 'none', transform: 'scale(1.1)' }}
+                      />
                       {idx === 0 && (
-                        <span className="absolute top-2 left-2 bg-brand-600 text-white text-[10px] font-semibold px-2 py-0.5 rounded">
+                        <span className="absolute top-2 left-2 bg-brand-600 text-white text-[10px] font-semibold px-2 py-0.5 rounded z-10">
                           Cover
                         </span>
                       )}

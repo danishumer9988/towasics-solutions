@@ -45,6 +45,7 @@ function ProjectDetailModal({ isOpen, project, onClose }) {
         className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-gray-100 shrink-0">
           <span className="bg-[#0a85a7] text-white px-3 py-1 rounded-full text-xs font-bold">
             Project #{project.projectNumber?.toString().padStart(2, '0') || '—'}
@@ -57,16 +58,31 @@ function ProjectDetailModal({ isOpen, project, onClose }) {
           </button>
         </div>
 
+        {/* Scrollable body */}
         <div className="overflow-y-auto p-5 sm:p-7">
-          <div className="rounded-2xl overflow-hidden bg-gray-50 aspect-video mb-4 flex items-center justify-center">
+          {/* Main image (with blur if enabled) */}
+          <div className="rounded-2xl overflow-hidden bg-gray-50 aspect-video mb-4 flex items-center justify-center relative">
             <img
               src={images[currentIndex]}
               alt={project.title}
               className="w-full h-full object-contain"
+              style={{
+                filter: project.blurImage ? 'blur(18px)' : 'none',
+                transform: project.blurImage ? 'scale(1.08)' : undefined,
+              }}
               onError={(e) => { e.target.src = '/assets/slider.png' }}
             />
+            {project.blurImage && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <span className="bg-black/60 backdrop-blur-sm text-white px-4 py-2 rounded-full text-xs font-semibold inline-flex items-center gap-2 shadow-lg">
+                  <i className="fa-solid fa-lock text-xs"></i>
+                  Confidential project — image blurred
+                </span>
+              </div>
+            )}
           </div>
 
+          {/* Thumbnails (with blur if enabled) */}
           {images.length > 1 && (
             <div className="flex gap-2 overflow-x-auto pb-2 mb-5 scrollbar-thin">
               {images.map((img, i) => (
@@ -77,12 +93,22 @@ function ProjectDetailModal({ isOpen, project, onClose }) {
                     currentIndex === i ? 'border-[#0a85a7] scale-105 shadow-sm' : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  <img src={img} alt={`Thumb ${i + 1}`} loading="lazy" className="w-full h-full object-cover" />
+                  <img
+                    src={img}
+                    alt={`Thumb ${i + 1}`}
+                    loading="lazy"
+                    className="w-full h-full object-cover"
+                    style={{
+                      filter: project.blurImage ? 'blur(8px)' : 'none',
+                      transform: project.blurImage ? 'scale(1.1)' : undefined,
+                    }}
+                  />
                 </button>
               ))}
             </div>
           )}
 
+          {/* Full title + description */}
           <h2 className="text-2xl sm:text-3xl font-extrabold text-[#086B87] mb-4 leading-tight font-inter">
             {project.title}
           </h2>
@@ -132,9 +158,21 @@ function ProjectCard({ project, onReadMore }) {
           alt={project.title}
           loading="lazy"
           className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+          style={{
+            filter: project.blurImage ? 'blur(14px)' : 'none',
+            transform: project.blurImage ? 'scale(1.15)' : undefined,
+          }}
           onError={(e) => { e.target.src = '/assets/slider.png' }}
         />
-        <span className="absolute top-3 left-3 bg-[#0a85a7] text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
+
+        {project.blurImage && (
+          <span className="absolute top-3 right-3 bg-black/70 backdrop-blur-sm text-white px-3 py-1 rounded-full text-[11px] font-semibold shadow-md inline-flex items-center gap-1.5 z-10">
+            <i className="fa-solid fa-eye-slash"></i>
+            Confidential
+          </span>
+        )}
+
+        <span className="absolute top-3 left-3 bg-[#0a85a7] text-white px-3 py-1 rounded-full text-xs font-bold shadow-md z-10">
           #{project.projectNumber?.toString().padStart(2, '0') || '—'}
         </span>
       </div>
@@ -183,7 +221,8 @@ export default function Portfolio() {
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      setLoading(true); setError('')
+      setLoading(true)
+      setError('')
       try {
         const [indRes, projRes] = await Promise.all([
           axios.get(`${API_BASE_URL}/industries`),
@@ -235,7 +274,7 @@ export default function Portfolio() {
       <PageHeader
         title="Portfolio"
         description="Explore the projects we've delivered across industries, from web scraping and automation to full-stack AI-powered IoT systems."
-        image="/assets/allservice.png"
+        image="/assets/works.png"
         imageAlt="Portfolio"
       />
 
