@@ -8,10 +8,6 @@ import { API_BASE_URL } from '../config'
 
 const PER_PAGE = 20
 
-// Height of the site Navbar in px. The industry bar sticks right below it.
-// If the bar overlaps the navbar or leaves a gap, change this number.
-const NAVBAR_HEIGHT = 80
-
 /* ===================== Image Lightbox (enlarge) ===================== */
 function ImageLightboxModal({ isOpen, image, title, images = [], blurImage = false, onClose }) {
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -395,10 +391,8 @@ export default function Portfolio() {
       />
 
       {/* ===================== INDUSTRY TAB BAR ===================== */}
-      <section
-        className="sticky z-40 bg-white border-b border-gray-100 shadow-sm"
-        style={{ top: NAVBAR_HEIGHT }}
-      >
+      {/* top-16 = Navbar height (h-16). Keep these two in sync. */}
+      <section className="sticky top-16 z-40 bg-white border-b border-gray-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-5">
             <div className="flex flex-wrap justify-center gap-2 sm:gap-2.5">
