@@ -109,7 +109,7 @@ export default function Home() {
               </motion.h1>
               <motion.p
                 style={{ lineHeight: '1.25' }}
-                className="font-inter font-medium text-base sm:text-lg md:text-[20px] text-white tracking-normal capitalize opacity-95 mb-6 sm:mb-8 max-w-2xl mx-auto lg:mx-0"className="font-inter font-medium text-base sm:text-lg md:text-[20px] text-white tracking-normal opacity-95 mb-6 sm:mb-8 max-w-2xl mx-auto lg:mx-0"
+                className="font-inter font-medium text-base sm:text-lg md:text-[20px] text-white tracking-normal opacity-95 mb-6 sm:mb-8 max-w-2xl mx-auto lg:mx-0"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
