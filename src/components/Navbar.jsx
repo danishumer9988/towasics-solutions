@@ -65,7 +65,6 @@ export default function Navbar() {
             <Link to="/howworks" className={linkClass('/howworks')}>How It Works</Link>
             <Link to="/portfolio" className={linkClass('/portfolio')}>Portfolio</Link>
             <Link to="/blog" className={linkClass('/blog')}>Blog</Link>
-            <Link to="/faq" className={linkClass('/faq')}>FAQs</Link>
           </div>
 
           <div className="hidden lg:block">
@@ -123,7 +122,6 @@ export default function Navbar() {
             <Link to="/howworks" className={`block px-3 py-2.5 rounded-lg text-base font-semibold transition-colors ${isActive('/howworks') ? 'text-[#0a85a7] bg-brand-50' : 'text-black hover:bg-gray-50'}`} onClick={() => setMenuOpen(false)}>How It Works</Link>
             <Link to="/portfolio" className={`block px-3 py-2.5 rounded-lg text-base font-semibold transition-colors ${isActive('/portfolio') ? 'text-[#0a85a7] bg-brand-50' : 'text-black hover:bg-gray-50'}`} onClick={() => setMenuOpen(false)}>Portfolio</Link>
             <Link to="/blog" className={`block px-3 py-2.5 rounded-lg text-base font-semibold transition-colors ${isActive('/blog') ? 'text-[#0a85a7] bg-brand-50' : 'text-black hover:bg-gray-50'}`} onClick={() => setMenuOpen(false)}>Blog</Link>
-            <Link to="/faq" className={`block px-3 py-2.5 rounded-lg text-base font-semibold transition-colors ${isActive('/faq') ? 'text-[#0a85a7] bg-brand-50' : 'text-black hover:bg-gray-50'}`} onClick={() => setMenuOpen(false)}>FAQs</Link>
             <div className="pt-2">
               <Link to="/contactus" className="block text-center w-full bg-[#0a85a7] text-white py-2.5 rounded-lg font-bold shadow-sm hover:bg-[#097390] transition-colors" onClick={() => setMenuOpen(false)}>
                 Let's Talk
