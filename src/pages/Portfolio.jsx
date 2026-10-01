@@ -233,7 +233,7 @@ export default function Portfolio() {
 
       {/* ===================== HERO ===================== */}
       <PageHeader
-        title="Our Portfolio"
+        title="Portfolio"
         description="Explore the projects we've delivered across industries, from web scraping and automation to full-stack AI-powered IoT systems."
         image="/assets/allservice.png"
         imageAlt="Portfolio"
