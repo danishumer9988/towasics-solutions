@@ -8,6 +8,13 @@ import { API_BASE_URL } from '../config'
 
 const PER_PAGE = 20
 
+// Returns the project's video link only if it is a valid http(s) link.
+// The project data field is called `videoLink`.
+const getVideoUrl = (project) => {
+  const url = typeof project?.videoLink === 'string' ? project.videoLink.trim() : ''
+  return /^https?:\/\//i.test(url) ? url : ''
+}
+
 /* ===================== Image Lightbox (enlarge) ===================== */
 function ImageLightboxModal({ isOpen, image, title, images = [], blurImage = false, onClose }) {
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -205,17 +212,30 @@ function ProjectDetailModal({ isOpen, project, onClose }) {
             {project.description}
           </p>
 
-          {project.link && project.link.trim() && (
-            <div className="mt-6 pt-5 border-t border-gray-100">
-              <a
-                href={project.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-[#0a85a7] hover:bg-[#097390] text-white px-5 py-2.5 rounded-lg font-semibold text-sm transition"
-              >
-                Visit Project
-                <i className="fa-solid fa-arrow-up-right-from-square text-xs"></i>
-              </a>
+          {((project.link && project.link.trim()) || getVideoUrl(project)) && (
+            <div className="mt-6 pt-5 border-t border-gray-100 flex flex-wrap gap-3">
+              {project.link && project.link.trim() && (
+                <a
+                  href={project.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-[#0a85a7] hover:bg-[#097390] text-white px-5 py-2.5 rounded-lg font-semibold text-sm transition"
+                >
+                  Visit Project
+                  <i className="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+                </a>
+              )}
+              {getVideoUrl(project) && (
+                <a
+                  href={getVideoUrl(project)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-white text-[#0a85a7] border border-[#0a85a7] hover:bg-[#0a85a7] hover:text-white px-5 py-2.5 rounded-lg font-semibold text-sm transition"
+                >
+                  <i className="fa-solid fa-play text-xs"></i>
+                  Watch Video
+                </a>
+              )}
             </div>
           )}
         </div>
@@ -227,17 +247,7 @@ function ProjectDetailModal({ isOpen, project, onClose }) {
 /* ===================== Project Card ===================== */
 function ProjectCard({ project, onReadMore, onEnlarge }) {
   const cover = project.images?.[0] || '/assets/slider.png'
-  const hasLink = project.link && project.link.trim().length > 0
-
-  const handleReadMore = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (hasLink) {
-      window.open(project.link, '_blank', 'noopener,noreferrer')
-    } else {
-      onReadMore(project)
-    }
-  }
+  const videoUrl = getVideoUrl(project)
 
   return (
     <div className="bg-white rounded-3xl shadow-lg overflow-hidden border border-white/40 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
@@ -250,7 +260,7 @@ function ProjectCard({ project, onReadMore, onEnlarge }) {
           src={cover}
           alt={project.title}
           loading="lazy"
-          className={`w-full h-full object-cover transition-transform duration-500 hover:scale-105 ${
+          className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
             project.blurImage ? 'img-blur-cover' : ''
           }`}
           onError={(e) => { e.target.src = '/assets/slider.png' }}
@@ -272,34 +282,39 @@ function ProjectCard({ project, onReadMore, onEnlarge }) {
             <i className="fa-solid fa-magnifying-glass-plus text-sm"></i> Click to Enlarge
           </span>
         </div>
+
+        {/* Title on the image: only the strip behind the text is blurred, not the image */}
+        <div className="absolute inset-x-0 bottom-0 z-10 px-3 py-2 bg-black/35 backdrop-blur-md pointer-events-none">
+          <h3
+            className="text-white text-sm font-bold leading-snug font-inter text-left"
+            style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+          >
+            {project.title}
+          </h3>
+        </div>
       </div>
 
-      <div className="p-5 flex flex-col flex-1 text-left">
-        <h3
-          className="text-lg font-bold text-[#086B87] mb-2 leading-snug font-inter"
-          style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
-        >
-          {project.title}
-        </h3>
-        <p
-          className="text-sm text-gray-600 leading-relaxed mb-4 flex-1 font-medium font-inter"
-          style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
-        >
-          {project.description}
-        </p>
-
+      <div className="flex items-center justify-between gap-3 px-3 py-2.5">
         <button
           type="button"
-          onClick={handleReadMore}
-          className="self-start inline-flex items-center gap-2 text-[#0a85a7] hover:text-[#097390] font-semibold text-sm transition-all hover:gap-3 cursor-pointer bg-transparent border-0 p-0"
+          onClick={() => onReadMore(project)}
+          className="inline-flex items-center gap-2 text-[#0a85a7] hover:text-[#097390] font-semibold text-xs transition-all hover:gap-3 cursor-pointer bg-transparent border-0 p-0"
         >
           Read More
-          {hasLink ? (
-            <i className="fa-solid fa-arrow-up-right-from-square text-xs"></i>
-          ) : (
-            <i className="fa-solid fa-arrow-right text-xs"></i>
-          )}
+          <i className="fa-solid fa-arrow-right text-[10px]"></i>
         </button>
+
+        {videoUrl && (
+          <a
+            href={videoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0a85a7] border border-[#0a85a7] hover:bg-[#0a85a7] hover:text-white px-3 py-1.5 rounded-full transition"
+          >
+            <i className="fa-solid fa-play text-[10px]"></i>
+            Watch Video
+          </a>
+        )}
       </div>
     </div>
   )
@@ -392,14 +407,14 @@ export default function Portfolio() {
 
       {/* ===================== INDUSTRY TAB BAR ===================== */}
       {/* top-16 = Navbar height (h-16). Keep these two in sync. */}
-      <section className="sticky top-16 z-40 bg-white border-b border-gray-100 shadow-sm">
+      <section className="sticky top-16 z-40 bg-white/60 backdrop-blur-md border-b border-gray-100/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-5">
             <div className="flex flex-wrap justify-center gap-2 sm:gap-2.5">
               <button
                 type="button"
                 onClick={() => handleSelectIndustry('all')}
-                className={`px-4 sm:px-5 py-2.5 rounded-full text-sm font-semibold transition-all ${
+                className={`px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
                   selectedIndustry === 'all'
                     ? 'bg-[#0a85a7] text-white shadow-md'
                     : 'bg-white text-gray-700 border border-gray-200 hover:border-[#0a85a7] hover:text-[#0a85a7]'
@@ -407,7 +422,7 @@ export default function Portfolio() {
               >
                 All
                 <span
-                  className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
+                  className={`ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full ${
                     selectedIndustry === 'all' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
                   }`}
                 >
@@ -423,7 +438,7 @@ export default function Portfolio() {
                     key={ind._id}
                     type="button"
                     onClick={() => handleSelectIndustry(ind.slug)}
-                    className={`px-4 sm:px-5 py-2.5 rounded-full text-sm font-semibold transition-all ${
+                    className={`px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
                       active
                         ? 'bg-[#0a85a7] text-white shadow-md'
                         : 'bg-white text-gray-700 border border-gray-200 hover:border-[#0a85a7] hover:text-[#0a85a7]'
@@ -431,7 +446,7 @@ export default function Portfolio() {
                   >
                     {ind.name}
                     <span
-                      className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
+                      className={`ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full ${
                         active ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
                       }`}
                     >
@@ -450,7 +465,7 @@ export default function Portfolio() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="bg-white rounded-3xl shadow-lg overflow-hidden animate-pulse">
                   <div className="aspect-[4/3] bg-gray-100" />
@@ -482,7 +497,7 @@ export default function Portfolio() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
                 {pageItems.map((project) => (
                   <ProjectCard
                     key={project._id}
