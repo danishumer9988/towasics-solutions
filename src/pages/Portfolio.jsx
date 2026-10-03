@@ -279,14 +279,16 @@ function ProjectCard({ project, onReadMore, onEnlarge }) {
           </span>
         </div>
 
-        {/* Title on the image: only the strip behind the text is blurred, not the image.
-            Project number now on its own line above the title. */}
-        <div className="absolute inset-x-0 bottom-0 z-10 px-3 py-2 bg-black/35 backdrop-blur-md pointer-events-none flex flex-col gap-0.5">
+        {/* Bottom overlay: Project # row on top, title row below (max 2 lines) */}
+        <div className="absolute inset-x-0 bottom-0 z-10 px-3 py-2 bg-black/35 backdrop-blur-md pointer-events-none flex flex-col gap-1.5">
+          {/* Row 1: Project # badge */}
           {project.projectNumber != null && project.projectNumber !== '' && (
-            <span className="text-white/80 text-xs font-bold leading-snug font-inter">
-              #{project.projectNumber.toString().padStart(2, '0')}
+            <span className="self-start inline-flex items-center gap-1 bg-[#097390] text-white text-[10px] font-semibold px-2 py-0.5 rounded-full shadow-sm font-inter">
+              Project #{project.projectNumber.toString().padStart(2, '0')}
             </span>
           )}
+
+          {/* Row 2: Title — clamped to 2 lines */}
           <h3
             className="text-white text-sm font-bold leading-snug font-inter text-left"
             style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
