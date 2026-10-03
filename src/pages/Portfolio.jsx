@@ -279,22 +279,20 @@ function ProjectCard({ project, onReadMore, onEnlarge }) {
           </span>
         </div>
 
-        {/* Bottom overlay — two full-width rows with different backgrounds */}
-        <div className="absolute inset-x-0 bottom-0 z-10 pointer-events-none flex flex-col">
+        {/* Bottom overlay */}
+        <div className="absolute inset-x-0 bottom-0 z-10 pointer-events-none flex flex-col items-start">
 
-          {/* Row 1: Project # — full-width teal background */}
+          {/* Row 1: Project # badge — inline, only behind the text */}
           {project.projectNumber != null && project.projectNumber !== '' && (
-            <div className="w-full bg-[#097390] px-3 py-1.5">
-              <span className="text-white text-[11px] font-semibold font-inter">
-                Project #{project.projectNumber.toString().padStart(2, '0')}
-              </span>
-            </div>
+            <span className="ml-3 mb-1 inline-flex items-center bg-[#097390] text-white text-[11px] font-semibold font-inter px-2.5 py-1 rounded-full">
+              Project #{project.projectNumber.toString().padStart(2, '0')}
+            </span>
           )}
 
-          {/* Row 2: Title — lighter transparent background + blur */}
-          <div className="w-full bg-black/15 backdrop-blur-md px-3 py-2">
+          {/* Row 2: Title — strong transparent background across full width */}
+          <div className="w-full bg-black/45 backdrop-blur-md px-3 py-2">
             <h3
-              className="text-white text-sm font-bold leading-snug font-inter text-left drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]"
+              className="text-white text-sm font-normal leading-snug font-inter text-left"
               style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
             >
               {project.title}
