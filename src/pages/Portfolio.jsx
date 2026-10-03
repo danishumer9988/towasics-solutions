@@ -279,7 +279,7 @@ function ProjectCard({ project, onReadMore, onEnlarge }) {
           </span>
         </div>
 
-        {/* Bottom overlay — split into two full-width rows with different backgrounds */}
+        {/* Bottom overlay — two full-width rows with different backgrounds */}
         <div className="absolute inset-x-0 bottom-0 z-10 pointer-events-none flex flex-col">
 
           {/* Row 1: Project # — full-width teal background */}
@@ -291,10 +291,10 @@ function ProjectCard({ project, onReadMore, onEnlarge }) {
             </div>
           )}
 
-          {/* Row 2: Title — full-width blurred dark background (unchanged) */}
-          <div className="w-full bg-black/35 backdrop-blur-md px-3 py-2">
+          {/* Row 2: Title — lighter transparent background + blur */}
+          <div className="w-full bg-black/15 backdrop-blur-md px-3 py-2">
             <h3
-              className="text-white text-sm font-bold leading-snug font-inter text-left"
+              className="text-white text-sm font-bold leading-snug font-inter text-left drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]"
               style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
             >
               {project.title}
