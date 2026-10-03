@@ -279,16 +279,13 @@ function ProjectCard({ project, onReadMore, onEnlarge }) {
           </span>
         </div>
 
-        {/* Bottom overlay */}
+        {/* Bottom overlay — no outer padding, no gaps */}
         <div className="absolute inset-x-0 bottom-0 z-10 pointer-events-none flex flex-col items-start">
 
-          {/* Row 1: Project # tag — different style: left teal accent bar + dark label, no gap to title below */}
+          {/* Row 1: Project # badge — flush to left edge, no bottom space */}
           {project.projectNumber != null && project.projectNumber !== '' && (
-            <span className="ml-3 inline-flex items-stretch overflow-hidden rounded-t-md bg-[#0a2a33]/90 text-white font-inter">
-              <span className="w-1 bg-[#097390]"></span>
-              <span className="px-2.5 py-1 text-[10px] font-semibold tracking-widest uppercase">
-                Project #{project.projectNumber.toString().padStart(2, '0')}
-              </span>
+            <span className="inline-flex items-center bg-[#097390] text-white text-[11px] font-semibold font-inter px-2.5 py-1 rounded-full">
+              Project #{project.projectNumber.toString().padStart(2, '0')}
             </span>
           )}
 
