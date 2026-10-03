@@ -273,10 +273,6 @@ function ProjectCard({ project, onReadMore, onEnlarge }) {
           </span>
         )}
 
-        <span className="absolute top-3 left-3 bg-[#0a85a7] text-white px-3 py-1 rounded-full text-xs font-bold shadow-md z-10">
-          #{project.projectNumber?.toString().padStart(2, '0') || '—'}
-        </span>
-
         <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
           <span className="bg-black/75 text-white text-xs font-semibold px-3.5 py-2 rounded-full flex items-center gap-2 shadow-lg">
             <i className="fa-solid fa-magnifying-glass-plus text-sm"></i> Click to Enlarge
@@ -284,9 +280,14 @@ function ProjectCard({ project, onReadMore, onEnlarge }) {
         </div>
 
         {/* Title on the image: only the strip behind the text is blurred, not the image */}
-        <div className="absolute inset-x-0 bottom-0 z-10 px-3 py-2 bg-black/35 backdrop-blur-md pointer-events-none">
+        <div className="absolute inset-x-0 bottom-0 z-10 px-3 py-2 bg-black/35 backdrop-blur-md pointer-events-none flex items-start gap-2">
+          {project.projectNumber != null && project.projectNumber !== '' && (
+            <span className="shrink-0 text-white/80 text-sm font-bold leading-snug font-inter">
+              #{project.projectNumber.toString().padStart(2, '0')}
+            </span>
+          )}
           <h3
-            className="text-white text-sm font-bold leading-snug font-inter text-left"
+            className="min-w-0 flex-1 text-white text-sm font-bold leading-snug font-inter text-left"
             style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
           >
             {project.title}
@@ -303,18 +304,6 @@ function ProjectCard({ project, onReadMore, onEnlarge }) {
           Read More
           <i className="fa-solid fa-arrow-right text-[10px]"></i>
         </button>
-
-        {videoUrl && (
-          <a
-            href={videoUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0a85a7] border border-[#0a85a7] hover:bg-[#0a85a7] hover:text-white px-3 py-1.5 rounded-full transition"
-          >
-            <i className="fa-solid fa-play text-[10px]"></i>
-            Watch Video
-          </a>
-        )}
       </div>
     </div>
   )

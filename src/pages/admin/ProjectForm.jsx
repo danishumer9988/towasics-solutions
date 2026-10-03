@@ -16,6 +16,7 @@ export default function ProjectForm({ mode = 'create' }) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [link, setLink] = useState('')
+  const [videoLink, setVideoLink] = useState('')
   const [industry, setIndustry] = useState('')
   const [blurImage, setBlurImage] = useState(false)
   const [images, setImages] = useState([])
@@ -53,6 +54,7 @@ export default function ProjectForm({ mode = 'create' }) {
         setTitle(p.title)
         setDescription(p.description)
         setLink(p.link || '')
+        setVideoLink(p.videoLink || '')
         setIndustry(p.industry || '')
         setBlurImage(!!p.blurImage)
         setImages(p.images || [])
@@ -112,6 +114,7 @@ export default function ProjectForm({ mode = 'create' }) {
       title,
       description,
       link: link.trim(),
+      videoLink: videoLink.trim(),
       industry,
       blurImage,
       images,
@@ -183,6 +186,19 @@ export default function ProjectForm({ mode = 'create' }) {
               </Field>
             </div>
 
+            {/* ===================== YouTube Video Link (optional) ===================== */}
+            <Field
+              label="YouTube Video Link (optional)"
+              hint="If provided, a 'Watch on YouTube' button will appear in the project's Read More popup, next to the project number."
+            >
+              <Input
+                type="url"
+                value={videoLink}
+                onChange={(e) => setVideoLink(e.target.value)}
+                placeholder="https://www.youtube.com/watch?v=..."
+              />
+            </Field>
+
             {/* ===================== Blur Toggle ===================== */}
             <div className="border border-line rounded-lg p-4 bg-gray-50">
               <div className="flex items-start justify-between gap-4">
@@ -194,7 +210,6 @@ export default function ProjectForm({ mode = 'create' }) {
                   </p>
                 </div>
 
-                {/* On/Off toggle */}
                 <button
                   type="button"
                   role="switch"
@@ -212,7 +227,6 @@ export default function ProjectForm({ mode = 'create' }) {
                 </button>
               </div>
 
-              {/* Live preview when images exist */}
               {images.length > 0 && (
                 <div className="mt-4 flex items-center gap-3">
                   <div className="relative w-24 h-16 rounded-lg overflow-hidden border border-line bg-gray-100 shrink-0">
