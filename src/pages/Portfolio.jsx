@@ -279,22 +279,22 @@ function ProjectCard({ project, onReadMore, onEnlarge }) {
           </span>
         </div>
 
-        {/* Bottom overlay — no outer padding, no gaps */}
+        {/* Bottom overlay */}
         <div className="absolute inset-x-0 bottom-0 z-10 pointer-events-none flex flex-col items-start">
 
-          {/* Row 1: Project # badge — flush to left edge, no bottom space */}
+          {/* Row 1: Project # tag — flush to left edge */}
           {project.projectNumber != null && project.projectNumber !== '' && (
-            <span className="inline-flex items-center bg-[#097390] text-white text-[11px] font-semibold font-inter px-2.5 py-1 rounded-full">
-              Project #{project.projectNumber.toString().padStart(2, '0')}
+            <span className="inline-flex items-stretch overflow-hidden rounded-t-md bg-[#0a2a33]/90 text-white font-inter">
+              <span className="w-1 bg-[#097390]"></span>
+              <span className="px-2.5 py-1 text-[10px] font-semibold tracking-widest uppercase">
+                Project #{project.projectNumber.toString().padStart(2, '0')}
+              </span>
             </span>
           )}
 
-          {/* Row 2: Title — strong transparent background across full width */}
+          {/* Row 2: Title — max 2 lines, hard cut (no ellipsis) */}
           <div className="w-full bg-black/45 backdrop-blur-md px-3 py-2">
-            <h3
-              className="text-white text-sm font-normal leading-snug font-inter text-left"
-              style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
-            >
+            <h3 className="text-white text-sm font-normal leading-snug font-inter text-left max-h-[2.75em] overflow-hidden">
               {project.title}
             </h3>
           </div>
