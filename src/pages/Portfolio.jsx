@@ -279,22 +279,28 @@ function ProjectCard({ project, onReadMore, onEnlarge }) {
           </span>
         </div>
 
-        {/* Bottom overlay: Project # row on top, title row below (max 2 lines) */}
-        <div className="absolute inset-x-0 bottom-0 z-10 px-3 py-2 bg-black/35 backdrop-blur-md pointer-events-none flex flex-col gap-1.5">
-          {/* Row 1: Project # badge */}
+        {/* Bottom overlay — split into two full-width rows with different backgrounds */}
+        <div className="absolute inset-x-0 bottom-0 z-10 pointer-events-none flex flex-col">
+
+          {/* Row 1: Project # — full-width teal background */}
           {project.projectNumber != null && project.projectNumber !== '' && (
-            <span className="self-start inline-flex items-center gap-1 bg-[#097390] text-white text-[10px] font-semibold px-2 py-0.5 rounded-full shadow-sm font-inter">
-              Project #{project.projectNumber.toString().padStart(2, '0')}
-            </span>
+            <div className="w-full bg-[#097390] px-3 py-1.5">
+              <span className="text-white text-[11px] font-semibold font-inter">
+                Project #{project.projectNumber.toString().padStart(2, '0')}
+              </span>
+            </div>
           )}
 
-          {/* Row 2: Title — clamped to 2 lines */}
-          <h3
-            className="text-white text-sm font-bold leading-snug font-inter text-left"
-            style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
-          >
-            {project.title}
-          </h3>
+          {/* Row 2: Title — full-width blurred dark background (unchanged) */}
+          <div className="w-full bg-black/35 backdrop-blur-md px-3 py-2">
+            <h3
+              className="text-white text-sm font-bold leading-snug font-inter text-left"
+              style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+            >
+              {project.title}
+            </h3>
+          </div>
+
         </div>
       </div>
 
