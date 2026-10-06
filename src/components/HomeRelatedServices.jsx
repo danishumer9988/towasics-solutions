@@ -6,7 +6,7 @@ export default function HomeRelatedServices() {
     <section className="py-20 bg-white servicese">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 mb-8 text-left">
         <h2 className="add-heading mb-6 text-4xl font-bold text-[#086B87]">
-          Related services to solve more subjects
+          From Data Collection to Intelligent Solutions
         </h2>
         <p className="addpara text-gray-600 text-lg leading-relaxed max-w-5xl">
           Data scraping can be the first step toward business optimization and revenue growth. Our experience shows that companies usually need more services to improve business processes, change the ecosystem, or solve specific challenges. Gain a broader vision of your goals and ways to achieve them with Towasic’s experts.
