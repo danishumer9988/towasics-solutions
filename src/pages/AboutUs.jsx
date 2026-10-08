@@ -606,7 +606,7 @@ export default function AboutUs() {
               OUR TEAM
             </span>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-950 tracking-tight font-inter mb-4">
-              Meet Our Experts
+              Meet Our Technology Experts
             </h2>
             <p className="text-gray-600 text-base sm:text-lg max-w-3xl mx-auto font-medium font-inter leading-relaxed">
               A talented team of developers, engineers, designers, and strategists working together to build intelligent solutions.
