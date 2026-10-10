@@ -581,9 +581,9 @@ export default function Portfolio() {
           Have a project in mind?
         </h2>
         <p className="text-slate-600 text-base md:text-lg font-medium leading-relaxed max-w-2xl mx-auto">
-          Let's talk about how we can help you solve it.{' '}
+          Let's discuss how we can help you engineer your project.{' '}
           <Link to="/contactus" className="text-[#3EB5D6] underline hover:text-[#096078] font-semibold transition">
-            Start a conversation
+            Schedule a call
           </Link>
           .
         </p>

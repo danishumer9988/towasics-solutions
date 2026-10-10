@@ -49,11 +49,12 @@ export default function Industries() {
 
       {/* Hero Header Section */}
       <PageHeader
-        title="Industries"
-        description="Our data scraping solutions are designed to empower businesses across diverse industries by providing real-time, structured data for actionable insights. Discover how we can help your industry turn data into growth."
-        image="/assets/portfolio.png"
-        imageAlt="Industries"
-      />
+      title="Industries"
+      description="Our data scraping solutions are designed to empower businesses across diverse industries by providing real-time, structured data for actionable insights. Discover how we can help your industry turn data into growth."
+      image="/assets/portfolio.png"
+      imageAlt="Industries"
+      imageSize="small"
+    />
 
       {/* Intro Description & First 6 Cards */}
       <motion.section
