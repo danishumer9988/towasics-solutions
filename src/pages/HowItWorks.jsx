@@ -19,7 +19,7 @@ export default function HowItWorks() {
 
       {/* How We Work Intro */}
       <div className="text-center max-w-7xl mx-auto my-12 px-4">
-        <h2 className="text-3xl font-bold text-[#086B87]" style={{ color: "#086B87" }}>How We Work</h2>
+        <h2 className="text-3xl font-bold text-[#086B87]" style={{ color: "#086B87" }}>How We Work to Deliver Results</h2>
         <div className="flex justify-center mt-4">
           <p className="text-gray-600 text-lg leading-relaxed max-w-4xl">
             At Towasic Solutions, we deliver top-tier web scraping and automation solutions by adhering to Agile methodology. Here’s an overview of our collaborative and efficient process:
