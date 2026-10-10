@@ -13,6 +13,18 @@ export default function CookieConsent() {
     return () => clearTimeout(t)
   }, [])
 
+  /* Hide immediately if consent is accepted/declined elsewhere (e.g. form checkbox) */
+  useEffect(() => {
+    const onConsent = (e) => {
+      const decision = e?.detail?.consent
+      if (decision === 'accepted' || decision === 'declined') {
+        setVisible(false)
+      }
+    }
+    window.addEventListener('towasic:consent-changed', onConsent)
+    return () => window.removeEventListener('towasic:consent-changed', onConsent)
+  }, [])
+
   const finish = (decision) => {
     localStorage.setItem(CONSENT_KEY, decision)
 

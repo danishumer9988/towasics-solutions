@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { API_BASE_URL } from '../config'
+import ConsentCheckbox from './ConsentCheckbox'
+import { acceptConsent } from '../lib/consent'
 
 /* ============================================================
    Free Estimate Popup — Towasic original design
@@ -23,6 +25,7 @@ export default function EstimatePopup() {
   const [form, setForm] = useState({ name: '', email: '', message: '' })
   const [submitting, setSubmitting] = useState(false)
   const [status, setStatus] = useState({ type: '', message: '' })
+  const [consented, setConsented] = useState(false)
 
   /* ---------- Auto-open timer (once per session) ---------- */
   useEffect(() => {
@@ -79,6 +82,14 @@ export default function EstimatePopup() {
       return
     }
 
+    if (!consented) {
+      setStatus({ type: 'error', message: 'Please accept the Privacy Policy to continue.' })
+      return
+    }
+
+    // Accept cookies if the user ticked the consent box
+    acceptConsent()
+
     setSubmitting(true)
     try {
       await axios.post(`${API_BASE_URL}/estimates`, {
@@ -92,6 +103,7 @@ export default function EstimatePopup() {
         message: "Thanks! We'll get back to you within 48 hours.",
       })
       setForm({ name: '', email: '', message: '' })
+      setConsented(false)
       setTimeout(() => close(), 2200)
     } catch (err) {
       console.error(err)
@@ -211,6 +223,9 @@ export default function EstimatePopup() {
               </span>
             </div>
 
+            {/* ---------- Consent ---------- */}
+            <ConsentCheckbox checked={consented} onChange={setConsented} />
+
             {/* ---------- Status ---------- */}
             {status.message && (
               <div
@@ -247,14 +262,6 @@ export default function EstimatePopup() {
                 </>
               )}
             </button>
-
-            <p className="text-[11px] text-center text-gray-400 font-inter leading-relaxed">
-              By submitting, you agree to our{' '}
-              <a href="/privacy-policy" className="text-[#0a85a7] hover:underline">
-                Privacy Policy
-              </a>
-              .
-            </p>
           </form>
         </div>
       </div>

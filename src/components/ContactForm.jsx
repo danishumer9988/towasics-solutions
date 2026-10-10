@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
 import { API_BASE_URL } from '../config'
+import ConsentCheckbox from './ConsentCheckbox'
+import { acceptConsent } from '../lib/consent'
 
 const countries = [
   { name: 'United States', short: 'US', code: '+1' },
@@ -153,6 +155,7 @@ export default function ContactForm() {
 
   const [submitting, setSubmitting] = useState(false)
   const [toast, setToast] = useState(null)
+  const [consented, setConsented] = useState(false)
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -173,6 +176,9 @@ export default function ContactForm() {
     e.preventDefault()
     if (submitting) return
 
+    // Accept cookies if the user ticked the consent box
+    if (consented) acceptConsent()
+
     setSubmitting(true)
     try {
       const res = await axios.post(`${API_BASE_URL}/contact`, formData)
@@ -182,6 +188,7 @@ export default function ContactForm() {
           name: '', email: '', service: '', budget: '',
           country: countries[0], phone: '', message: ''
         })
+        setConsented(false)
       }
     } catch (err) {
       console.error(err)
@@ -315,6 +322,13 @@ export default function ContactForm() {
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 text-base focus:outline-none focus:border-[#1aa4ac] resize-none transition-colors"
+              />
+
+              {/* Consent */}
+              <ConsentCheckbox
+                checked={consented}
+                onChange={setConsented}
+                className="mt-1"
               />
 
               <motion.button
