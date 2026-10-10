@@ -569,7 +569,7 @@ export default function AboutUs() {
 
       <PageHeader
         title="About Us"
-        description="At Towasic Solutions, growing your business is our core mission."
+        description="At Towasic Solutions, growing your business is our first priority."
         image="/assets/abutus.png"
         imageAlt="About Us"
       />
