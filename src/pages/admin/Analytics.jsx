@@ -55,7 +55,7 @@ const authHeaders = () => {
 
 const api = (type, extra = '') =>
   axios
-    .get(`${ANALYTICS_URL}/analytics?type=${type}${extra}`, { headers: authHeaders() })
+    .get(`${ANALYTICS_URL}/analytics?type=${type}&tz=${new Date().getTimezoneOffset()}${extra}`, { headers: authHeaders() })
     .then((r) => r.data)
 
 /* ================= consent badge ================= */
@@ -183,7 +183,7 @@ export default function Analytics() {
     ;(async () => {
       setLoading(true); setError('')
       try {
-        const [s, ts, b, v, dl, ul] = await Promise.all([
+        const results = await Promise.allSettled([
           api('summary',      `&range=${range}`),
           api('timeseries',   `&range=${range}`),
           api('breakdowns',   `&range=${range}`),
@@ -192,16 +192,31 @@ export default function Analytics() {
           api('security-log', `&range=${range}&consent=unknown`),
         ])
         if (cancelled) return
-        console.log('[Analytics] summary   :', s)
-        console.log('[Analytics] visitors  :', Array.isArray(v) ? v.length : 0)
-        console.log('[Analytics] declined  :', Array.isArray(dl) ? dl.length : 0)
-        console.log('[Analytics] unknown   :', Array.isArray(ul) ? ul.length : 0)
+
+        const val = (i, fallback) => (results[i].status === 'fulfilled' ? results[i].value : fallback)
+        const failed = results.filter((r) => r.status === 'rejected')
+        failed.forEach((r) => console.error('[Analytics] request failed:', r.reason))
+
+        const s = val(0, null)
+        const ts = val(1, [])
+        const b = val(2, null)
+        const v = val(3, [])
+        const dl = val(4, [])
+        const ul = val(5, [])
+
         setSummary(s)
         setSeries(Array.isArray(ts) ? ts : [])
         setBreakdowns(b)
         setVisitors(Array.isArray(v) ? v : [])
         setDeclinedLog(Array.isArray(dl) ? dl : [])
         setUnknownLog(Array.isArray(ul) ? ul : [])
+
+        if (failed.length === results.length) {
+          const r = failed[0].reason
+          setError(r?.response?.data?.error || r?.message || 'Failed to load analytics data.')
+        } else if (failed.length > 0) {
+          setError(`${failed.length} of ${results.length} sections failed to load. Check the server logs.`)
+        }
       } catch (err) {
         console.error('[Analytics] fetch error:', err)
         if (!cancelled) setError(err.response?.data?.error || err.message || 'Failed to load analytics data.')
@@ -329,7 +344,6 @@ export default function Analytics() {
   const logColumns = [
     { label: 'IP',         key: 'ip' },
     { label: 'Consent',    key: 'consent' },
-    { label: 'Is Bot',     value: (r) => r.isBot ? 'Yes' : 'No' },
     { label: 'Start Time', value: (r) => r.startTime ? new Date(r.startTime).toLocaleString() : '' },
     { label: 'End Time',   value: (r) => r.endTime ? new Date(r.endTime).toLocaleString() : '' },
     { label: 'Duration',   value: (r) => fmtDuration(r.durationMs || 0) },
@@ -516,14 +530,14 @@ export default function Analytics() {
               value={summary.declinedVisitors ?? 0}
               icon="fa-circle-xmark"
               tone="warning"
-              hint="IP + timestamps only"
+              hint="Basic data only (5 fields)"
             />
             <StatCard
               label="Unknown (left without choosing)"
               value={summary.unknownVisitors ?? 0}
               icon="fa-circle-question"
               tone="info"
-              hint="IP + timestamps only"
+              hint="Basic data only (5 fields)"
             />
           </>
         )}
@@ -761,13 +775,6 @@ export default function Analytics() {
                       </td>
                       <td className="px-3 py-3">
                         <p className="font-medium text-ink truncate max-w-[220px]">{location}</p>
-                        {typeof v.lat === 'number' && v.lat !== null && (
-                          <a href={`https://www.google.com/maps?q=${v.lat},${v.lon}`} target="_blank" rel="noopener noreferrer"
-                            className="text-xs text-brand-600 hover:text-brand-700 inline-flex items-center gap-1">
-                            <i className="fa-solid fa-location-dot"></i>
-                            {v.lat.toFixed(3)}, {v.lon.toFixed(3)}
-                          </a>
-                        )}
                       </td>
                       <td className="px-3 py-3">
                         <p className="text-ink-muted text-xs truncate max-w-[160px]">{v.ip || 'Unknown IP'}</p>
@@ -807,7 +814,7 @@ export default function Analytics() {
       <Card className="overflow-hidden mb-6">
         <CardHeader
           title="❌ Declined Cookies — Limited Data"
-          subtitle={`${filteredDeclined.length} entries · IP, timestamp, bot flag, start & end time only${selectedDeclined.length > 0 ? ` · ${selectedDeclined.length} selected` : ''}`}
+          subtitle={`${filteredDeclined.length} entries · IP, visitor ID, start & end time only${selectedDeclined.length > 0 ? ` · ${selectedDeclined.length} selected` : ''}`}
           actions={
             <div className="flex items-center gap-2">
               {selectedDeclined.length > 0 && (
@@ -839,7 +846,6 @@ export default function Analytics() {
                   </th>
                   <th className="px-3 py-3 font-medium">Consent</th>
                   <th className="px-3 py-3 font-medium">IP Address</th>
-                  <th className="px-3 py-3 font-medium hidden md:table-cell">Is Bot</th>
                   <th className="px-3 py-3 font-medium hidden md:table-cell">Start Time</th>
                   <th className="px-3 py-3 font-medium hidden md:table-cell">End Time</th>
                   <th className="px-3 py-3 font-medium hidden lg:table-cell">Duration</th>
@@ -857,9 +863,6 @@ export default function Analytics() {
                       </td>
                       <td className="px-3 py-3"><ConsentBadge value="declined" /></td>
                       <td className="px-3 py-3"><p className="font-mono text-xs text-ink">{l.ip || '—'}</p></td>
-                      <td className="px-3 py-3 hidden md:table-cell">
-                        {l.isBot ? <Badge tone="warning">Yes</Badge> : <span className="text-ink-subtle text-xs">No</span>}
-                      </td>
                       <td className="px-3 py-3 text-ink-muted whitespace-nowrap hidden md:table-cell">{fmtDateTime(l.startTime)}</td>
                       <td className="px-3 py-3 text-ink-muted whitespace-nowrap hidden md:table-cell">{fmtDateTime(l.endTime)}</td>
                       <td className="px-3 py-3 text-ink-muted hidden lg:table-cell">{fmtDuration(l.durationMs || 0)}</td>
@@ -885,7 +888,7 @@ export default function Analytics() {
       <Card className="overflow-hidden">
         <CardHeader
           title="❔ Unknown Visitors — Left Without Choosing"
-          subtitle={`${filteredUnknown.length} entries · Logged when a visitor closed the site without accepting or declining${selectedUnknown.length > 0 ? ` · ${selectedUnknown.length} selected` : ''}`}
+          subtitle={`${filteredUnknown.length} entries · IP, visitor ID, start & end time only · Logged when a visitor closed the site without accepting or declining${selectedUnknown.length > 0 ? ` · ${selectedUnknown.length} selected` : ''}`}
           actions={
             <div className="flex items-center gap-2">
               {selectedUnknown.length > 0 && (
@@ -917,7 +920,6 @@ export default function Analytics() {
                   </th>
                   <th className="px-3 py-3 font-medium">Consent</th>
                   <th className="px-3 py-3 font-medium">IP Address</th>
-                  <th className="px-3 py-3 font-medium hidden md:table-cell">Is Bot</th>
                   <th className="px-3 py-3 font-medium hidden md:table-cell">Start Time</th>
                   <th className="px-3 py-3 font-medium hidden md:table-cell">End Time</th>
                   <th className="px-3 py-3 font-medium hidden lg:table-cell">Duration</th>
@@ -935,9 +937,6 @@ export default function Analytics() {
                       </td>
                       <td className="px-3 py-3"><ConsentBadge value="unknown" /></td>
                       <td className="px-3 py-3"><p className="font-mono text-xs text-ink">{l.ip || '—'}</p></td>
-                      <td className="px-3 py-3 hidden md:table-cell">
-                        {l.isBot ? <Badge tone="warning">Yes</Badge> : <span className="text-ink-subtle text-xs">No</span>}
-                      </td>
                       <td className="px-3 py-3 text-ink-muted whitespace-nowrap hidden md:table-cell">{fmtDateTime(l.startTime)}</td>
                       <td className="px-3 py-3 text-ink-muted whitespace-nowrap hidden md:table-cell">{fmtDateTime(l.endTime)}</td>
                       <td className="px-3 py-3 text-ink-muted hidden lg:table-cell">{fmtDuration(l.durationMs || 0)}</td>
@@ -1087,16 +1086,6 @@ export function VisitorDetail() {
                   <p className="text-ink mt-1 break-words">{v}</p>
                 </div>
               ))}
-              {hasCoords && (
-                <div className="col-span-2 md:col-span-4">
-                  <a href={`https://www.google.com/maps?q=${visitor.lat},${visitor.lon}`}
-                    target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-brand-600 hover:text-brand-700 font-medium text-sm">
-                    <i className="fa-solid fa-map-location-dot"></i>
-                    Open in Google Maps →
-                  </a>
-                </div>
-              )}
             </div>
           </Card>
 

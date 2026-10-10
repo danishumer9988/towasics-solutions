@@ -7,6 +7,9 @@ export default function ConsentCheckbox({
   className = '',
   id = 'consent-cookie',
 }) {
+  const linkClass =
+    'font-semibold text-[#0a85a7] underline underline-offset-2 hover:text-[#097390]'
+
   return (
     <label
       htmlFor={id}

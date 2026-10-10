@@ -1,61 +1,97 @@
 /* ============================================================
    Analytics tracking (client-side)
-   - Reads consent from localStorage (set by CookieConsent)
-   - Sends consent with every /track request
-   - On page hide / close, if user never chose, sends an 'exit'
-     signal so the backend can classify them as unknown.
+
+   Rules
+   - accepted : every pageview + click is sent (full tracking)
+   - declined : only pageviews are sent (backend keeps 5 fields)
+   - unknown  : NOTHING is sent while the user is on the site.
+                One 'exit' signal is sent when the tab is closed.
+   - accepted is final: it is never changed back to declined.
+
+   Everything that changes consent (banner, forms) must go
+   through recordConsent() so there is only one code path.
    ============================================================ */
 
 import { ANALYTICS_URL } from '../config'
 
 const VISITOR_KEY = 'tw_visitor_id'
 const SESSION_KEY = 'tw_session_id'
-const CONSENT_KEY = 'cookie_consent_v1'
+export const CONSENT_KEY = 'cookie_consent_v1'
+
+/* Time this visit started (used for start time of declined / unknown) */
+const PAGE_START = Date.now()
+
+/* ---------- safe storage (private mode can throw) ---------- */
+const memory = {}
+
+function readLocal(key) {
+  try { return localStorage.getItem(key) } catch (_) { return memory[key] || null }
+}
+function writeLocal(key, value) {
+  try { localStorage.setItem(key, value) } catch (_) { memory[key] = value }
+}
+function readSession(key) {
+  try { return sessionStorage.getItem(key) } catch (_) { return memory['s:' + key] || null }
+}
+function writeSession(key, value) {
+  try { sessionStorage.setItem(key, value) } catch (_) { memory['s:' + key] = value }
+}
 
 /* ---------- id helpers ---------- */
 const uid = (prefix) =>
   `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`
 
-function getVisitorId() {
-  let id = localStorage.getItem(VISITOR_KEY)
+export function getVisitorId() {
+  let id = readLocal(VISITOR_KEY)
   if (!id) {
     id = uid('v')
-    localStorage.setItem(VISITOR_KEY, id)
+    writeLocal(VISITOR_KEY, id)
   }
   return id
 }
 
-function getSessionId() {
-  let id = sessionStorage.getItem(SESSION_KEY)
+export function getSessionId() {
+  let id = readSession(SESSION_KEY)
   if (!id) {
     id = uid('s')
-    sessionStorage.setItem(SESSION_KEY, id)
+    writeSession(SESSION_KEY, id)
   }
   return id
 }
 
-function getConsent() {
-  const v = localStorage.getItem(CONSENT_KEY)
+export function getConsent() {
+  const v = readLocal(CONSENT_KEY)
   if (v === 'accepted' || v === 'declined') return v
   return 'unknown'
 }
 
 /* ---------- core sender ---------- */
 async function send(payload) {
+  /* always create the ids, even if we do not send anything */
+  const visitorId = getVisitorId()
+  const sessionId = getSessionId()
+  const consent = getConsent()
+
+  /* unknown: stay silent until the tab closes */
+  if (consent === 'unknown') return
+  /* declined: only pageviews matter (5 fields on the server) */
+  if (consent === 'declined' && payload.type !== 'pageview') return
+
   try {
     await fetch(`${ANALYTICS_URL}/track`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        visitorId: getVisitorId(),
-        sessionId: getSessionId(),
-        consent:   getConsent(),
+        visitorId,
+        sessionId,
+        consent,
+        startedAt: PAGE_START,
         ...payload,
       }),
       keepalive: true,
     })
   } catch (_) {
-    /* silent — never break the app for analytics */
+    /* silent: never break the app for analytics */
   }
 }
 
@@ -77,9 +113,34 @@ export function trackClick(data) {
   send({ type: 'click', ...data })
 }
 
-/* Called by CookieConsent when the user picks an option */
+/* ============================================================
+   CONSENT (single entry point: banner + forms)
+   - accepted is final, it can never be replaced
+   - declined -> accepted is allowed (e.g. user ticks a form box)
+   - sends the new choice to the server immediately
+   ============================================================ */
+export function recordConsent(decision) {
+  if (decision !== 'accepted' && decision !== 'declined') return false
+
+  const current = getConsent()
+  if (current === 'accepted') return false      // accepted never changes
+  if (current === decision) return false        // nothing to do
+
+  writeLocal(CONSENT_KEY, decision)
+
+  /* lets the banner hide itself */
+  window.dispatchEvent(
+    new CustomEvent('towasic:consent-changed', { detail: { consent: decision } })
+  )
+
+  /* tell the server right now */
+  trackPageView()
+  return true
+}
+
+/* kept for older imports */
 export function setConsent(value) {
-  localStorage.setItem(CONSENT_KEY, value)
+  recordConsent(value)
 }
 
 /* ---------- click tracking ---------- */
@@ -93,10 +154,10 @@ export function initClickTracking() {
     const el = e.target.closest('a, button, [role="button"]')
     if (!el) return
 
-    const tag     = el.tagName.toLowerCase()
-    const text    = (el.innerText || el.textContent || '').trim().slice(0, 60)
-    const dest    = el.getAttribute('href') || el.dataset?.href || ''
-    const path    = window.location.pathname
+    const tag  = el.tagName.toLowerCase()
+    const text = (el.innerText || el.textContent || '').trim().slice(0, 60)
+    const dest = el.getAttribute('href') || el.dataset?.href || ''
+    const path = window.location.pathname
 
     trackClick({ path, element: tag.toUpperCase(), text, destination: dest })
   }, { capture: true })
@@ -104,54 +165,58 @@ export function initClickTracking() {
 
 /* ============================================================
    EXIT TRACKING
-   ------------------------------------------------------------
-   Fires on pagehide / beforeunload / visibilitychange(hidden).
-   Only sends the exit signal if the user never made a choice —
-   so we can safely classify them as "unknown" once they leave.
-   Uses navigator.sendBeacon where available (survives unload).
+   Only 'pagehide' (the tab / page is really going away).
+   NOT visibilitychange or beforeunload: those also fire when
+   the user switches tabs or refreshes, which created the fake
+   "unknown" rows.
+
+   Sent only while consent is still unknown. Uses a text/plain
+   beacon so the browser never needs a CORS preflight.
    ============================================================ */
 let exitInitialized = false
 let exitFired = false
+
+function sendExitSignal() {
+  const body = JSON.stringify({
+    type:      'exit',
+    visitorId: getVisitorId(),
+    sessionId: getSessionId(),
+    consent:   'unknown',
+    path:      window.location.pathname,
+    startedAt: PAGE_START,
+  })
+  const url = `${ANALYTICS_URL}/track`
+
+  try {
+    if (navigator.sendBeacon) {
+      const ok = navigator.sendBeacon(url, new Blob([body], { type: 'text/plain' }))
+      if (ok) return
+    }
+  } catch (_) { /* fall through */ }
+
+  try {
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body,
+      keepalive: true,
+    }).catch(() => {})
+  } catch (_) { /* ignore */ }
+}
 
 export function initExitTracking() {
   if (exitInitialized) return
   exitInitialized = true
 
-  const fireExit = () => {
+  window.addEventListener('pagehide', () => {
     if (exitFired) return
-    // Only send exit if the user never chose
     if (getConsent() !== 'unknown') return
     exitFired = true
+    sendExitSignal()
+  })
 
-    const payload = JSON.stringify({
-      type:      'exit',
-      visitorId: getVisitorId(),
-      sessionId: getSessionId(),
-      consent:   'unknown',
-      path:      window.location.pathname,
-    })
-
-    try {
-      if (navigator.sendBeacon) {
-        const blob = new Blob([payload], { type: 'application/json' })
-        navigator.sendBeacon(`${ANALYTICS_URL}/track`, blob)
-        return
-      }
-    } catch (_) { /* fall through to fetch */ }
-
-    try {
-      fetch(`${ANALYTICS_URL}/track`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: payload,
-        keepalive: true,
-      }).catch(() => {})
-    } catch (_) { /* ignore */ }
-  }
-
-  window.addEventListener('pagehide', fireExit)
-  window.addEventListener('beforeunload', fireExit)
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') fireExit()
+  /* page restored from the back/forward cache: allow a new exit */
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted) exitFired = false
   })
 }

@@ -40,24 +40,32 @@ import { trackPageView, initClickTracking, initExitTracking } from './lib/analyt
 import VerifyInvite from './pages/admin/VerifyInvite'
 import ContactSubmissions from './pages/admin/ContactSubmissions'
 
-const SKIP_PREFIXES = [
+/* Admin / private pages: no tracking, no cookie banner, no popups.
+   NOTE: '/blogs/:slug' is a PUBLIC blog post, so only the admin
+   blog routes ('/blogs', '/blogs/new', '/blogs/edit/:id') are listed. */
+const ADMIN_PREFIXES = [
   '/admin',
   '/dashboard',
   '/auth',
-  '/blogs',
   '/subscriptions',
   '/addfaq',
 ]
+
+const isAdminPath = (p) =>
+  ADMIN_PREFIXES.some((prefix) => p.startsWith(prefix)) ||
+  p === '/blogs' ||
+  p === '/blogs/' ||
+  p === '/blogs/new' ||
+  p.startsWith('/blogs/edit/')
 
 function TrackerMount() {
   const location = useLocation()
   useEffect(() => {
     initClickTracking()
-    initExitTracking()   // ← ADD THIS
+    initExitTracking()
   }, [])
   useEffect(() => {
-    const p = location.pathname
-    if (SKIP_PREFIXES.some((prefix) => p.startsWith(prefix))) return
+    if (isAdminPath(location.pathname)) return
     trackPageView()
   }, [location.pathname, location.search])
   return null
@@ -65,14 +73,7 @@ function TrackerMount() {
 
 function useIsAdminArea() {
   const { pathname } = useLocation()
-  return (
-    pathname.startsWith('/admin') ||
-    pathname.startsWith('/auth') ||
-    pathname.startsWith('/dashboard') ||
-    pathname.startsWith('/blogs') ||
-    pathname.startsWith('/subscriptions') ||
-    pathname.startsWith('/addfaq')
-  )
+  return isAdminPath(pathname)
 }
 
 function ConditionalWhatsApp() {
