@@ -5,8 +5,6 @@ import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
   BarChart, Bar, PieChart, Pie, Cell,
 } from 'recharts'
-import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet'
-import 'leaflet/dist/leaflet.css'
 
 import { ANALYTICS_URL } from '../../config'
 import AdminLayout from '../../components/admin/AdminLayout'
@@ -80,96 +78,6 @@ function ConsentBadge({ value }) {
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[11px] font-semibold whitespace-nowrap">
       <i className="fa-solid fa-circle-question"></i> Unknown
     </span>
-  )
-}
-
-/* ================= Map ================= */
-function MapTiles({ layer }) {
-  if (layer === 'satellite') {
-    return (
-      <TileLayer
-        attribution='Tiles &copy; Esri'
-        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-        maxNativeZoom={19}
-        maxZoom={22}
-      />
-    )
-  }
-  return (
-    <TileLayer
-      attribution='&copy; <a href="https://carto.com/attributions">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-      url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-      maxNativeZoom={20}
-      maxZoom={22}
-    />
-  )
-}
-
-function LayerToggle({ layer, onChange }) {
-  return (
-    <div className="absolute top-3 right-3 z-[400] flex bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
-      <button type="button" onClick={() => onChange('streets')}
-        className={`px-3 py-1.5 text-xs font-semibold transition ${layer === 'streets' ? 'bg-[#0a85a7] text-white' : 'text-gray-600 hover:bg-gray-50'}`}>
-        <i className="fa-solid fa-map mr-1"></i> Streets
-      </button>
-      <button type="button" onClick={() => onChange('satellite')}
-        className={`px-3 py-1.5 text-xs font-semibold transition ${layer === 'satellite' ? 'bg-[#0a85a7] text-white' : 'text-gray-600 hover:bg-gray-50'}`}>
-        <i className="fa-solid fa-satellite mr-1"></i> Satellite
-      </button>
-    </div>
-  )
-}
-
-function VisitorsMap({ visitors, height = 420 }) {
-  const [layer, setLayer] = useState('streets')
-  const withCoords = (visitors || []).filter(
-    (v) => typeof v.lat === 'number' && typeof v.lon === 'number'
-  )
-
-  if (withCoords.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center text-center bg-gray-50 rounded-lg border border-dashed border-gray-200" style={{ height }}>
-        <i className="fa-solid fa-earth-americas text-3xl text-gray-300 mb-3"></i>
-        <p className="text-sm text-gray-500 font-medium">No location data yet</p>
-        <p className="text-xs text-gray-400 mt-1">Locations appear here once accepted visitors reach your site</p>
-      </div>
-    )
-  }
-
-  return (
-    <div className="relative rounded-lg overflow-hidden border border-line" style={{ height }}>
-      <LayerToggle layer={layer} onChange={setLayer} />
-      <MapContainer center={[30, 70]} zoom={3} minZoom={2} maxZoom={22} scrollWheelZoom
-        style={{ height: '100%', width: '100%' }}>
-        <MapTiles layer={layer} />
-        {withCoords.map((v) => {
-          const active = isActive(v)
-          return (
-            <CircleMarker key={v.visitor_id} center={[v.lat, v.lon]}
-              radius={active ? 9 : 6}
-              pathOptions={{
-                color: active ? '#10b981' : '#0866ff',
-                fillColor: active ? '#10b981' : '#0866ff',
-                fillOpacity: active ? 0.9 : 0.7,
-                weight: 3,
-              }}>
-              <Popup>
-                <div style={{ fontSize: 12, lineHeight: 1.5 }}>
-                  <strong style={{ color: '#086B87' }}>
-                    {v.city || 'Unknown city'}{v.region ? `, ${regionLabel(v.region)}` : ''}
-                  </strong><br />
-                  {v.countryName || v.country || 'Unknown country'}<br />
-                  <span style={{ color: '#6b7280' }}>IP: {v.ip || '—'}</span><br />
-                  <span style={{ color: '#6b7280' }}>
-                    {active ? '🟢 Active now' : `Last seen: ${fmtDateTime(v.last_seen)}`}
-                  </span>
-                </div>
-              </Popup>
-            </CircleMarker>
-          )
-        })}
-      </MapContainer>
-    </div>
   )
 }
 
@@ -276,23 +184,27 @@ export default function Analytics() {
       setLoading(true); setError('')
       try {
         const [s, ts, b, v, dl, ul] = await Promise.all([
-          api('summary',             `&range=${range}`),
-          api('timeseries',          `&range=${range}`),
-          api('breakdowns',          `&range=${range}`),
-          api('visitors',            `&range=${range}`),
-          api('security-log',        `&range=${range}&consent=declined`),
-          api('security-log',        `&range=${range}&consent=unknown`),
+          api('summary',      `&range=${range}`),
+          api('timeseries',   `&range=${range}`),
+          api('breakdowns',   `&range=${range}`),
+          api('visitors',     `&range=${range}`),
+          api('security-log', `&range=${range}&consent=declined`),
+          api('security-log', `&range=${range}&consent=unknown`),
         ])
         if (cancelled) return
+        console.log('[Analytics] summary   :', s)
+        console.log('[Analytics] visitors  :', Array.isArray(v) ? v.length : 0)
+        console.log('[Analytics] declined  :', Array.isArray(dl) ? dl.length : 0)
+        console.log('[Analytics] unknown   :', Array.isArray(ul) ? ul.length : 0)
         setSummary(s)
-        setSeries(ts)
+        setSeries(Array.isArray(ts) ? ts : [])
         setBreakdowns(b)
         setVisitors(Array.isArray(v) ? v : [])
         setDeclinedLog(Array.isArray(dl) ? dl : [])
         setUnknownLog(Array.isArray(ul) ? ul : [])
       } catch (err) {
-        console.error(err)
-        if (!cancelled) setError('Failed to load analytics data.')
+        console.error('[Analytics] fetch error:', err)
+        if (!cancelled) setError(err.response?.data?.error || err.message || 'Failed to load analytics data.')
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -631,14 +543,6 @@ export default function Analytics() {
         )}
       </div>
 
-      {/* Live map */}
-      <Card className="mb-6">
-        <CardHeader title="Live Visitor Map" subtitle="Accepted visitors only · Green = active in last 5 min" />
-        <div className="p-5">
-          {loading ? <Skeleton className="h-96 w-full" /> : <VisitorsMap visitors={visitors} />}
-        </div>
-      </Card>
-
       {/* Live now */}
       {!loading && activeVisitors.length > 0 && (
         <Card className="mb-6">
@@ -857,7 +761,7 @@ export default function Analytics() {
                       </td>
                       <td className="px-3 py-3">
                         <p className="font-medium text-ink truncate max-w-[220px]">{location}</p>
-                        {typeof v.lat === 'number' && (
+                        {typeof v.lat === 'number' && v.lat !== null && (
                           <a href={`https://www.google.com/maps?q=${v.lat},${v.lon}`} target="_blank" rel="noopener noreferrer"
                             className="text-xs text-brand-600 hover:text-brand-700 inline-flex items-center gap-1">
                             <i className="fa-solid fa-location-dot"></i>
@@ -1085,14 +989,13 @@ export default function Analytics() {
   )
 }
 
-/* ================= VISITOR DETAIL (accepted only) ================= */
+/* ================= VISITOR DETAIL (accepted only, no map) ================= */
 export function VisitorDetail() {
   const { visitorId } = useParams()
   const navigate = useNavigate()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [layer, setLayer] = useState('streets')
 
   useEffect(() => {
     if (!localStorage.getItem('user')) navigate('/auth/login')
@@ -1120,7 +1023,7 @@ export function VisitorDetail() {
 
   const clicks = data?.activities?.filter((a) => a.type === 'click') || []
   const visitor = data?.visitor
-  const hasCoords = typeof visitor?.lat === 'number' && typeof visitor?.lon === 'number'
+  const hasCoords = typeof visitor?.lat === 'number' && visitor?.lat !== null
   const active = visitor ? isActive(visitor) : false
 
   return (
@@ -1168,53 +1071,32 @@ export function VisitorDetail() {
                     : '🌐 Approximate (IP-based)')
                 : 'No coordinates captured'}
             />
-            <div className="p-5 grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div>
-                {hasCoords ? (
-                  <div className="relative rounded-lg overflow-hidden border border-line" style={{ height: 320 }}>
-                    <LayerToggle layer={layer} onChange={setLayer} />
-                    <MapContainer center={[visitor.lat, visitor.lon]} zoom={14} minZoom={2} maxZoom={22} scrollWheelZoom
-                      style={{ height: '100%', width: '100%' }}>
-                      <MapTiles layer={layer} />
-                      <CircleMarker center={[visitor.lat, visitor.lon]} radius={12}
-                        pathOptions={{
-                          color: active ? '#10b981' : '#0866ff',
-                          fillColor: active ? '#10b981' : '#0866ff',
-                          fillOpacity: 0.75,
-                          weight: 3,
-                        }}>
-                        <Popup>
-                          {visitor.city || 'Unknown city'}
-                          {visitor.region ? `, ${regionLabel(visitor.region)}` : ''}
-                          <br />
-                          {visitor.countryName || visitor.country || ''}
-                        </Popup>
-                      </CircleMarker>
-                    </MapContainer>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center text-center bg-gray-50 rounded-lg border border-dashed border-gray-200" style={{ height: 320 }}>
-                    <i className="fa-solid fa-location-slash text-3xl text-gray-300 mb-3"></i>
-                    <p className="text-sm text-gray-500 font-medium">No coordinates captured</p>
-                  </div>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-5 text-sm content-start">
-                {[
-                  ['Country',       visitor.countryName || visitor.country || '—'],
-                  ['Country Code',  visitor.country || '—'],
-                  ['Region',        visitor.region ? regionLabel(visitor.region) : '—'],
-                  ['City',          visitor.city || '—'],
-                  ['Latitude',      hasCoords ? visitor.lat.toFixed(6) : '—'],
-                  ['Longitude',     hasCoords ? visitor.lon.toFixed(6) : '—'],
-                  ['IP Address',    visitor.ip || '—'],
-                ].map(([k, v]) => (
-                  <div key={k}>
-                    <p className="text-xs uppercase tracking-wide text-ink-subtle font-medium">{k}</p>
-                    <p className="text-ink mt-1 break-words">{v}</p>
-                  </div>
-                ))}
-              </div>
+            <div className="p-5 grid grid-cols-2 md:grid-cols-4 gap-5 text-sm">
+              {[
+                ['Country',       visitor.countryName || visitor.country || '—'],
+                ['Country Code',  visitor.country || '—'],
+                ['Region',        visitor.region ? regionLabel(visitor.region) : '—'],
+                ['City',          visitor.city || '—'],
+                ['Latitude',      hasCoords ? visitor.lat.toFixed(6) : '—'],
+                ['Longitude',     hasCoords ? visitor.lon.toFixed(6) : '—'],
+                ['IP Address',    visitor.ip || '—'],
+                ['Source',        visitor.geoSource || '—'],
+              ].map(([k, v]) => (
+                <div key={k}>
+                  <p className="text-xs uppercase tracking-wide text-ink-subtle font-medium">{k}</p>
+                  <p className="text-ink mt-1 break-words">{v}</p>
+                </div>
+              ))}
+              {hasCoords && (
+                <div className="col-span-2 md:col-span-4">
+                  <a href={`https://www.google.com/maps?q=${visitor.lat},${visitor.lon}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-brand-600 hover:text-brand-700 font-medium text-sm">
+                    <i className="fa-solid fa-map-location-dot"></i>
+                    Open in Google Maps →
+                  </a>
+                </div>
+              )}
             </div>
           </Card>
 
