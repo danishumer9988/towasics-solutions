@@ -114,7 +114,7 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
               >
-                Our company specializes in cutting-edge web scraping, intelligent automation, and AI-powered solutions that help businesses work smarter, innovate faster, and grow with confidence.
+                Towasic Solutions specializes in scalable web scraping, intelligent automation, and AI-powered solutions that help businesses work smarter, innovate faster, and grow with confidence.
               </motion.p>
               <div className="pt-2 sm:pt-4">
                 <Link to="/contactus">

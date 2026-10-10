@@ -578,8 +578,8 @@ export default function AboutUs() {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-4xl mx-auto mb-12">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-950 tracking-tight font-inter mb-6">
-              Leadership Team
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#086B87] tracking-tight font-inter mb-6">
+                Leadership Team
             </h2>
             <p className="text-gray-600 text-base sm:text-lg leading-relaxed font-medium font-inter">
               At Towasic Solutions, we are a team of experienced developers specializing in web scraping, automation, AI agents, machine learning, website development, IoT projects, and full-stack development. With over 5 years of expertise and 235+ successful projects delivered, we pride ourselves on building intelligent, reliable, and efficient solutions for clients worldwide.
@@ -604,8 +604,8 @@ export default function AboutUs() {
             <span className="text-[#086B87] font-bold text-sm sm:text-base tracking-widest uppercase mb-2 inline-block font-sans">
               OUR TEAM
             </span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-950 tracking-tight font-inter mb-4">
-              Meet Our Technology Experts
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#086B87] tracking-tight font-inter mb-4">
+                Meet Our Technology Experts
             </h2>
             <p className="text-gray-600 text-base sm:text-lg max-w-3xl mx-auto font-medium font-inter leading-relaxed">
               A talented team of developers, engineers, designers, and strategists working together to build intelligent solutions.
@@ -691,7 +691,7 @@ export default function AboutUs() {
             <img
               src="/assets/aboutsec.png"
               alt="Core Values infographics"
-              className="w-full max-w-4xl rounded-2xl shadow-xl"
+              className="w-full max-w-5xl rounded-2xl shadow-xl"
             />
           </div>
         </div>
