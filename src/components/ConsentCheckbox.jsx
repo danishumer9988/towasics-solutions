@@ -21,17 +21,7 @@ export default function ConsentCheckbox({
         className="mt-[2px] h-4 w-4 shrink-0 rounded border-gray-300 accent-[#0a85a7] focus:ring-2 focus:ring-[#0a85a7]/30 cursor-pointer"
       />
       <span className="text-xs sm:text-[13px] text-gray-600 leading-snug">
-        Please accept our{' '}
-        <Link
-          to="/privacy-policy"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[#0a85a7] font-semibold hover:underline"
-          onClick={(e) => e.stopPropagation()}
-        >
-          Privacy Policy
-        </Link>{' '}
-        cookies and terms of services.
+        Please accept our Privacy Policy cookies and terms of services.
       </span>
     </label>
   )

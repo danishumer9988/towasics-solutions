@@ -72,7 +72,7 @@ const usefulLinks = [
   { name: "Let's Talk", href: '/contactus' },
   { name: 'FAQ', href: '/faq' },
   { name: 'Privacy Policy', href: '/privacy-policy' },
-  { name: 'Terms Of Service', href: '/terms-of-service' },
+  { name: 'Terms Of Services', href: '/terms-of-service' },
 ]
 
 const servicesList = [
