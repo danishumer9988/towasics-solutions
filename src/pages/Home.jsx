@@ -116,25 +116,40 @@ export default function Home() {
               >
                 Towasic Solutions specializes in scalable web scraping, intelligent automation, and AI-powered solutions that help businesses work smarter, innovate faster, and grow with confidence.
               </motion.p>
+
+              {/* ---- FIXED BUTTON ---- */}
               <div className="pt-2 sm:pt-4">
               <Link to="/contactus">
                 <motion.button
-                  className="bg-white hover:bg-gray-100 text-[#0a85a7] font-bold px-8 py-3.5 rounded-full text-base sm:text-lg shadow-lg transition-colors font-inter"
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.6 }}
-                  whileHover={{
-                    scale: 1.08,
-                    boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.35)',
-                    transition: { duration: 0.25, ease: 'easeOut' },
+                  className="bg-white hover:bg-gray-100 text-[#0a85a7] font-bold px-8 py-3.5 rounded-full text-base sm:text-lg shadow-lg font-inter"
+                  initial="hidden"
+                  animate="visible"
+                  whileHover="hover"
+                  whileTap="tap"
+                  variants={{
+                    hidden:  { opacity: 0, y: 30 },
+                    visible: {
+                      opacity: 1,
+                      y: 0,
+                      transition: { duration: 0.8, delay: 0.6 },
+                    },
+                    hover: {
+                      scale: 1.08,
+                      boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.35)',
+                      transition: { duration: 0.12, ease: 'easeOut' },
+                    },
+                    tap: {
+                      scale: 0.95,
+                      transition: { duration: 0.08, ease: 'easeOut' },
+                    },
                   }}
-                  whileTap={{ scale: 0.95 }}
                 >
                   Let's Talk
                 </motion.button>
               </Link>
             </div>
             </motion.div>
+
             <motion.div
               className="flex justify-center lg:justify-end mt-4 lg:mt-0 relative z-20"
               initial={{ opacity: 0, x: 50 }}
@@ -191,10 +206,10 @@ export default function Home() {
       {/* Why Choose Us Section */}
       <section className="py-12 sm:py-20 bg-[#E7F8FF] overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }} 
-            whileInView={{ opacity: 1, y: 0 }} 
-            transition={{ duration: 0.6 }} 
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
             viewport={{ once: true }}
             className="text-center mb-6"
           >
@@ -219,9 +234,9 @@ export default function Home() {
                   text: 'We are dedicated to providing our clients with exceptional service, tailored solutions, and a seamless experience. Our commitment to customer satisfaction is at the heart of everything we do, ensuring that our clients can focus on leveraging the data they need to drive their business forward.'
                 }
             ].map((col, idx) => (
-              <motion.div 
+              <motion.div
                 key={idx}
-                whileHover={{ y: -6 }} 
+                whileHover={{ y: -6 }}
                 transition={{ duration: 0.3 }}
                 className="flex flex-col items-center max-w-[340px] mx-auto w-full"
               >
@@ -229,7 +244,7 @@ export default function Home() {
                 <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto shadow-md bg-[#1aa4ac] -mb-10 z-10">
                   <img src={col.img} alt={col.title} className="w-10 h-10 object-contain" />
                 </div>
-                
+
                 {/* Card Container */}
                 <div className="bg-white cardslider p-6 sm:p-8 pt-14 border border-[#35D9E1] shadow-lg hover:shadow-xl transition-shadow w-full flex-grow flex flex-col justify-start">
                   <h3 className="text-xl font-bold mb-3 pt-10" style={{ color: '#0A85A7' }}>{col.title}</h3>
@@ -240,7 +255,8 @@ export default function Home() {
           </div>
         </div>
       </section>
-    <section className="py-20 bg-white">
+
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
@@ -269,13 +285,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
       {/* Services Grid Section */}
       <HomeServicesGrid />
-
-      {/* AI-Powered Section */}
-
-
-
 
       {/* Reviews Slider */}
       <TestimonialSlider />
