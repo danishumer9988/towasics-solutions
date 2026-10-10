@@ -35,7 +35,7 @@ import Analytics, { VisitorDetail } from './pages/admin/Analytics'
 import WhatsAppButton from './components/WhatsAppButton'
 import CookieConsent from './components/CookieConsent'
 import EstimatePopup from './components/EstimatePopup'
-import { trackPageView, initClickTracking } from './lib/analytics'
+import { trackPageView, initClickTracking, initExitTracking } from './lib/analytics'
 
 import VerifyInvite from './pages/admin/VerifyInvite'
 import ContactSubmissions from './pages/admin/ContactSubmissions'
@@ -51,7 +51,10 @@ const SKIP_PREFIXES = [
 
 function TrackerMount() {
   const location = useLocation()
-  useEffect(() => { initClickTracking() }, [])
+  useEffect(() => {
+    initClickTracking()
+    initExitTracking()   // ← ADD THIS
+  }, [])
   useEffect(() => {
     const p = location.pathname
     if (SKIP_PREFIXES.some((prefix) => p.startsWith(prefix))) return

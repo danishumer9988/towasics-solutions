@@ -60,7 +60,7 @@ const api = (type, extra = '') =>
     .get(`${ANALYTICS_URL}/analytics?type=${type}${extra}`, { headers: authHeaders() })
     .then((r) => r.data)
 
-/* ================= consent badge (three-way) ================= */
+/* ================= consent badge ================= */
 function ConsentBadge({ value }) {
   if (value === 'accepted') {
     return (
@@ -83,7 +83,7 @@ function ConsentBadge({ value }) {
   )
 }
 
-/* ================= Map tiles ================= */
+/* ================= Map ================= */
 function MapTiles({ layer }) {
   if (layer === 'satellite') {
     return (
@@ -120,10 +120,8 @@ function LayerToggle({ layer, onChange }) {
   )
 }
 
-/* ================= Live visitors map (accepted only) ================= */
 function VisitorsMap({ visitors, height = 420 }) {
   const [layer, setLayer] = useState('streets')
-
   const withCoords = (visitors || []).filter(
     (v) => typeof v.lat === 'number' && typeof v.lon === 'number'
   )
@@ -164,9 +162,6 @@ function VisitorsMap({ visitors, height = 420 }) {
                   <span style={{ color: '#6b7280' }}>IP: {v.ip || '—'}</span><br />
                   <span style={{ color: '#6b7280' }}>
                     {active ? '🟢 Active now' : `Last seen: ${fmtDateTime(v.last_seen)}`}
-                  </span><br />
-                  <span style={{ color: '#6b7280' }}>
-                    Coordinates: {v.lat.toFixed(4)}, {v.lon.toFixed(4)}
                   </span>
                 </div>
               </Popup>
@@ -245,14 +240,15 @@ function ListCard({ title, subtitle, loading, items, emptyText }) {
   )
 }
 
-/* ================= MAIN DASHBOARD ================= */
+/* ================= MAIN ================= */
 export default function Analytics() {
   const [range, setRange] = useState('7d')
   const [summary, setSummary] = useState(null)
   const [series, setSeries] = useState([])
   const [breakdowns, setBreakdowns] = useState(null)
-  const [visitors, setVisitors] = useState([])         // accepted visitors
-  const [securityLog, setSecurityLog] = useState([])   // declined / unknown
+  const [visitors, setVisitors] = useState([])
+  const [declinedLog, setDeclinedLog] = useState([])
+  const [unknownLog, setUnknownLog] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [toast, setToast] = useState(null)
@@ -260,10 +256,12 @@ export default function Analytics() {
   const [countryFilter, setCountryFilter] = useState('all')
   const [cityFilter, setCityFilter] = useState('all')
   const [deviceFilter, setDeviceFilter] = useState('all')
-  const [selected, setSelected] = useState([])              // accepted selection (visitor_id)
-  const [selectedLogs, setSelectedLogs] = useState([])      // declined/unknown selection (log _id)
+  const [selected, setSelected] = useState([])
+  const [selectedDeclined, setSelectedDeclined] = useState([])
+  const [selectedUnknown, setSelectedUnknown] = useState([])
   const [confirmDelete, setConfirmDelete] = useState(null)
-  const [confirmDeleteLog, setConfirmDeleteLog] = useState(null)
+  const [confirmDeleteDeclined, setConfirmDeleteDeclined] = useState(null)
+  const [confirmDeleteUnknown, setConfirmDeleteUnknown] = useState(null)
   const [deleting, setDeleting] = useState(false)
   const [reloadKey, setReloadKey] = useState(0)
   const navigate = useNavigate()
@@ -272,25 +270,26 @@ export default function Analytics() {
     if (!localStorage.getItem('user')) navigate('/auth/login')
   }, [navigate])
 
-  /* ---------- fetch ---------- */
   useEffect(() => {
     let cancelled = false
     ;(async () => {
       setLoading(true); setError('')
       try {
-        const [s, ts, b, v, log] = await Promise.all([
-          api('summary',      `&range=${range}`),
-          api('timeseries',   `&range=${range}`),
-          api('breakdowns',   `&range=${range}`),
-          api('visitors',     `&range=${range}`),
-          api('security-log', `&range=${range}`),
+        const [s, ts, b, v, dl, ul] = await Promise.all([
+          api('summary',             `&range=${range}`),
+          api('timeseries',          `&range=${range}`),
+          api('breakdowns',          `&range=${range}`),
+          api('visitors',            `&range=${range}`),
+          api('security-log',        `&range=${range}&consent=declined`),
+          api('security-log',        `&range=${range}&consent=unknown`),
         ])
         if (cancelled) return
         setSummary(s)
         setSeries(ts)
         setBreakdowns(b)
         setVisitors(Array.isArray(v) ? v : [])
-        setSecurityLog(Array.isArray(log) ? log : [])
+        setDeclinedLog(Array.isArray(dl) ? dl : [])
+        setUnknownLog(Array.isArray(ul) ? ul : [])
       } catch (err) {
         console.error(err)
         if (!cancelled) setError('Failed to load analytics data.')
@@ -309,19 +308,9 @@ export default function Analytics() {
 
   const refresh = useCallback(() => setReloadKey((k) => k + 1), [])
 
-  /* ---------- derived lists ---------- */
+  /* ---------- derived ---------- */
   const activeVisitors = useMemo(() => visitors.filter(isActive), [visitors])
 
-  const declinedLog = useMemo(
-    () => securityLog.filter((l) => l.consent === 'declined'),
-    [securityLog]
-  )
-  const unknownLog = useMemo(
-    () => securityLog.filter((l) => l.consent === 'unknown'),
-    [securityLog]
-  )
-
-  /* ---------- filter dropdowns (accepted visitors) ---------- */
   const countryOptions = useMemo(
     () => Array.from(new Set(visitors.map(v => v.countryName || v.country).filter(Boolean))).sort(),
     [visitors]
@@ -335,7 +324,6 @@ export default function Analytics() {
     [visitors]
   )
 
-  /* ---------- filtered accepted list ---------- */
   const filteredVisitors = useMemo(() => {
     const term = q.trim().toLowerCase()
     return visitors.filter((v) => {
@@ -351,20 +339,22 @@ export default function Analytics() {
     })
   }, [visitors, q, countryFilter, cityFilter, deviceFilter])
 
-  /* ---------- filtered security log ---------- */
-  const filteredLog = useMemo(() => {
+  const filteredDeclined = useMemo(() => {
     const term = q.trim().toLowerCase()
-    if (!term) return securityLog
-    return securityLog.filter((l) =>
-      (l.ip || '').toLowerCase().includes(term)
-    )
-  }, [securityLog, q])
+    if (!term) return declinedLog
+    return declinedLog.filter(l => (l.ip || '').toLowerCase().includes(term))
+  }, [declinedLog, q])
+
+  const filteredUnknown = useMemo(() => {
+    const term = q.trim().toLowerCase()
+    if (!term) return unknownLog
+    return unknownLog.filter(l => (l.ip || '').toLowerCase().includes(term))
+  }, [unknownLog, q])
 
   /* ---------- selection: accepted ---------- */
   const filteredIds = useMemo(() => filteredVisitors.map(v => v.visitor_id), [filteredVisitors])
   const allSelected = filteredIds.length > 0 && filteredIds.every(id => selected.includes(id))
   const someSelected = selected.length > 0 && !allSelected
-
   const toggleAll = () => {
     if (allSelected) setSelected(prev => prev.filter(id => !filteredIds.includes(id)))
     else setSelected(prev => Array.from(new Set([...prev, ...filteredIds])))
@@ -373,30 +363,38 @@ export default function Analytics() {
     setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
   }
 
-  /* ---------- selection: security log ---------- */
-  const logIds = useMemo(() => filteredLog.map(l => l.id), [filteredLog])
-  const allLogsSelected = logIds.length > 0 && logIds.every(id => selectedLogs.includes(id))
-  const someLogsSelected = selectedLogs.length > 0 && !allLogsSelected
-
-  const toggleAllLogs = () => {
-    if (allLogsSelected) setSelectedLogs(prev => prev.filter(id => !logIds.includes(id)))
-    else setSelectedLogs(prev => Array.from(new Set([...prev, ...logIds])))
+  /* ---------- selection: declined ---------- */
+  const declinedIds = useMemo(() => filteredDeclined.map(l => l.id), [filteredDeclined])
+  const allDeclinedSelected = declinedIds.length > 0 && declinedIds.every(id => selectedDeclined.includes(id))
+  const someDeclinedSelected = selectedDeclined.length > 0 && !allDeclinedSelected
+  const toggleAllDeclined = () => {
+    if (allDeclinedSelected) setSelectedDeclined(prev => prev.filter(id => !declinedIds.includes(id)))
+    else setSelectedDeclined(prev => Array.from(new Set([...prev, ...declinedIds])))
   }
-  const toggleOneLog = (id) => {
-    setSelectedLogs(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+  const toggleOneDeclined = (id) => {
+    setSelectedDeclined(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
   }
 
-  /* ---------- download: accepted ---------- */
+  /* ---------- selection: unknown ---------- */
+  const unknownIds = useMemo(() => filteredUnknown.map(l => l.id), [filteredUnknown])
+  const allUnknownSelected = unknownIds.length > 0 && unknownIds.every(id => selectedUnknown.includes(id))
+  const someUnknownSelected = selectedUnknown.length > 0 && !allUnknownSelected
+  const toggleAllUnknown = () => {
+    if (allUnknownSelected) setSelectedUnknown(prev => prev.filter(id => !unknownIds.includes(id)))
+    else setSelectedUnknown(prev => Array.from(new Set([...prev, ...unknownIds])))
+  }
+  const toggleOneUnknown = (id) => {
+    setSelectedUnknown(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+  }
+
+  /* ---------- downloads ---------- */
   const exportColumns = [
     { label: 'Visitor ID',   key: 'visitor_id' },
-    { label: 'Consent',      value: () => 'accepted' },
     { label: 'Status',       value: (r) => isActive(r) ? 'Active' : 'Inactive' },
     { label: 'IP',           key: 'ip' },
     { label: 'Country',      value: (r) => r.countryName || r.country || '' },
     { label: 'Region',       value: (r) => r.region ? regionLabel(r.region) : '' },
     { label: 'City',         key: 'city' },
-    { label: 'Latitude',     value: (r) => typeof r.lat === 'number' ? r.lat : '' },
-    { label: 'Longitude',    value: (r) => typeof r.lon === 'number' ? r.lon : '' },
     { label: 'Device',       key: 'device' },
     { label: 'Browser',      key: 'browser' },
     { label: 'OS',           key: 'os' },
@@ -413,11 +411,10 @@ export default function Analytics() {
       : filteredVisitors
     const stamp = new Date().toISOString().slice(0, 10)
     const tag = selected.length > 0 ? `selected-${rows.length}` : `all-${rows.length}`
-    exportData(rows, exportColumns, format, `analytics-accepted-${tag}-${stamp}`, 'Accepted Visitors')
+    exportData(rows, exportColumns, format, `accepted-visitors-${tag}-${stamp}`, 'Accepted Visitors')
   }
 
-  /* ---------- download: security log ---------- */
-  const exportLogColumns = [
+  const logColumns = [
     { label: 'IP',         key: 'ip' },
     { label: 'Consent',    key: 'consent' },
     { label: 'Is Bot',     value: (r) => r.isBot ? 'Yes' : 'No' },
@@ -426,16 +423,23 @@ export default function Analytics() {
     { label: 'Duration',   value: (r) => fmtDuration(r.durationMs || 0) },
   ]
 
-  const handleDownloadLog = (format) => {
-    const rows = selectedLogs.length > 0
-      ? filteredLog.filter(l => selectedLogs.includes(l.id))
-      : filteredLog
+  const handleDownloadDeclined = (format) => {
+    const rows = selectedDeclined.length > 0
+      ? filteredDeclined.filter(l => selectedDeclined.includes(l.id))
+      : filteredDeclined
     const stamp = new Date().toISOString().slice(0, 10)
-    const tag = selectedLogs.length > 0 ? `selected-${rows.length}` : `all-${rows.length}`
-    exportData(rows, exportLogColumns, format, `analytics-declined-${tag}-${stamp}`, 'Declined / Unknown Visitors')
+    exportData(rows, logColumns, format, `declined-visitors-${stamp}`, 'Declined Visitors')
   }
 
-  /* ---------- delete accepted ---------- */
+  const handleDownloadUnknown = (format) => {
+    const rows = selectedUnknown.length > 0
+      ? filteredUnknown.filter(l => selectedUnknown.includes(l.id))
+      : filteredUnknown
+    const stamp = new Date().toISOString().slice(0, 10)
+    exportData(rows, logColumns, format, `unknown-visitors-${stamp}`, 'Unknown Visitors')
+  }
+
+  /* ---------- delete handlers ---------- */
   const handleDeleteConfirm = async () => {
     if (!confirmDelete) return
     setDeleting(true)
@@ -458,20 +462,41 @@ export default function Analytics() {
     }
   }
 
-  /* ---------- delete security log ---------- */
-  const handleDeleteLogConfirm = async () => {
-    if (!confirmDeleteLog) return
+  const handleDeleteDeclined = async () => {
+    if (!confirmDeleteDeclined) return
     setDeleting(true)
     try {
-      const ids = confirmDeleteLog.ids
+      const ids = confirmDeleteDeclined.ids
       if (ids.length === 1) {
         await axios.delete(`${ANALYTICS_URL}/analytics/security-log/${ids[0]}`, { headers: authHeaders() })
       } else {
         await axios.post(`${ANALYTICS_URL}/analytics/security-log/bulk-delete`, { ids }, { headers: authHeaders() })
       }
       setToast({ type: 'success', message: `Deleted ${ids.length} log entr${ids.length === 1 ? 'y' : 'ies'}` })
-      setSelectedLogs(prev => prev.filter(id => !ids.includes(id)))
-      setConfirmDeleteLog(null)
+      setSelectedDeclined(prev => prev.filter(id => !ids.includes(id)))
+      setConfirmDeleteDeclined(null)
+      refresh()
+    } catch (err) {
+      console.error(err)
+      setToast({ type: 'error', message: err.response?.data?.error || 'Failed to delete' })
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  const handleDeleteUnknown = async () => {
+    if (!confirmDeleteUnknown) return
+    setDeleting(true)
+    try {
+      const ids = confirmDeleteUnknown.ids
+      if (ids.length === 1) {
+        await axios.delete(`${ANALYTICS_URL}/analytics/security-log/${ids[0]}`, { headers: authHeaders() })
+      } else {
+        await axios.post(`${ANALYTICS_URL}/analytics/security-log/bulk-delete`, { ids }, { headers: authHeaders() })
+      }
+      setToast({ type: 'success', message: `Deleted ${ids.length} log entr${ids.length === 1 ? 'y' : 'ies'}` })
+      setSelectedUnknown(prev => prev.filter(id => !ids.includes(id)))
+      setConfirmDeleteUnknown(null)
       refresh()
     } catch (err) {
       console.error(err)
@@ -557,7 +582,7 @@ export default function Analytics() {
         )}
       </div>
 
-      {/* Consent stats — three-way split */}
+      {/* Three-way consent stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         {loading || !summary ? (
           <>
@@ -568,25 +593,25 @@ export default function Analytics() {
         ) : (
           <>
             <StatCard
-              label="Cookies Accepted"
-              value={summary.acceptedVisitors ?? summary.consentAccepted ?? 0}
+              label="Accepted Cookies"
+              value={summary.acceptedVisitors ?? 0}
               icon="fa-circle-check"
               tone="success"
-              hint="Full analytics recorded"
+              hint="Full tracking"
             />
             <StatCard
-              label="Cookies Declined"
-              value={summary.declinedVisitors ?? summary.consentDeclined ?? 0}
+              label="Declined Cookies"
+              value={summary.declinedVisitors ?? 0}
               icon="fa-circle-xmark"
               tone="warning"
               hint="IP + timestamps only"
             />
             <StatCard
-              label="Unknown Consent"
-              value={summary.unknownVisitors ?? summary.consentUnknown ?? 0}
+              label="Unknown (left without choosing)"
+              value={summary.unknownVisitors ?? 0}
               icon="fa-circle-question"
               tone="info"
-              hint="No choice made — IP + timestamps only"
+              hint="IP + timestamps only"
             />
           </>
         )}
@@ -606,28 +631,15 @@ export default function Analytics() {
         )}
       </div>
 
-      {/* ===================== LIVE MAP ===================== */}
+      {/* Live map */}
       <Card className="mb-6">
-        <CardHeader
-          title="Live Visitor Map"
-          subtitle="Green = active in last 5 min · Blue = inactive · Accepted visitors only"
-          actions={
-            <div className="flex items-center gap-3 text-xs text-ink-muted">
-              <span className="inline-flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Active
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#0866ff]" /> Inactive
-              </span>
-            </div>
-          }
-        />
+        <CardHeader title="Live Visitor Map" subtitle="Accepted visitors only · Green = active in last 5 min" />
         <div className="p-5">
           {loading ? <Skeleton className="h-96 w-full" /> : <VisitorsMap visitors={visitors} />}
         </div>
       </Card>
 
-      {/* ===================== LIVE NOW ===================== */}
+      {/* Live now */}
       {!loading && activeVisitors.length > 0 && (
         <Card className="mb-6">
           <CardHeader
@@ -648,23 +660,17 @@ export default function Analytics() {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    Active
-                  </span>
-                  <Link to={`/admin/analytics/visitor/${v.visitor_id}`}
-                    className="text-xs font-medium text-brand-600 hover:text-brand-700">
-                    Details →
-                  </Link>
-                </div>
+                <Link to={`/admin/analytics/visitor/${v.visitor_id}`}
+                  className="text-xs font-medium text-brand-600 hover:text-brand-700">
+                  Details →
+                </Link>
               </li>
             ))}
           </ul>
         </Card>
       )}
 
-      {/* Trend chart */}
+      {/* Trend */}
       <Card className="mb-6">
         <CardHeader title="Visitors & Page Views Over Time" />
         <div className="p-5">
@@ -698,7 +704,7 @@ export default function Analytics() {
         </div>
       </Card>
 
-      {/* ===================== GEO CARDS ===================== */}
+      {/* Geo cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <ListCard title="Top Countries" subtitle="By visitor count" loading={loading}
           items={(breakdowns?.countries || []).map(c => ({ _id: fmtCountry(c), count: c.count }))}
@@ -710,7 +716,7 @@ export default function Analytics() {
           items={breakdowns?.cities} emptyText="No city data yet." />
       </div>
 
-      {/* Hourly activity */}
+      {/* Hourly */}
       <Card className="mb-6">
         <CardHeader title="Hourly Activity" subtitle="Page views by hour of day" />
         <div className="p-5">
@@ -732,52 +738,43 @@ export default function Analytics() {
         </div>
       </Card>
 
-      {/* Pie breakdowns */}
+      {/* Pies */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <BreakdownCard title="Devices"           loading={loading} data={breakdowns?.devices} />
         <BreakdownCard title="Browsers"          loading={loading} data={breakdowns?.browsers} />
         <BreakdownCard title="Operating Systems" loading={loading} data={breakdowns?.os} />
       </div>
 
-      {/* Lists row 1 */}
+      {/* Lists */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <ListCard title="Top Pages"     subtitle="Most visited routes"      loading={loading} items={breakdowns?.topPages} />
         <ListCard title="Top Referrers" subtitle="Where visitors come from" loading={loading} items={breakdowns?.referrers} emptyText="No referrer data yet." />
       </div>
-
-      {/* Lists row 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <ListCard title="Entry Pages" subtitle="Where sessions begin" loading={loading} items={breakdowns?.entryPages} emptyText="No entry data yet." />
         <ListCard title="Exit Pages"  subtitle="Where sessions end"   loading={loading} items={breakdowns?.exitPages}  emptyText="No exit data yet." />
       </div>
 
-      {/* ===================== ACCEPTED VISITORS TABLE ===================== */}
+      {/* ============================================================
+          TABLE 1 — ACCEPTED VISITORS
+          ============================================================ */}
       <Card className="overflow-hidden mb-6">
         <CardHeader
-          title="Accepted Visitors (Full Tracking)"
+          title="✅ Accepted Cookies — Full Tracking"
           subtitle={`${filteredVisitors.length} of ${visitors.length} shown${selected.length > 0 ? ` · ${selected.length} selected` : ''}`}
           actions={
             <div className="flex items-center gap-2">
               {selected.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setConfirmDelete({ ids: selected })}
-                  className="px-3 py-2 text-xs font-semibold rounded-lg bg-red-600 text-white hover:bg-red-700 transition inline-flex items-center gap-1.5"
-                >
-                  <i className="fa-solid fa-trash"></i>
-                  Delete {selected.length}
+                <button type="button" onClick={() => setConfirmDelete({ ids: selected })}
+                  className="px-3 py-2 text-xs font-semibold rounded-lg bg-red-600 text-white hover:bg-red-700 transition inline-flex items-center gap-1.5">
+                  <i className="fa-solid fa-trash"></i> Delete {selected.length}
                 </button>
               )}
-              <DownloadMenu
-                onDownload={handleDownload}
-                disabled={filteredVisitors.length === 0}
-                label={selected.length > 0 ? `Download (${selected.length})` : 'Download'}
-              />
+              <DownloadMenu onDownload={handleDownload} disabled={filteredVisitors.length === 0}
+                label={selected.length > 0 ? `Download (${selected.length})` : 'Download'} />
             </div>
           }
         />
-
-        {/* Filter bar */}
         <div className="px-5 py-4 border-b border-line flex flex-wrap gap-3 items-end">
           <div className="flex-1 min-w-[200px]">
             <label className="block text-xs font-medium text-ink-subtle mb-1">Search</label>
@@ -812,30 +809,23 @@ export default function Analytics() {
             <i className="fa-solid fa-xmark mr-1"></i> Reset
           </button>
         </div>
-
         {loading ? (
-          <TableSkeleton rows={8} cols={8} />
+          <TableSkeleton rows={6} cols={8} />
         ) : filteredVisitors.length === 0 ? (
-          <EmptyState
-            icon="fa-circle-check"
-            title="No accepted visitors yet."
-            description="Visitors who accept the cookie banner will appear here with full tracking."
-          />
+          <EmptyState icon="fa-circle-check" title="No accepted visitors yet."
+            description="Visitors who accept the cookie banner will appear here with full tracking." />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs uppercase tracking-wider text-ink-subtle border-b border-line bg-gray-50/60">
                   <th className="px-5 py-3 font-medium w-10">
-                    <input
-                      type="checkbox"
-                      checked={allSelected}
+                    <input type="checkbox" checked={allSelected}
                       ref={el => { if (el) el.indeterminate = someSelected }}
                       onChange={toggleAll}
-                      className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
-                    />
+                      className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 cursor-pointer" />
                   </th>
-                  <th className="px-3 py-3 font-medium">Consent</th>
+                  <th className="px-3 py-3 font-medium">Status</th>
                   <th className="px-3 py-3 font-medium">Location</th>
                   <th className="px-3 py-3 font-medium">IP / Visitor</th>
                   <th className="px-3 py-3 font-medium hidden md:table-cell">Device</th>
@@ -853,18 +843,13 @@ export default function Analytics() {
                   return (
                     <tr key={v.visitor_id} className={`border-b border-line last:border-0 hover:bg-gray-50/60 ${isSel ? 'bg-brand-50/40' : ''}`}>
                       <td className="px-5 py-3">
-                        <input
-                          type="checkbox"
-                          checked={isSel}
-                          onChange={() => toggleOne(v.visitor_id)}
-                          className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
-                        />
+                        <input type="checkbox" checked={isSel} onChange={() => toggleOne(v.visitor_id)}
+                          className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 cursor-pointer" />
                       </td>
                       <td className="px-3 py-3">
                         {active ? (
                           <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 whitespace-nowrap">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                            Active
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Active
                           </span>
                         ) : (
                           <ConsentBadge value="accepted" />
@@ -873,8 +858,7 @@ export default function Analytics() {
                       <td className="px-3 py-3">
                         <p className="font-medium text-ink truncate max-w-[220px]">{location}</p>
                         {typeof v.lat === 'number' && (
-                          <a href={`https://www.google.com/maps?q=${v.lat},${v.lon}`}
-                            target="_blank" rel="noopener noreferrer"
+                          <a href={`https://www.google.com/maps?q=${v.lat},${v.lon}`} target="_blank" rel="noopener noreferrer"
                             className="text-xs text-brand-600 hover:text-brand-700 inline-flex items-center gap-1">
                             <i className="fa-solid fa-location-dot"></i>
                             {v.lat.toFixed(3)}, {v.lon.toFixed(3)}
@@ -897,12 +881,9 @@ export default function Analytics() {
                             to={`/admin/analytics/visitor/${v.visitor_id}`}>
                             Details
                           </Button>
-                          <button
-                            type="button"
-                            onClick={() => setConfirmDelete({ ids: [v.visitor_id] })}
-                            title="Delete visitor"
+                          <button type="button" onClick={() => setConfirmDelete({ ids: [v.visitor_id] })}
                             className="w-8 h-8 flex items-center justify-center rounded-md text-red-600 hover:bg-red-50 transition"
-                          >
+                            title="Delete visitor">
                             <i className="fa-solid fa-trash text-xs"></i>
                           </button>
                         </div>
@@ -916,53 +897,41 @@ export default function Analytics() {
         )}
       </Card>
 
-      {/* ===================== DECLINED / UNKNOWN VISITORS TABLE (Security Log) ===================== */}
-      <Card className="overflow-hidden">
+      {/* ============================================================
+          TABLE 2 — DECLINED VISITORS
+          ============================================================ */}
+      <Card className="overflow-hidden mb-6">
         <CardHeader
-          title="Declined / Unknown Visitors"
-          subtitle={`${filteredLog.length} of ${securityLog.length} shown · only IP, timestamp, bot flag, consent status, start & end time are stored${selectedLogs.length > 0 ? ` · ${selectedLogs.length} selected` : ''}`}
+          title="❌ Declined Cookies — Limited Data"
+          subtitle={`${filteredDeclined.length} entries · IP, timestamp, bot flag, start & end time only${selectedDeclined.length > 0 ? ` · ${selectedDeclined.length} selected` : ''}`}
           actions={
             <div className="flex items-center gap-2">
-              {selectedLogs.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setConfirmDeleteLog({ ids: selectedLogs })}
-                  className="px-3 py-2 text-xs font-semibold rounded-lg bg-red-600 text-white hover:bg-red-700 transition inline-flex items-center gap-1.5"
-                >
-                  <i className="fa-solid fa-trash"></i>
-                  Delete {selectedLogs.length}
+              {selectedDeclined.length > 0 && (
+                <button type="button" onClick={() => setConfirmDeleteDeclined({ ids: selectedDeclined })}
+                  className="px-3 py-2 text-xs font-semibold rounded-lg bg-red-600 text-white hover:bg-red-700 transition inline-flex items-center gap-1.5">
+                  <i className="fa-solid fa-trash"></i> Delete {selectedDeclined.length}
                 </button>
               )}
-              <DownloadMenu
-                onDownload={handleDownloadLog}
-                disabled={filteredLog.length === 0}
-                label={selectedLogs.length > 0 ? `Download (${selectedLogs.length})` : 'Download'}
-              />
+              <DownloadMenu onDownload={handleDownloadDeclined} disabled={filteredDeclined.length === 0}
+                label={selectedDeclined.length > 0 ? `Download (${selectedDeclined.length})` : 'Download'} />
             </div>
           }
         />
-
         {loading ? (
           <TableSkeleton rows={5} cols={6} />
-        ) : filteredLog.length === 0 ? (
-          <EmptyState
-            icon="fa-shield-halved"
-            title="No declined or unknown visitors yet"
-            description="Visitors who decline cookies or haven't chosen yet will appear here."
-          />
+        ) : filteredDeclined.length === 0 ? (
+          <EmptyState icon="fa-circle-xmark" title="No declined visitors yet"
+            description="Visitors who click 'Decline All' on the cookie banner appear here." />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs uppercase tracking-wider text-ink-subtle border-b border-line bg-gray-50/60">
                   <th className="px-5 py-3 font-medium w-10">
-                    <input
-                      type="checkbox"
-                      checked={allLogsSelected}
-                      ref={el => { if (el) el.indeterminate = someLogsSelected }}
-                      onChange={toggleAllLogs}
-                      className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
-                    />
+                    <input type="checkbox" checked={allDeclinedSelected}
+                      ref={el => { if (el) el.indeterminate = someDeclinedSelected }}
+                      onChange={toggleAllDeclined}
+                      className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 cursor-pointer" />
                   </th>
                   <th className="px-3 py-3 font-medium">Consent</th>
                   <th className="px-3 py-3 font-medium">IP Address</th>
@@ -974,45 +943,26 @@ export default function Analytics() {
                 </tr>
               </thead>
               <tbody>
-                {filteredLog.map((l) => {
-                  const isSel = selectedLogs.includes(l.id)
+                {filteredDeclined.map((l) => {
+                  const isSel = selectedDeclined.includes(l.id)
                   return (
                     <tr key={l.id} className={`border-b border-line last:border-0 hover:bg-gray-50/60 ${isSel ? 'bg-brand-50/40' : ''}`}>
                       <td className="px-5 py-3">
-                        <input
-                          type="checkbox"
-                          checked={isSel}
-                          onChange={() => toggleOneLog(l.id)}
-                          className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
-                        />
+                        <input type="checkbox" checked={isSel} onChange={() => toggleOneDeclined(l.id)}
+                          className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 cursor-pointer" />
                       </td>
-                      <td className="px-3 py-3">
-                        <ConsentBadge value={l.consent} />
-                      </td>
-                      <td className="px-3 py-3">
-                        <p className="font-mono text-xs text-ink">{l.ip || '—'}</p>
-                      </td>
+                      <td className="px-3 py-3"><ConsentBadge value="declined" /></td>
+                      <td className="px-3 py-3"><p className="font-mono text-xs text-ink">{l.ip || '—'}</p></td>
                       <td className="px-3 py-3 hidden md:table-cell">
-                        {l.isBot
-                          ? <Badge tone="warning">Yes</Badge>
-                          : <span className="text-ink-subtle text-xs">No</span>}
+                        {l.isBot ? <Badge tone="warning">Yes</Badge> : <span className="text-ink-subtle text-xs">No</span>}
                       </td>
-                      <td className="px-3 py-3 text-ink-muted whitespace-nowrap hidden md:table-cell">
-                        {fmtDateTime(l.startTime)}
-                      </td>
-                      <td className="px-3 py-3 text-ink-muted whitespace-nowrap hidden md:table-cell">
-                        {fmtDateTime(l.endTime)}
-                      </td>
-                      <td className="px-3 py-3 text-ink-muted hidden lg:table-cell">
-                        {fmtDuration(l.durationMs || 0)}
-                      </td>
+                      <td className="px-3 py-3 text-ink-muted whitespace-nowrap hidden md:table-cell">{fmtDateTime(l.startTime)}</td>
+                      <td className="px-3 py-3 text-ink-muted whitespace-nowrap hidden md:table-cell">{fmtDateTime(l.endTime)}</td>
+                      <td className="px-3 py-3 text-ink-muted hidden lg:table-cell">{fmtDuration(l.durationMs || 0)}</td>
                       <td className="px-3 py-3 text-right">
-                        <button
-                          type="button"
-                          onClick={() => setConfirmDeleteLog({ ids: [l.id] })}
-                          title="Delete log entry"
+                        <button type="button" onClick={() => setConfirmDeleteDeclined({ ids: [l.id] })}
                           className="w-8 h-8 flex items-center justify-center rounded-md text-red-600 hover:bg-red-50 transition"
-                        >
+                          title="Delete log entry">
                           <i className="fa-solid fa-trash text-xs"></i>
                         </button>
                       </td>
@@ -1025,39 +975,117 @@ export default function Analytics() {
         )}
       </Card>
 
-      {/* Delete confirmations */}
+      {/* ============================================================
+          TABLE 3 — UNKNOWN VISITORS
+          ============================================================ */}
+      <Card className="overflow-hidden">
+        <CardHeader
+          title="❔ Unknown Visitors — Left Without Choosing"
+          subtitle={`${filteredUnknown.length} entries · Logged when a visitor closed the site without accepting or declining${selectedUnknown.length > 0 ? ` · ${selectedUnknown.length} selected` : ''}`}
+          actions={
+            <div className="flex items-center gap-2">
+              {selectedUnknown.length > 0 && (
+                <button type="button" onClick={() => setConfirmDeleteUnknown({ ids: selectedUnknown })}
+                  className="px-3 py-2 text-xs font-semibold rounded-lg bg-red-600 text-white hover:bg-red-700 transition inline-flex items-center gap-1.5">
+                  <i className="fa-solid fa-trash"></i> Delete {selectedUnknown.length}
+                </button>
+              )}
+              <DownloadMenu onDownload={handleDownloadUnknown} disabled={filteredUnknown.length === 0}
+                label={selectedUnknown.length > 0 ? `Download (${selectedUnknown.length})` : 'Download'} />
+            </div>
+          }
+        />
+        {loading ? (
+          <TableSkeleton rows={5} cols={6} />
+        ) : filteredUnknown.length === 0 ? (
+          <EmptyState icon="fa-circle-question" title="No unknown visitors yet"
+            description="Visitors who close the site without clicking Accept or Decline appear here." />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs uppercase tracking-wider text-ink-subtle border-b border-line bg-gray-50/60">
+                  <th className="px-5 py-3 font-medium w-10">
+                    <input type="checkbox" checked={allUnknownSelected}
+                      ref={el => { if (el) el.indeterminate = someUnknownSelected }}
+                      onChange={toggleAllUnknown}
+                      className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 cursor-pointer" />
+                  </th>
+                  <th className="px-3 py-3 font-medium">Consent</th>
+                  <th className="px-3 py-3 font-medium">IP Address</th>
+                  <th className="px-3 py-3 font-medium hidden md:table-cell">Is Bot</th>
+                  <th className="px-3 py-3 font-medium hidden md:table-cell">Start Time</th>
+                  <th className="px-3 py-3 font-medium hidden md:table-cell">End Time</th>
+                  <th className="px-3 py-3 font-medium hidden lg:table-cell">Duration</th>
+                  <th className="px-3 py-3 font-medium text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredUnknown.map((l) => {
+                  const isSel = selectedUnknown.includes(l.id)
+                  return (
+                    <tr key={l.id} className={`border-b border-line last:border-0 hover:bg-gray-50/60 ${isSel ? 'bg-brand-50/40' : ''}`}>
+                      <td className="px-5 py-3">
+                        <input type="checkbox" checked={isSel} onChange={() => toggleOneUnknown(l.id)}
+                          className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 cursor-pointer" />
+                      </td>
+                      <td className="px-3 py-3"><ConsentBadge value="unknown" /></td>
+                      <td className="px-3 py-3"><p className="font-mono text-xs text-ink">{l.ip || '—'}</p></td>
+                      <td className="px-3 py-3 hidden md:table-cell">
+                        {l.isBot ? <Badge tone="warning">Yes</Badge> : <span className="text-ink-subtle text-xs">No</span>}
+                      </td>
+                      <td className="px-3 py-3 text-ink-muted whitespace-nowrap hidden md:table-cell">{fmtDateTime(l.startTime)}</td>
+                      <td className="px-3 py-3 text-ink-muted whitespace-nowrap hidden md:table-cell">{fmtDateTime(l.endTime)}</td>
+                      <td className="px-3 py-3 text-ink-muted hidden lg:table-cell">{fmtDuration(l.durationMs || 0)}</td>
+                      <td className="px-3 py-3 text-right">
+                        <button type="button" onClick={() => setConfirmDeleteUnknown({ ids: [l.id] })}
+                          className="w-8 h-8 flex items-center justify-center rounded-md text-red-600 hover:bg-red-50 transition"
+                          title="Delete log entry">
+                          <i className="fa-solid fa-trash text-xs"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+
+      {/* Confirm dialogs */}
       <ConfirmDialog
         open={!!confirmDelete}
         onClose={() => setConfirmDelete(null)}
         onConfirm={handleDeleteConfirm}
         busy={deleting}
-        title="Delete visitor data"
-        message={
-          confirmDelete
-            ? `Delete ${confirmDelete.ids.length} visitor${confirmDelete.ids.length === 1 ? '' : 's'} and all their sessions, page views and clicks? This cannot be undone.`
-            : ''
-        }
+        title="Delete accepted visitor"
+        message={confirmDelete ? `Delete ${confirmDelete.ids.length} visitor${confirmDelete.ids.length === 1 ? '' : 's'} and all their sessions, page views and clicks? This cannot be undone.` : ''}
         confirmLabel="Delete permanently"
       />
-
       <ConfirmDialog
-        open={!!confirmDeleteLog}
-        onClose={() => setConfirmDeleteLog(null)}
-        onConfirm={handleDeleteLogConfirm}
+        open={!!confirmDeleteDeclined}
+        onClose={() => setConfirmDeleteDeclined(null)}
+        onConfirm={handleDeleteDeclined}
         busy={deleting}
-        title="Delete security log entries"
-        message={
-          confirmDeleteLog
-            ? `Delete ${confirmDeleteLog.ids.length} log entr${confirmDeleteLog.ids.length === 1 ? 'y' : 'ies'}? This cannot be undone.`
-            : ''
-        }
+        title="Delete declined log entries"
+        message={confirmDeleteDeclined ? `Delete ${confirmDeleteDeclined.ids.length} log entr${confirmDeleteDeclined.ids.length === 1 ? 'y' : 'ies'}? This cannot be undone.` : ''}
+        confirmLabel="Delete permanently"
+      />
+      <ConfirmDialog
+        open={!!confirmDeleteUnknown}
+        onClose={() => setConfirmDeleteUnknown(null)}
+        onConfirm={handleDeleteUnknown}
+        busy={deleting}
+        title="Delete unknown log entries"
+        message={confirmDeleteUnknown ? `Delete ${confirmDeleteUnknown.ids.length} log entr${confirmDeleteUnknown.ids.length === 1 ? 'y' : 'ies'}? This cannot be undone.` : ''}
         confirmLabel="Delete permanently"
       />
     </AdminLayout>
   )
 }
 
-/* ================= VISITOR DETAIL ================= */
+/* ================= VISITOR DETAIL (accepted only) ================= */
 export function VisitorDetail() {
   const { visitorId } = useParams()
   const navigate = useNavigate()
@@ -1106,24 +1134,20 @@ export function VisitorDetail() {
       <PageHeader
         title="Visitor Details"
         description={visitorId ? `Visitor ID: ${visitorId}` : ''}
-        actions={
-          visitor && (
-            <div className="flex items-center gap-2">
-              <ConsentBadge value="accepted" />
-              {active ? (
-                <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 text-xs font-medium text-emerald-700">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  Active now
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-200 text-xs font-medium text-gray-600">
-                  <span className="w-2 h-2 rounded-full bg-gray-400" />
-                  Inactive
-                </span>
-              )}
-            </div>
-          )
-        }
+        actions={visitor && (
+          <div className="flex items-center gap-2">
+            <ConsentBadge value="accepted" />
+            {active ? (
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 text-xs font-medium text-emerald-700">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Active now
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-200 text-xs font-medium text-gray-600">
+                <span className="w-2 h-2 rounded-full bg-gray-400" /> Inactive
+              </span>
+            )}
+          </div>
+        )}
       />
 
       {error && <Card><div className="p-6 text-red-600 text-sm">{error}</div></Card>}
@@ -1138,13 +1162,11 @@ export function VisitorDetail() {
           <Card className="mb-6">
             <CardHeader
               title="Location"
-              subtitle={
-                hasCoords
-                  ? (visitor.geoSource === 'gps'
-                      ? `📍 GPS precision${visitor.accuracy ? ` (≈ ${Math.round(visitor.accuracy)} m)` : ''}`
-                      : '🌐 Approximate (IP-based)')
-                  : 'No coordinates captured'
-              }
+              subtitle={hasCoords
+                ? (visitor.geoSource === 'gps'
+                    ? `📍 GPS precision${visitor.accuracy ? ` (≈ ${Math.round(visitor.accuracy)} m)` : ''}`
+                    : '🌐 Approximate (IP-based)')
+                : 'No coordinates captured'}
             />
             <div className="p-5 grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div>
@@ -1177,39 +1199,21 @@ export function VisitorDetail() {
                   </div>
                 )}
               </div>
-
               <div className="grid grid-cols-2 gap-5 text-sm content-start">
                 {[
                   ['Country',       visitor.countryName || visitor.country || '—'],
                   ['Country Code',  visitor.country || '—'],
-                  ['Region / State', visitor.region ? regionLabel(visitor.region) : '—'],
-                  ['Region Code',   visitor.region || '—'],
+                  ['Region',        visitor.region ? regionLabel(visitor.region) : '—'],
                   ['City',          visitor.city || '—'],
                   ['Latitude',      hasCoords ? visitor.lat.toFixed(6) : '—'],
                   ['Longitude',     hasCoords ? visitor.lon.toFixed(6) : '—'],
-                  ['Precision',     hasCoords
-                    ? (visitor.geoSource === 'gps'
-                        ? (visitor.accuracy ? `±${Math.round(visitor.accuracy)} m` : 'GPS')
-                        : 'IP-based')
-                    : '—'],
                   ['IP Address',    visitor.ip || '—'],
-                  ['Source',        visitor.geoSource || '—'],
                 ].map(([k, v]) => (
                   <div key={k}>
                     <p className="text-xs uppercase tracking-wide text-ink-subtle font-medium">{k}</p>
                     <p className="text-ink mt-1 break-words">{v}</p>
                   </div>
                 ))}
-                {hasCoords && (
-                  <div className="col-span-2">
-                    <a href={`https://www.google.com/maps?q=${visitor.lat},${visitor.lon}`}
-                      target="_blank" rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-brand-600 hover:text-brand-700 font-medium text-sm">
-                      <i className="fa-solid fa-map-location-dot"></i>
-                      Open in Google Maps →
-                    </a>
-                  </div>
-                )}
               </div>
             </div>
           </Card>
@@ -1221,10 +1225,10 @@ export function VisitorDetail() {
                 ['First Visit', fmtDateTime(visitor.first_seen)],
                 ['Last Visit',  fmtDateTime(visitor.last_seen)],
                 ['Last Page',   visitor.last_page || '—'],
-                ['Total Sessions', data.sessions?.length ?? 0],
-                ['Total Page Views', data.pageViews?.length ?? 0],
-                ['Total Clicks', clicks.length],
-                ['Consent', 'Accepted'],
+                ['Sessions',    data.sessions?.length ?? 0],
+                ['Page Views',  data.pageViews?.length ?? 0],
+                ['Clicks',      clicks.length],
+                ['Consent',     'Accepted'],
               ].map(([k, v]) => (
                 <div key={k}>
                   <p className="text-xs uppercase tracking-wide text-ink-subtle font-medium">{k}</p>
@@ -1254,7 +1258,7 @@ export function VisitorDetail() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <Card className="overflow-hidden">
-              <CardHeader title="Activity Timeline" subtitle="Most recent events first" />
+              <CardHeader title="Activity Timeline" />
               {data.activities?.length === 0 ? (
                 <EmptyState icon="fa-timeline" title="No recorded events." />
               ) : (

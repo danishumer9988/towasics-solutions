@@ -1,19 +1,54 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ANALYTICS_URL } from '../config'
 
 const CONSENT_KEY = 'cookie_consent_v1'
+const VISITOR_KEY = 'tw_visitor_id'
+const SESSION_KEY = 'tw_session_id'
+
+/* ---------- small helpers ---------- */
+const getVisitorId = () => localStorage.getItem(VISITOR_KEY) || ''
+const getSessionId = () => sessionStorage.getItem(SESSION_KEY) || ''
+
+/* Fire a track request that survives the tab being closed.
+   Uses sendBeacon when available, falls back to fetch with keepalive. */
+function sendBeaconTrack(payload) {
+  const body = JSON.stringify({
+    visitorId: getVisitorId(),
+    sessionId: getSessionId(),
+    ...payload,
+  })
+
+  try {
+    if (navigator.sendBeacon) {
+      const blob = new Blob([body], { type: 'application/json' })
+      const ok = navigator.sendBeacon(`${ANALYTICS_URL}/track`, blob)
+      if (ok) return
+    }
+  } catch (_) { /* fall through */ }
+
+  try {
+    fetch(`${ANALYTICS_URL}/track`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+      keepalive: true,
+    }).catch(() => {})
+  } catch (_) { /* ignore */ }
+}
 
 export default function CookieConsent() {
   const [visible, setVisible] = useState(false)
 
+  /* Show banner only if the user has never chosen */
   useEffect(() => {
     const saved = localStorage.getItem(CONSENT_KEY)
-    if (saved) return
+    if (saved === 'accepted' || saved === 'declined') return
     const t = setTimeout(() => setVisible(true), 1200)
     return () => clearTimeout(t)
   }, [])
 
-  /* Hide immediately if consent is accepted/declined elsewhere (e.g. form checkbox) */
+  /* Hide immediately if consent is set elsewhere (e.g. a form checkbox) */
   useEffect(() => {
     const onConsent = (e) => {
       const decision = e?.detail?.consent
@@ -26,22 +61,30 @@ export default function CookieConsent() {
   }, [])
 
   const finish = (decision) => {
+    /* 1. Persist consent FIRST so any subsequent read (tracker, exit beacon,
+          analytics module) picks up the new value immediately. */
     localStorage.setItem(CONSENT_KEY, decision)
 
-    // Notify anything listening (analytics, etc.)
+    /* 2. Notify the rest of the app (analytics lib listens, etc.) */
     window.dispatchEvent(
       new CustomEvent('towasic:consent-changed', { detail: { consent: decision } })
     )
 
     setVisible(false)
 
-    // Immediately re-track the current page with the chosen consent.
-    // Always send — the backend decides what to store:
-    //   accepted → full Visitor record
-    //   declined → SecurityLog only
-    import('../lib/analytics').then((m) => {
-      m.setConsent?.(decision)
-      m.trackPageView?.()
+    /* 3. Send a fresh track request with the chosen consent.
+          This creates the Visitor row (accepted) or the SecurityLog row
+          (declined) on the backend, right now — no waiting for a route change.
+          Uses sendBeacon so it survives even if the user closes the tab. */
+    sendBeaconTrack({
+      type: 'pageview',
+      consent: decision,
+      path: window.location.pathname + window.location.search,
+      title: document.title,
+      url: window.location.href,
+      referrer: document.referrer,
+      screen:   { w: window.screen.width,  h: window.screen.height },
+      viewport: { w: window.innerWidth,    h: window.innerHeight },
     })
   }
 
@@ -61,7 +104,9 @@ export default function CookieConsent() {
             </h3>
 
             <p className="text-sm text-gray-600 leading-relaxed">
-              Towasic Solutions LLC uses cookies and similar tracking technologies to ensure proper functioning and security, improve your browsing experience, analyze traffic, and understand how visitors interact.
+              Towasic Solutions LLC uses cookies and similar tracking technologies to
+              ensure proper functioning and security, improve your browsing experience,
+              analyze traffic, and understand how visitors interact.
             </p>
 
             <p className="text-sm text-gray-600 leading-relaxed mt-3">

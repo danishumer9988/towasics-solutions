@@ -2,6 +2,8 @@
    Analytics tracking (client-side)
    - Reads consent from localStorage (set by CookieConsent)
    - Sends consent with every /track request
+   - On page hide / close, if user never chose, sends an 'exit'
+     signal so the backend can classify them as unknown.
    ============================================================ */
 
 import { ANALYTICS_URL } from '../config'
@@ -98,4 +100,58 @@ export function initClickTracking() {
 
     trackClick({ path, element: tag.toUpperCase(), text, destination: dest })
   }, { capture: true })
+}
+
+/* ============================================================
+   EXIT TRACKING
+   ------------------------------------------------------------
+   Fires on pagehide / beforeunload / visibilitychange(hidden).
+   Only sends the exit signal if the user never made a choice —
+   so we can safely classify them as "unknown" once they leave.
+   Uses navigator.sendBeacon where available (survives unload).
+   ============================================================ */
+let exitInitialized = false
+let exitFired = false
+
+export function initExitTracking() {
+  if (exitInitialized) return
+  exitInitialized = true
+
+  const fireExit = () => {
+    if (exitFired) return
+    // Only send exit if the user never chose
+    if (getConsent() !== 'unknown') return
+    exitFired = true
+
+    const payload = JSON.stringify({
+      type:      'exit',
+      visitorId: getVisitorId(),
+      sessionId: getSessionId(),
+      consent:   'unknown',
+      path:      window.location.pathname,
+    })
+
+    try {
+      if (navigator.sendBeacon) {
+        const blob = new Blob([payload], { type: 'application/json' })
+        navigator.sendBeacon(`${ANALYTICS_URL}/track`, blob)
+        return
+      }
+    } catch (_) { /* fall through to fetch */ }
+
+    try {
+      fetch(`${ANALYTICS_URL}/track`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+        keepalive: true,
+      }).catch(() => {})
+    } catch (_) { /* ignore */ }
+  }
+
+  window.addEventListener('pagehide', fireExit)
+  window.addEventListener('beforeunload', fireExit)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') fireExit()
+  })
 }
