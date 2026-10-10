@@ -117,19 +117,23 @@ export default function Home() {
                 Towasic Solutions specializes in scalable web scraping, intelligent automation, and AI-powered solutions that help businesses work smarter, innovate faster, and grow with confidence.
               </motion.p>
               <div className="pt-2 sm:pt-4">
-                <Link to="/contactus">
-                  <motion.button
-                    className="bg-white hover:bg-gray-100 text-[#0a85a7] font-bold px-8 py-3.5 rounded-full text-base sm:text-lg shadow-lg transition-colors font-inter"
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.6 }}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    Let's Talk
-                  </motion.button>
-                </Link>
-              </div>
+              <Link to="/contactus">
+                <motion.button
+                  className="bg-white hover:bg-gray-100 text-[#0a85a7] font-bold px-8 py-3.5 rounded-full text-base sm:text-lg shadow-lg transition-colors font-inter"
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.6 }}
+                  whileHover={{
+                    scale: 1.08,
+                    boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.35)',
+                    transition: { duration: 0.25, ease: 'easeOut' },
+                  }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Let's Talk
+                </motion.button>
+              </Link>
+            </div>
             </motion.div>
             <motion.div
               className="flex justify-center lg:justify-end mt-4 lg:mt-0 relative z-20"
