@@ -332,14 +332,14 @@ export default function ContactForm() {
               />
 
               <motion.button
-                type="submit"
-                disabled={submitting}
-                className="w-full py-4 bg-[#0a85a7] text-white font-medium text-base rounded-xl cursor-pointer transition-colors shadow-sm mt-2 disabled:opacity-60 disabled:cursor-not-allowed"
-                whileTap={{ scale: 0.97 }}
-                transition={{ duration: 0.1 }}
-              >
-                {submitting ? 'Sending...' : 'Send message'}
-              </motion.button>
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full py-4 bg-[#0a85a7] hover:bg-[#097390] text-white font-medium text-base rounded-xl cursor-pointer transition-colors shadow-sm mt-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ duration: 0.1 }}
+                >
+                  {submitting ? 'Sending...' : 'Send message'}
+                </motion.button>
             </motion.form>
           </motion.div>
 

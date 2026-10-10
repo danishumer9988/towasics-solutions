@@ -210,7 +210,7 @@ export default function EstimatePopup() {
                 value={form.message}
                 onChange={handleChange}
                 rows={6}
-                placeholder="Describe your project, summary, objectives, and timeline…"
+                placeholder="Describe your project summary, objectives, and timeline…"
                 className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-sm sm:text-base text-gray-800 placeholder-gray-400
                   focus:outline-none focus:border-[#0a85a7] focus:ring-4 focus:ring-[#0a85a7]/10
                   transition resize-none font-inter"

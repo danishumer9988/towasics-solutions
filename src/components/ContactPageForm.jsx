@@ -301,12 +301,12 @@ export default function ContactPageForm() {
               />
 
               <button
-                type="submit"
-                disabled={submitting}
-                className="w-full py-3.5 bg-[#0a85a7] text-white font-semibold text-sm rounded-lg shadow-md cursor-pointer transition-all duration-150 ease-out active:scale-[0.97] active:bg-[#097390] disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
-              >
-                {submitting ? 'Sending...' : 'Send message'}
-              </button>
+              type="submit"
+              disabled={submitting}
+              className="w-full py-3.5 bg-[#0a85a7] hover:bg-[#097390] text-white font-semibold text-sm rounded-lg shadow-md cursor-pointer transition-all duration-150 ease-out active:scale-[0.97] active:bg-[#097390] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-[#0a85a7] disabled:active:scale-100"
+            >
+              {submitting ? 'Sending...' : 'Send message'}
+            </button>
             </form>
           </div>
 
