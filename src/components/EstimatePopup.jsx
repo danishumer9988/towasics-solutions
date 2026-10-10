@@ -6,13 +6,13 @@ import { acceptConsent } from '../lib/consent'
 
 /* ============================================================
    Free Estimate Popup — Towasic original design
-   - Auto-opens after 60s on public pages (once per session)
+   - Auto-opens after 20s on public pages (once per session)
    - Single-column stacked layout (heading top, form below)
    - 2,000-word limit on the project description
    - Posts to POST /estimates
    ============================================================ */
 
-const SHOW_AFTER_MS = 60 * 1000
+const SHOW_AFTER_MS = 20 * 1000
 const SESSION_KEY   = 'tw_estimate_popup_v1'
 const MAX_WORDS     = 2000
 
