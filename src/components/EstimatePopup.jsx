@@ -169,7 +169,7 @@ export default function EstimatePopup() {
 
               <div className="flex-1 min-w-0 pt-1">
                 <h2 className="text-2xl sm:text-3xl font-extrabold text-[#086B87] leading-tight font-inter">
-                  Would you like a Free Ballpark Figure for your project?
+                  Would you like a free ballpark figure for your project?
                 </h2>
               </div>
             </div>
@@ -177,11 +177,12 @@ export default function EstimatePopup() {
             {/* ---------- Bullet point ---------- */}
             <ul className="ml-1 space-y-2 font-inter">
               <li className="flex items-center gap-2.5 text-sm sm:text-base text-gray-600">
-                <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-[#0a85a7]" />
+                <i className="fa-solid fa-circle-check text-[#0a85a7] text-base shrink-0" />
                 Get it in 48 hours.
               </li>
             </ul>
           </div>
+
 
           {/* ---------- Form ---------- */}
           <form onSubmit={handleSubmit} className="space-y-4">

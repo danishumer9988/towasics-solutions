@@ -247,13 +247,15 @@ export default function Home() {
               <p className="text-gray-600 text-lg leading-relaxed">
                 Our advanced web scraping engine doesn't just collect raw HTML. It integrates AI-powered data enrichment, enabling real-time entity recognition, sentiment analysis, data classification, and even trend forecasting across scraped datasets.
               </p>
-              <div className="pt-4">
-                <Link 
-                  to="/industries"
-                  className="bg-[#0a85a7] hover:bg-[#097390] text-white px-8 py-3 rounded-lg font-bold text-base transition inline-flex items-center gap-2"
-                >
-                  View All Industries
-                </Link>
+              <div className="text-left">
+                  <Link to="/industries" className="inline-block">
+                    <button className="bg-[#0a85a7] hover:bg-[#097390] text-white px-8 py-3 rounded-lg font-medium text-lg transition-colors inline-flex items-center gap-3 shadow-md">
+                      <span>View All Industries</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="16" viewBox="0 0 31 16" fill="none">
+                        <path d="M30.3369 8.70711C30.7274 8.31658 30.7274 7.68342 30.3369 7.29289L23.9729 0.928932C23.5824 0.538408 22.9492 0.538408 22.5587 0.928932C22.1682 1.31946 22.1682 1.95262 22.5587 2.34315L28.2156 8L22.5587 13.6569C22.1682 14.0474 22.1682 14.6805 22.5587 15.0711C22.9492 15.4616 23.5824 15.4616 23.9729 15.0711L30.3369 8.70711ZM0.496582 8V9H29.6298V8V7H0.496582V8Z" fill="white" />
+                      </svg>
+                    </button>
+                  </Link>
               </div>
             </div>
 
@@ -267,7 +269,7 @@ export default function Home() {
       <HomeServicesGrid />
 
       {/* AI-Powered Section */}
-  
+
 
 
 
@@ -287,4 +289,3 @@ export default function Home() {
     </div>
   )
 }
-
