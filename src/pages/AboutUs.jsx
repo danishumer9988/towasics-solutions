@@ -575,28 +575,26 @@ export default function AboutUs() {
       />
 
       {/* Leadership Team Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-4xl mx-auto mb-12">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#086B87] tracking-tight font-inter mb-6">
+        <section className="pt-8 sm:pt-10 pb-16 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center max-w-4xl mx-auto mb-12">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#086B87] tracking-tight font-inter mb-6">
                 Leadership Team
-            </h2>
-            <p className="text-gray-600 text-base sm:text-lg leading-relaxed font-medium font-inter">
-              At Towasic Solutions, we are a team of experienced developers specializing in web scraping, automation, AI agents, machine learning, website development, IoT projects, and full-stack development. With over 5 years of expertise and 235+ successful projects delivered, we pride ourselves on building intelligent, reliable, and efficient solutions for clients worldwide.
+              </h2>
+              <p className="text-gray-600 text-base sm:text-lg leading-relaxed font-medium font-inter">
+                At Towasic Solutions, we are a team of experienced developers specializing in web scraping, automation bots, AI-powered agents, IoT, and full-stack development. With over 5 years of expertise and 235+ successful projects delivered, we pride ourselves on building intelligent, reliable, and efficient solutions for clients worldwide.
+              </p>
+            </div>
 
-            </p>
+            <div className="flex justify-center max-w-5xl mx-auto" style={{maxWidth:"600px"}}>
+              <img
+                src="/team/Group 48095451.png"
+                alt="Leadership Team"
+                className="w-full max-w-4xl rounded-2xl sm:rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 object-contain"
+              />
+            </div>
           </div>
-
-          <div className="flex justify-center max-w-5xl mx-auto" style={{maxWidth:"600px"}}>
-            <img
-              src="/team/Group 48095451.png"
-              alt="Leadership Team"
-              className="w-full max-w-4xl rounded-2xl sm:rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 object-contain"
-            />
-          </div>
-        </div>
-      </section>
-
+        </section>
       {/* Meet Our Experts Section */}
       <section className="py-24 bg-[#f4fbfc] relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
