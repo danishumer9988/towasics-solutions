@@ -21,7 +21,7 @@ export default function ConsentCheckbox({
         className="mt-[2px] h-4 w-4 shrink-0 rounded border-gray-300 accent-[#0a85a7] focus:ring-2 focus:ring-[#0a85a7]/30 cursor-pointer"
       />
       <span className="text-xs sm:text-[13px] text-gray-600 leading-snug">
-        Please accept our Privacy Policy cookies and terms of services.
+        Please accept our privacy policy, cookies and terms of services.
       </span>
     </label>
   )

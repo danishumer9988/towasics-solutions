@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
+import ConsentCheckbox from './ConsentCheckbox'
+import { acceptConsent } from '../lib/consent'
 
 export default function WhatsAppButton() {
   const location = useLocation()
   const [isOpen, setIsOpen] = useState(false)
+  const [consented, setConsented] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -40,9 +43,17 @@ export default function WhatsAppButton() {
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
+  const handleClose = () => {
+    setIsOpen(false)
+    setConsented(false)
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
-    
+
+    // Accept cookies if the user ticked the consent box
+    if (consented) acceptConsent()
+
     // Construct formatting WhatsApp message text
     const textMessage = `Hello Towasic Solutions, I would like to get a quote.
 Name: ${formData.name}
@@ -53,9 +64,9 @@ Budget: ${formData.budget}`
     const encodedText = encodeURIComponent(textMessage)
     const whatsappPhone = '97466847104'
     const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-    
+
     // Close the modal
-    setIsOpen(false)
+    handleClose()
 
     if (isMobile) {
       window.location.href = `whatsapp://send?phone=${whatsappPhone}&text=${encodedText}`
@@ -67,7 +78,7 @@ Budget: ${formData.budget}`
   return (
     <>
       {/* Floating Sticky WhatsApp Button */}
-      <button 
+      <button
         onClick={() => setIsOpen(true)}
         className="fixed bottom-6 right-6 z-50 hover:scale-110 transition shadow-2xl focus:outline-none rounded-full"
         aria-label="Contact us on WhatsApp"
@@ -86,8 +97,8 @@ Budget: ${formData.budget}`
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 animate-fadeIn">
           <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative border border-gray-150 text-left">
             {/* Close Button */}
-            <button 
-              onClick={() => setIsOpen(false)}
+            <button
+              onClick={handleClose}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition text-2xl font-bold"
               aria-label="Close modal"
             >
@@ -102,8 +113,8 @@ Budget: ${formData.budget}`
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">Your Name</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
@@ -115,8 +126,8 @@ Budget: ${formData.budget}`
 
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">Phone Number</label>
-                <input 
-                  type="tel" 
+                <input
+                  type="tel"
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
@@ -128,7 +139,7 @@ Budget: ${formData.budget}`
 
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">Project Details</label>
-                <textarea 
+                <textarea
                   name="projectDetails"
                   value={formData.projectDetails}
                   onChange={handleInputChange}
@@ -141,7 +152,7 @@ Budget: ${formData.budget}`
 
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">Estimated Budget</label>
-                <select 
+                <select
                   name="budget"
                   value={formData.budget}
                   onChange={handleInputChange}
@@ -154,8 +165,15 @@ Budget: ${formData.budget}`
                 </select>
               </div>
 
-              <div className="pt-4">
-                <button 
+              {/* Consent */}
+              <ConsentCheckbox
+                checked={consented}
+                onChange={setConsented}
+                className="pt-1"
+              />
+
+              <div className="pt-2">
+                <button
                   type="submit"
                   className="w-full unified-button"
                 >
