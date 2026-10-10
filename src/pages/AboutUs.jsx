@@ -310,7 +310,7 @@ function ProjectCard({ project, onEnlarge, onReadMore }) {
   );
 }
 
-/* -------------------- Portfolio Section (About Page) -------------------- */
+/* -------------------- Portfolio Section (About Page) — Featured Only -------------------- */
 function PortfolioSlider() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -321,13 +321,12 @@ function PortfolioSlider() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const res = await axios.get(`${API_BASE_URL}/projects`);
-        // Show only the first 4 projects on the About page.
-        // Full list is on the /portfolio page.
+        // Only show featured projects on the About page
+        const res = await axios.get(`${API_BASE_URL}/projects?featured=true`);
         const all = Array.isArray(res.data) ? res.data : [];
-        setProjects(all.slice(0, 4));
+        setProjects(all);
       } catch (err) {
-        console.error('Error loading portfolio projects:', err);
+        console.error('Error loading featured projects:', err);
       } finally {
         setLoading(false);
       }

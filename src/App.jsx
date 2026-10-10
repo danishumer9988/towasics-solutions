@@ -28,17 +28,18 @@ import ProjectAdmin from './pages/admin/ProjectAdmin'
 import ProjectNew from './pages/admin/ProjectNew'
 import ProjectEdit from './pages/admin/ProjectEdit'
 import IndustryAdmin from './pages/admin/IndustryAdmin'
+import EstimateSubmissions from './pages/admin/EstimateSubmissions'
 
 import Analytics, { VisitorDetail } from './pages/admin/Analytics'
 
 import WhatsAppButton from './components/WhatsAppButton'
 import CookieConsent from './components/CookieConsent'
+import EstimatePopup from './components/EstimatePopup'
 import { trackPageView, initClickTracking } from './lib/analytics'
 
 import VerifyInvite from './pages/admin/VerifyInvite'
 import ContactSubmissions from './pages/admin/ContactSubmissions'
 
-/* ---------- Analytics tracker ---------- */
 const SKIP_PREFIXES = [
   '/admin',
   '/dashboard',
@@ -59,7 +60,6 @@ function TrackerMount() {
   return null
 }
 
-/* ---------- Admin route detection ---------- */
 function useIsAdminArea() {
   const { pathname } = useLocation()
   return (
@@ -82,16 +82,21 @@ function ConditionalCookieConsent() {
   return <CookieConsent />
 }
 
+function ConditionalEstimatePopup() {
+  if (useIsAdminArea()) return null
+  return <EstimatePopup />
+}
+
 function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
       <ConditionalWhatsApp />
       <ConditionalCookieConsent />
+      <ConditionalEstimatePopup />
       <TrackerMount />
 
       <Routes>
-        {/* Public */}
         <Route path="/" element={<Home />} />
         <Route path="/aboutus" element={<AboutUs />} />
         <Route path="/contactus" element={<ContactUs />} />
@@ -105,34 +110,29 @@ function App() {
         <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/portfolio" element={<Portfolio />} />
 
-        {/* Admin — auth */}
         <Route path="/auth/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
 
-        {/* Admin — projects */}
         <Route path="/admin/projects" element={<ProjectAdmin />} />
         <Route path="/admin/projects/new" element={<ProjectNew />} />
         <Route path="/admin/projects/edit/:id" element={<ProjectEdit />} />
 
-        {/* Admin — industries */}
         <Route path="/admin/industries" element={<IndustryAdmin />} />
 
-        {/* Admin — blogs */}
         <Route path="/blogs" element={<BlogAdmin />} />
         <Route path="/blogs/new" element={<BlogNew />} />
         <Route path="/blogs/edit/:id" element={<BlogEdit />} />
 
-        {/* Admin — misc */}
         <Route path="/admin/users" element={<AdminUsers />} />
         <Route path="/subscriptions" element={<Subscriptions />} />
         <Route path="/addfaq" element={<AddFAQ />} />
 
-        {/* Admin — analytics */}
         <Route path="/admin/analytics" element={<Analytics />} />
         <Route path="/admin/analytics/visitor/:visitorId" element={<VisitorDetail />} />
 
         <Route path="/admin/verify-invite" element={<VerifyInvite />} />
         <Route path="/admin/contacts" element={<ContactSubmissions />} />
+        <Route path="/admin/estimates" element={<EstimateSubmissions />} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>

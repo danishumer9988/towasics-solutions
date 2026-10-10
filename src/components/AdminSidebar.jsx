@@ -21,9 +21,10 @@ const nav = [
   {
     section: 'Audience',
     items: [
-      { to: '/admin/contacts', label: 'Contact Submissions', icon: 'fa-inbox' },
-      { to: '/subscriptions',  label: 'Subscriptions',       icon: 'fa-envelope' },
-      { to: '/admin/users',    label: 'Users',               icon: 'fa-users' },
+      { to: '/admin/contacts',   label: 'Contact Submissions', icon: 'fa-inbox' },
+      { to: '/admin/estimates',  label: 'Estimate Requests',   icon: 'fa-calculator' },
+      { to: '/subscriptions',    label: 'Subscriptions',       icon: 'fa-envelope' },
+      { to: '/admin/users',      label: 'Users',               icon: 'fa-users' },
     ],
   },
 ]
@@ -43,7 +44,6 @@ export default function AdminSidebar() {
 
   return (
     <>
-      {/* Mobile top bar */}
       <div className="lg:hidden sticky top-0 z-30 -m-6 mb-6 px-4 py-3 bg-white border-b border-line flex items-center justify-between">
         <button
           onClick={() => setOpen(true)}
@@ -56,12 +56,10 @@ export default function AdminSidebar() {
         <button onClick={handleLogout} className="text-ink-muted text-sm">Logout</button>
       </div>
 
-      {/* Backdrop */}
       {open && (
         <div onClick={() => setOpen(false)} className="lg:hidden fixed inset-0 bg-ink/40 z-40" />
       )}
 
-      {/* Sidebar */}
       <aside
         className={`fixed lg:sticky top-0 left-0 z-50 lg:z-0 h-screen w-64 shrink-0
           bg-white border-r border-line

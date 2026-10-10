@@ -19,6 +19,7 @@ export default function ProjectForm({ mode = 'create' }) {
   const [videoLink, setVideoLink] = useState('')
   const [industry, setIndustry] = useState('')
   const [blurImage, setBlurImage] = useState(false)
+  const [featured, setFeatured] = useState(false)
   const [images, setImages] = useState([])
   const [urlInput, setUrlInput] = useState('')
   const [saving, setSaving] = useState(false)
@@ -57,6 +58,7 @@ export default function ProjectForm({ mode = 'create' }) {
         setVideoLink(p.videoLink || '')
         setIndustry(p.industry || '')
         setBlurImage(!!p.blurImage)
+        setFeatured(!!p.featured)
         setImages(p.images || [])
       } catch (err) {
         console.error(err)
@@ -117,6 +119,7 @@ export default function ProjectForm({ mode = 'create' }) {
       videoLink: videoLink.trim(),
       industry,
       blurImage,
+      featured,
       images,
     }
     try {
@@ -198,6 +201,44 @@ export default function ProjectForm({ mode = 'create' }) {
                 placeholder="https://www.youtube.com/watch?v=..."
               />
             </Field>
+
+            {/* ===================== Featured Toggle ===================== */}
+            <div className="border border-line rounded-lg p-4 bg-gray-50">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-ink">Featured Project</p>
+                  <p className="text-xs text-ink-muted mt-1 leading-relaxed">
+                    Featured projects appear in the <strong>About page portfolio section</strong>.
+                    Non-featured projects only appear on the <strong>Portfolio page</strong>.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={featured}
+                  onClick={() => setFeatured((f) => !f)}
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors shrink-0 mt-0.5 ${
+                    featured ? 'bg-[#0a85a7]' : 'bg-gray-300'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                      featured ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {featured && (
+                <div className="mt-3 flex items-center gap-2 text-xs">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 font-semibold">
+                    <i className="fa-solid fa-star"></i>
+                    Featured — shows on About page
+                  </span>
+                </div>
+              )}
+            </div>
 
             {/* ===================== Blur Toggle ===================== */}
             <div className="border border-line rounded-lg p-4 bg-gray-50">

@@ -42,8 +42,12 @@ export default function ProjectAdmin() {
       setConfirmId(null)
     } catch (err) {
       console.error(err); setError('Failed to delete project')
-    } finally { setDeleting(false) }
+    } finally {
+      setDeleting(false)
+    }
   }
+
+  const featuredCount = projects.filter(p => p.featured).length
 
   return (
     <AdminLayout>
@@ -60,9 +64,27 @@ export default function ProjectAdmin() {
 
       {error && <div className="mb-4"><Alert>{error}</Alert></div>}
 
+      {/* Summary chips */}
+      {!loading && projects.length > 0 && (
+        <div className="mb-4 flex flex-wrap gap-2">
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-50 border border-brand-100 text-xs font-medium text-brand-700">
+            <i className="fa-solid fa-diagram-project"></i>
+            {projects.length} total
+          </span>
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 text-xs font-medium text-emerald-700">
+            <i className="fa-solid fa-star"></i>
+            {featuredCount} featured
+          </span>
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-200 text-xs font-medium text-gray-600">
+            <i className="fa-solid fa-list"></i>
+            {projects.length - featuredCount} on Portfolio page only
+          </span>
+        </div>
+      )}
+
       <Card className="overflow-hidden">
         {loading ? (
-          <TableSkeleton rows={5} cols={5} />
+          <TableSkeleton rows={5} cols={6} />
         ) : projects.length === 0 ? (
           <EmptyState
             icon="fa-diagram-project"
@@ -77,6 +99,7 @@ export default function ProjectAdmin() {
                 <tr className="text-left text-xs uppercase tracking-wider text-ink-subtle border-b border-line bg-gray-50/60">
                   <th className="px-5 py-3 font-medium w-20">No.</th>
                   <th className="px-5 py-3 font-medium w-28">Cover</th>
+                  <th className="px-5 py-3 font-medium w-28">Featured</th>
                   <th className="px-5 py-3 font-medium">Title</th>
                   <th className="px-5 py-3 font-medium hidden md:table-cell">Description</th>
                   <th className="px-5 py-3 font-medium w-28 text-right">Actions</th>
@@ -91,6 +114,16 @@ export default function ProjectAdmin() {
                         <img src={p.images[0]} alt="" className="w-10 h-10 rounded-lg object-cover border border-line" />
                       ) : (
                         <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-ink-subtle text-xs">—</div>
+                      )}
+                    </td>
+                    <td className="px-5 py-3">
+                      {p.featured ? (
+                        <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-semibold">
+                          <i className="fa-solid fa-star text-[10px]"></i>
+                          Featured
+                        </span>
+                      ) : (
+                        <span className="text-xs text-ink-subtle">—</span>
                       )}
                     </td>
                     <td className="px-5 py-3 font-medium text-ink">{p.title}</td>

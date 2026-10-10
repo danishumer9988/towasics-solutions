@@ -1,106 +1,101 @@
+/* ============================================================
+   Analytics tracking (client-side)
+   - Reads consent from localStorage (set by CookieConsent)
+   - Sends consent with every /track request
+   ============================================================ */
+
 import { ANALYTICS_URL } from '../config'
 
-const VKEY = 'an_vid'
-const SKEY = 'an_sid'
-const STS  = 'an_sid_ts'
-const TTL  = 30 * 60 * 1000
-const DISABLED = !ANALYTICS_URL || typeof window === 'undefined'
+const VISITOR_KEY = 'tw_visitor_id'
+const SESSION_KEY = 'tw_session_id'
+const CONSENT_KEY = 'cookie_consent_v1'
 
-const uuid = () =>
-  (crypto?.randomUUID?.().replace(/-/g, '').slice(0, 16)) ||
-  'xxxxxxxxxxxxxxxx'.replace(/x/g, () => ((Math.random() * 16) | 0).toString(16))
+/* ---------- id helpers ---------- */
+const uid = (prefix) =>
+  `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`
 
-const visitorId = () => {
-  let v = localStorage.getItem(VKEY)
-  if (!v) { v = uuid(); localStorage.setItem(VKEY, v) }
-  return v
-}
-
-const sessionId = () => {
-  const now = Date.now()
-  const last = Number(sessionStorage.getItem(STS) || 0)
-  let s = sessionStorage.getItem(SKEY)
-  if (!s || now - last > TTL) {
-    s = uuid()
-    sessionStorage.setItem(SKEY, s)
+function getVisitorId() {
+  let id = localStorage.getItem(VISITOR_KEY)
+  if (!id) {
+    id = uid('v')
+    localStorage.setItem(VISITOR_KEY, id)
   }
-  sessionStorage.setItem(STS, String(now))
-  return s
+  return id
 }
 
-const post = (body) => {
-  if (DISABLED) return
-  const url = `${ANALYTICS_URL}/track`
-  const json = JSON.stringify(body)
+function getSessionId() {
+  let id = sessionStorage.getItem(SESSION_KEY)
+  if (!id) {
+    id = uid('s')
+    sessionStorage.setItem(SESSION_KEY, id)
+  }
+  return id
+}
+
+function getConsent() {
+  const v = localStorage.getItem(CONSENT_KEY)
+  if (v === 'accepted' || v === 'declined') return v
+  return 'unknown'
+}
+
+/* ---------- core sender ---------- */
+async function send(payload) {
   try {
-    fetch(url, {
+    await fetch(`${ANALYTICS_URL}/track`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: json,
+      body: JSON.stringify({
+        visitorId: getVisitorId(),
+        sessionId: getSessionId(),
+        consent:   getConsent(),
+        ...payload,
+      }),
       keepalive: true,
-      mode: 'cors',
-      credentials: 'omit',
-    }).catch(() => {})
-  } catch {
-    try {
-      if (navigator.sendBeacon) navigator.sendBeacon(url, json)
-    } catch { /* noop */ }
+    })
+  } catch (_) {
+    /* silent — never break the app for analytics */
   }
 }
 
-const getClientGeo = () => {
-  try {
-    const coords = JSON.parse(localStorage.getItem('loc_coords_v1') || 'null')
-    return coords || null
-  } catch {
-    return null
-  }
-}
-
-export const trackPageView = () => {
-  post({
+/* ---------- public API ---------- */
+export function trackPageView() {
+  const path = window.location.pathname + window.location.search
+  send({
     type: 'pageview',
-    visitorId: visitorId(),
-    sessionId: sessionId(),
     url: window.location.href,
-    path: window.location.pathname,
+    path,
     title: document.title,
-    referrer: document.referrer || '',
-    screen:   { w: window.screen.width, h: window.screen.height },
-    viewport: { w: window.innerWidth,   h: window.innerHeight },
-    clientGeo: window.__userGeo || getClientGeo() || null,
+    referrer: document.referrer,
+    screen:   { w: window.screen.width,  h: window.screen.height },
+    viewport: { w: window.innerWidth,    h: window.innerHeight },
   })
 }
 
-export const trackEvent = (type, data = {}) => {
-  post({
-    type,
-    visitorId: visitorId(),
-    sessionId: sessionId(),
-    path: window.location.pathname,
-    url: window.location.href,
-    ...data,
-  })
+export function trackClick(data) {
+  send({ type: 'click', ...data })
 }
 
-let bound = false
-export const initClickTracking = () => {
-  if (DISABLED || bound) return
-  bound = true
+/* Called by CookieConsent when the user picks an option */
+export function setConsent(value) {
+  localStorage.setItem(CONSENT_KEY, value)
+}
+
+/* ---------- click tracking ---------- */
+let clickInitialized = false
+
+export function initClickTracking() {
+  if (clickInitialized) return
+  clickInitialized = true
 
   document.addEventListener('click', (e) => {
-    let el = e.target
-    if (!el || typeof el.closest !== 'function') el = el?.parentElement
-    const target = el?.closest?.('a, button, [data-track]')
-    if (!target) return
-    const href = target.getAttribute?.('href') || ''
-    if (href.startsWith('javascript:')) return
+    const el = e.target.closest('a, button, [role="button"]')
+    if (!el) return
 
-    const text = (target.innerText || target.textContent || '').trim().slice(0, 60)
-    trackEvent('click', {
-      element: target.tagName.toLowerCase(),
-      text,
-      destination: href,
-    })
+    const tag     = el.tagName.toLowerCase()
+    const text    = (el.innerText || el.textContent || '').trim().slice(0, 60)
+    const dest    = el.getAttribute('href') || el.dataset?.href || ''
+    const path    = window.location.pathname
+
+    trackClick({ path, element: tag.toUpperCase(), text, destination: dest })
   }, { capture: true })
 }

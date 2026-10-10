@@ -105,7 +105,7 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
               >
-                UNLOCKING THE <br className="hidden sm:inline" /> POWER OF DATA INSIGHTS
+                UNLOCKING THE <br className="hidden sm:inline" /> POWER OF DATA AND SUPER INTELLIGENCE
               </motion.h1>
               <motion.p
                 style={{ lineHeight: '1.25' }}
@@ -114,7 +114,7 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
               >
-                Our company specializes in providing cutting-edge, accurate, and scalable data scraping solutions that empower businesses to unlock the wealth of data hidden behind online interfaces.
+                Our company specializes in cutting-edge web scraping, intelligent automation, and AI-powered solutions that help businesses work smarter, innovate faster, and grow with confidence.
               </motion.p>
               <div className="pt-2 sm:pt-4">
                 <Link to="/contactus">
