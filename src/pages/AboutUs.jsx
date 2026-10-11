@@ -559,6 +559,16 @@ const teamMembers = [
       "LLM Training, Fine-Tuning & Optimization",
       "AI-Powered Automation & Intelligent Solutions"
     ]
+  },
+  {
+    name: "Danish Umer",
+    image: "/team/Frame 1000004271 (2).png",
+    skills: [
+        "Full-Stack Web Development",
+        " Django & Flask Framework",
+        "Python, React, Next.js & Node.js Technology",
+        "Web Application Hosting & Deployment"
+    ]
   }
 ];
 
@@ -611,15 +621,12 @@ export default function AboutUs() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {teamMembers.map((member, idx) => {
-              const isLastCentered = idx === 9;
-              return (
-                <div
-                  key={idx}
-                  className={`bg-white rounded-3xl p-6 border border-[#e2eff2] shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-xl transition-all duration-300 flex flex-col sm:flex-row items-center sm:items-start gap-5 hover:-translate-y-1 ${
-                    isLastCentered ? 'lg:col-start-2' : ''
-                  }`}
-                >
+              {teamMembers.map((member, idx) => {
+                return (
+                  <div
+                    key={idx}
+                    className="bg-white rounded-3xl p-6 border border-[#e2eff2] shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-xl transition-all duration-300 flex flex-col sm:flex-row items-center sm:items-start gap-5 hover:-translate-y-1"
+                  >
                   <div className="w-32 h-32 sm:w-36 sm:h-36 shrink-0 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 shadow-xs">
                     <img
                       src={member.image}
