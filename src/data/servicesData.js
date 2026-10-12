@@ -1,6 +1,6 @@
 export const servicesData = {
   "bulk-data-scrapping": {
-    title: "Bulk Data Scrapping",
+    title: "Bulk Data Scraping",
     heroImage: "heroman.png",
     serviceTagline: "Services — Bulk Data Scraping",
     whatsappContact: {
