@@ -40,6 +40,9 @@ import { trackPageView, initClickTracking, initExitTracking } from './lib/analyt
 import VerifyInvite from './pages/admin/VerifyInvite'
 import ContactSubmissions from './pages/admin/ContactSubmissions'
 
+import PrivacyAdmin from './pages/admin/PrivacyAdmin'
+import TermsAdmin from './pages/admin/TermsAdmin'
+
 /* Admin / private pages: no tracking, no cookie banner, no popups.
    NOTE: '/blogs/:slug' is a PUBLIC blog post, so only the admin
    blog routes ('/blogs', '/blogs/new', '/blogs/edit/:id') are listed. */
@@ -137,6 +140,9 @@ function App() {
         <Route path="/admin/verify-invite" element={<VerifyInvite />} />
         <Route path="/admin/contacts" element={<ContactSubmissions />} />
         <Route path="/admin/estimates" element={<EstimateSubmissions />} />
+
+        <Route path="/admin/privacy" element={<PrivacyAdmin />} />
+        <Route path="/admin/terms" element={<TermsAdmin />} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>

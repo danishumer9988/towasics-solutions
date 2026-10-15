@@ -746,3 +746,135 @@ img {
   filter: blur(10px) !important;
   transform: scale(1.1) !important;
 }
+
+/* ============================================================
+   Legal pages — styles for rich-text content rendered from DB.
+   Mirrors the visual style of the original hardcoded pages so
+   the public Privacy Policy and Terms of Service pages look
+   identical whether rendered from the DB or from fallback JSX.
+   ============================================================ */
+.legal-page-content {
+  color: #0F172A;
+  line-height: 1.6;
+}
+
+.legal-page-content h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0D1527;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+@media (min-width: 640px) {
+  .legal-page-content h1 { font-size: 2.25rem; }
+}
+
+.legal-page-content h2 {
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: #0D1527;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+@media (min-width: 640px) {
+  .legal-page-content h2 { font-size: 2.25rem; }
+}
+
+.legal-page-content h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0D1527;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
+}
+@media (min-width: 640px) {
+  .legal-page-content h3 { font-size: 1.5rem; }
+}
+
+.legal-page-content h4 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0D1527;
+  margin-top: 1rem;
+  margin-bottom: 0.25rem;
+}
+@media (min-width: 640px) {
+  .legal-page-content h4 { font-size: 1.125rem; }
+}
+
+.legal-page-content p {
+  color: #334155;
+  font-weight: 500;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 0.75rem;
+}
+@media (min-width: 640px) {
+  .legal-page-content p { font-size: 17px; }
+}
+
+.legal-page-content ul,
+.legal-page-content ol {
+  padding-left: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.legal-page-content ul { list-style-type: disc; }
+.legal-page-content ol { list-style-type: decimal; }
+
+.legal-page-content li {
+  color: #334155;
+  font-weight: 500;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 0.25rem;
+}
+@media (min-width: 640px) {
+  .legal-page-content li { font-size: 17px; }
+}
+
+.legal-page-content strong,
+.legal-page-content b {
+  font-weight: 700;
+  color: #0D1527;
+}
+
+.legal-page-content em,
+.legal-page-content i {
+  font-style: italic;
+}
+
+.legal-page-content a {
+  color: #3B82F6;
+  font-weight: 600;
+  text-decoration: none;
+}
+.legal-page-content a:hover {
+  text-decoration: underline;
+}
+
+.legal-page-content blockquote {
+  border-left: 4px solid #3B82F6;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: #475569;
+  font-style: italic;
+}
+
+.legal-page-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+}
+
+.legal-page-content hr {
+  border: none;
+  border-top: 1px solid #E2E8F0;
+  margin: 1.5rem 0;
+}
