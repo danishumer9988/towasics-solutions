@@ -190,22 +190,21 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Column 4: Global Offices */}
-          <div>
+                    {/* Column 4: Global Offices */}
+          <div className="-ml-1"> {/* ADDED: Pulls the column slightly to the left */}
             <h4 className="text-[20px] font-bold mb-3 text-white font-inter">Team Locations</h4>
             <div className="space-y-3 text-[18px] font-inter">
               <div>
                 <p className="font-bold text-white mb-1">Texas:</p>
                 <div className="space-y-1.5 text-white/95">
-                  <p className="flex items-center gap-2.5">
+                  <p className="flex items-center gap-1.5"> {/* CHANGED: gap-2.5 to gap-1.5 */}
                     <span className="w-6 h-6 bg-white rounded-md flex items-center justify-center shrink-0 shadow-sm">
                       <i className="fa-solid fa-phone text-[#1877F2] text-[11px]"></i>
                     </span>
                     <span>+1 346 458 0154</span>
                   </p>
-                  <p className="flex items-start gap-2.5">
+                  <p className="flex items-start gap-1.5"> {/* CHANGED: gap-2.5 to gap-1.5 */}
                     <span className="w-6 h-6 bg-white rounded-md flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
-                      {/* REPLACED LOCATION ICON WITH ENVELOPE */}
                       <i className="fa-solid fa-envelope text-[#1877F2] text-[11px]"></i>
                     </span>
                     <span>3139 W Holcombe Blvd<br />A61 Houston, TX 77025</span>
@@ -216,18 +215,17 @@ export default function Footer() {
               <div>
                 <p className="font-bold text-white mb-1">Doha:</p>
                 <div className="space-y-1.5 text-white/95">
-                  <p className="flex items-center gap-2.5">
+                  <p className="flex items-center gap-1.5"> {/* CHANGED: gap-2.5 to gap-1.5 */}
                     <span className="w-6 h-6 bg-white rounded-md flex items-center justify-center shrink-0 shadow-sm">
                       <i className="fa-solid fa-phone text-[#1877F2] text-[11px]"></i>
                     </span>
                     <span>+974 668 47104</span>
                   </p>
-                  <p className="flex items-start gap-2.5">
+                  <p className="flex items-start gap-1.5"> {/* CHANGED: gap-2.5 to gap-1.5 */}
                     <span className="w-6 h-6 bg-white rounded-md flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
-                      {/* REPLACED LOCATION ICON WITH ENVELOPE */}
                       <i className="fa-solid fa-envelope text-[#1877F2] text-[11px]"></i>
                     </span>
-                    <span>Doha, Qatar</span>
+                    <span>23231 Area-31 St-857 Build.7<br />Doha, Qatar 00000</span>
                   </p>
                 </div>
               </div>
@@ -235,25 +233,22 @@ export default function Footer() {
               <div>
                 <p className="font-bold text-white mb-1">Lahore:</p>
                 <div className="space-y-1.5 text-white/95">
-                  <p className="flex items-center gap-2.5">
+                  <p className="flex items-center gap-1.5"> {/* CHANGED: gap-2.5 to gap-1.5 */}
                     <span className="w-6 h-6 bg-white rounded-md flex items-center justify-center shrink-0 shadow-sm">
                       <i className="fa-solid fa-phone text-[#1877F2] text-[11px]"></i>
                     </span>
                     <span>+92 334 7728229</span>
                   </p>
-                  <p className="flex items-start gap-2.5">
+                  <p className="flex items-start gap-1.5"> {/* CHANGED: gap-2.5 to gap-1.5 */}
                     <span className="w-6 h-6 bg-white rounded-md flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
-                      {/* REPLACED LOCATION ICON WITH ENVELOPE */}
                       <i className="fa-solid fa-envelope text-[#1877F2] text-[11px]"></i>
                     </span>
-                    <span>Lahore, Pakistan</span>
+                    <span>22D CANAL PARK GULBERG II<br />Lahore, Pakistan 54000</span>
                   </p>
                 </div>
               </div>
             </div>
           </div>
-
-        </div>
 
         {/* Bottom Copyright */}
         <div className="border-t border-white/25 pt-4 text-center">

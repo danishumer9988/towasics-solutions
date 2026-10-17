@@ -12,7 +12,7 @@ import { acceptConsent } from '../lib/consent'
    - Posts to POST /estimates
    ============================================================ */
 
-const SHOW_AFTER_MS = 20 * 1000
+const SHOW_AFTER_MS = 30 * 1000
 const SESSION_KEY   = 'tw_estimate_popup_v1'
 const MAX_WORDS     = 2000
 
@@ -25,7 +25,10 @@ export default function EstimatePopup() {
   const [form, setForm] = useState({ name: '', email: '', message: '' })
   const [submitting, setSubmitting] = useState(false)
   const [status, setStatus] = useState({ type: '', message: '' })
-  const [consented, setConsented] = useState(false)
+
+  // Consent states
+  const [consentCookies, setConsentCookies] = useState(false)
+  const [consentPolicy, setConsentPolicy] = useState(false)
 
   /* ---------- Auto-open timer (once per session) ---------- */
   useEffect(() => {
@@ -82,13 +85,14 @@ export default function EstimatePopup() {
       return
     }
 
-    if (!consented) {
-      setStatus({ type: 'error', message: 'Please accept the Privacy Policy to continue.' })
+    // Require Policy consent
+    if (!consentPolicy) {
+      setStatus({ type: 'error', message: 'Please accept the privacy policy and terms of services.' })
       return
     }
 
-    // Accept cookies if the user ticked the consent box
-    acceptConsent()
+    // Accept cookies if the user ticked the cookie box
+    if (consentCookies) acceptConsent()
 
     setSubmitting(true)
     try {
@@ -103,7 +107,9 @@ export default function EstimatePopup() {
         message: "Thanks! We'll get back to you within 48 hours.",
       })
       setForm({ name: '', email: '', message: '' })
-      setConsented(false)
+      setConsentCookies(false)
+      setConsentPolicy(false)
+
       setTimeout(() => close(), 2200)
     } catch (err) {
       console.error(err)
@@ -169,7 +175,7 @@ export default function EstimatePopup() {
 
               <div className="flex-1 min-w-0 pt-1">
                 <h2 className="text-2xl sm:text-3xl font-extrabold text-[#086B87] leading-tight font-inter">
-                  Would you like a free ballpark figure for your project?
+                  Would you like a Free Ballpark Figure for your project?
                 </h2>
               </div>
             </div>
@@ -177,12 +183,11 @@ export default function EstimatePopup() {
             {/* ---------- Bullet point ---------- */}
             <ul className="ml-1 space-y-2 font-inter">
               <li className="flex items-center gap-2.5 text-sm sm:text-base text-gray-600">
-                <i className="fa-solid fa-circle-check text-[#0a85a7] text-base shrink-0" />
+                <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-[#0a85a7]" />
                 Get it in 48 hours.
               </li>
             </ul>
           </div>
-
 
           {/* ---------- Form ---------- */}
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -210,7 +215,7 @@ export default function EstimatePopup() {
                 value={form.message}
                 onChange={handleChange}
                 rows={6}
-                placeholder="Describe your project summary, objectives, and timeline…"
+                placeholder="Describe your project, summary, objectives, and timeline…"
                 className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-sm sm:text-base text-gray-800 placeholder-gray-400
                   focus:outline-none focus:border-[#0a85a7] focus:ring-4 focus:ring-[#0a85a7]/10
                   transition resize-none font-inter"
@@ -224,8 +229,16 @@ export default function EstimatePopup() {
               </span>
             </div>
 
-            {/* ---------- Consent ---------- */}
-            <ConsentCheckbox checked={consented} onChange={setConsented} />
+            {/* ---------- Checkboxes ---------- */}
+            <div className="pt-2">
+              <ConsentCheckbox
+                showCookies={true}
+                cookieChecked={consentCookies}
+                policyChecked={consentPolicy}
+                onCookieChange={setConsentCookies}
+                onPolicyChange={setConsentPolicy}
+              />
+            </div>
 
             {/* ---------- Status ---------- */}
             {status.message && (

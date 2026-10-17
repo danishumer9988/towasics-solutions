@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { API_BASE_URL } from '../config'
 import ConsentCheckbox from './ConsentCheckbox'
-import { acceptConsent } from '../lib/consent'
 
 const countries = [
   { name: 'United States', short: 'US', code: '+1' },
@@ -115,7 +114,7 @@ export default function ContactPageForm() {
 
   const [submitting, setSubmitting] = useState(false)
   const [toast, setToast] = useState(null)
-  const [consented, setConsented] = useState(false)
+  const [consentPolicy, setConsentPolicy] = useState(false)
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -136,8 +135,11 @@ export default function ContactPageForm() {
     e.preventDefault()
     if (submitting) return
 
-    // Accept cookies if the user ticked the consent box
-    if (consented) acceptConsent()
+    // Require Policy consent
+    if (!consentPolicy) {
+      setToast({ type: 'error', message: 'Please accept the privacy policy and terms of services.' })
+      return
+    }
 
     setSubmitting(true)
     try {
@@ -148,7 +150,7 @@ export default function ContactPageForm() {
           name: '', email: '', service: '', budget: '',
           country: countries[0], phone: '', message: ''
         })
-        setConsented(false)
+        setConsentPolicy(false)
       }
     } catch (err) {
       console.error(err)
@@ -293,10 +295,11 @@ export default function ContactPageForm() {
                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#3EB5D6] resize-none transition"
               />
 
-              {/* Consent */}
+              {/* Consent (Only Policy checkbox) */}
               <ConsentCheckbox
-                checked={consented}
-                onChange={setConsented}
+                showCookies={false}
+                policyChecked={consentPolicy}
+                onPolicyChange={setConsentPolicy}
                 className="mt-1"
               />
 
