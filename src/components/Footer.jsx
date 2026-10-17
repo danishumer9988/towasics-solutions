@@ -227,7 +227,7 @@ export default function Footer() {
                       {/* REPLACED LOCATION ICON WITH ENVELOPE */}
                       <i className="fa-solid fa-envelope text-[#1877F2] text-[11px]"></i>
                     </span>
-                    <span>23231 Area-31 St-857 Build.7<br />Doha, Qatar 00000</span>
+                    <span>Doha, Qatar</span>
                   </p>
                 </div>
               </div>
@@ -246,7 +246,7 @@ export default function Footer() {
                       {/* REPLACED LOCATION ICON WITH ENVELOPE */}
                       <i className="fa-solid fa-envelope text-[#1877F2] text-[11px]"></i>
                     </span>
-                    <span>22D CANAL PARK GULBERG II<br />Lahore, Pakistan 54000</span>
+                    <span>Lahore, Pakistan</span>
                   </p>
                 </div>
               </div>
