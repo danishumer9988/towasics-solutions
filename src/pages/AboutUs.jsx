@@ -675,7 +675,7 @@ export default function AboutUs() {
             </div>
             <div className="text-center">
               <div className="text-4xl font-extrabold mb-1">03</div>
-              <div className="text-white/90 text-sm font-semibold uppercase tracking-wider">Global Offices</div>
+              <div className="text-white/90 text-sm font-semibold uppercase tracking-wider">Team Locations</div>
             </div>
           </div>
         </div>

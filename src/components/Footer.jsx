@@ -192,7 +192,7 @@ export default function Footer() {
 
           {/* Column 4: Global Offices */}
           <div>
-            <h4 className="text-[20px] font-bold mb-3 text-white font-inter">Global Offices</h4>
+            <h4 className="text-[20px] font-bold mb-3 text-white font-inter">Team Locations</h4>
             <div className="space-y-3 text-[18px] font-inter">
               <div>
                 <p className="font-bold text-white mb-1">Texas:</p>
