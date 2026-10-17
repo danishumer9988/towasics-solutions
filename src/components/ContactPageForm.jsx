@@ -325,10 +325,8 @@ export default function ContactPageForm() {
               </div>
               <div className="flex items-start gap-3.5 text-gray-900 font-medium text-[15px] sm:text-base">
                 <div className="w-9 h-9 rounded-xl bg-[#EBF2FE] flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 2C8.13 2 5 5.13 5 9.1c0 4.86 5.86 11.45 6.42 12.07.31.34.85.34 1.16 0 .56-.62 6.42-7.21 6.42-12.07C19 5.13 15.87 2 12 2z" fill="#1D61E7" />
-                    <circle cx="12" cy="9" r="2.5" fill="white" />
-                  </svg>
+                  {/* REPLACED LOCATION ICON WITH ENVELOPE */}
+                  <i className="fa-solid fa-envelope text-[#1D61E7] text-[14px]"></i>
                 </div>
                 <div className="leading-snug text-gray-900 font-medium">
                   <div>3139 W Holcombe Blvd</div>
@@ -350,10 +348,8 @@ export default function ContactPageForm() {
               </div>
               <div className="flex items-start gap-3.5 text-gray-900 font-medium text-[15px] sm:text-base">
                 <div className="w-9 h-9 rounded-xl bg-[#EBF2FE] flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 2C8.13 2 5 5.13 5 9.1c0 4.86 5.86 11.45 6.42 12.07.31.34.85.34 1.16 0 .56-.62 6.42-7.21 6.42-12.07C19 5.13 15.87 2 12 2z" fill="#1D61E7" />
-                    <circle cx="12" cy="9" r="2.5" fill="white" />
-                  </svg>
+                  {/* REPLACED LOCATION ICON WITH ENVELOPE */}
+                  <i className="fa-solid fa-envelope text-[#1D61E7] text-[14px]"></i>
                 </div>
                 <div className="leading-snug text-gray-900 font-medium">
                   <div>23231 Area-31 St-857 Build.7</div>
@@ -375,10 +371,8 @@ export default function ContactPageForm() {
               </div>
               <div className="flex items-start gap-3.5 text-gray-900 font-medium text-[15px] sm:text-base">
                 <div className="w-9 h-9 rounded-xl bg-[#EBF2FE] flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 2C8.13 2 5 5.13 5 9.1c0 4.86 5.86 11.45 6.42 12.07.31.34.85.34 1.16 0 .56-.62 6.42-7.21 6.42-12.07C19 5.13 15.87 2 12 2z" fill="#1D61E7" />
-                    <circle cx="12" cy="9" r="2.5" fill="white" />
-                  </svg>
+                  {/* REPLACED LOCATION ICON WITH ENVELOPE */}
+                  <i className="fa-solid fa-envelope text-[#1D61E7] text-[14px]"></i>
                 </div>
                 <div className="leading-snug text-gray-900 font-medium">
                   <div>22D CANAL PARK GULBERG II</div>
