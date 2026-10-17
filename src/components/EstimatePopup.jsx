@@ -4,14 +4,6 @@ import { API_BASE_URL } from '../config'
 import ConsentCheckbox from './ConsentCheckbox'
 import { acceptConsent } from '../lib/consent'
 
-/* ============================================================
-   Free Estimate Popup — Towasic original design
-   - Auto-opens after 60s on public pages (once per session)
-   - Single-column stacked layout (heading top, form below)
-   - 2,000-word limit on the project description
-   - Posts to POST /estimates
-   ============================================================ */
-
 const SHOW_AFTER_MS = 30 * 1000
 const SESSION_KEY   = 'tw_estimate_popup_v1'
 const MAX_WORDS     = 2000
@@ -30,7 +22,6 @@ export default function EstimatePopup() {
   const [consentCookies, setConsentCookies] = useState(false)
   const [consentPolicy, setConsentPolicy] = useState(false)
 
-  /* ---------- Auto-open timer (once per session) ---------- */
   useEffect(() => {
     if (typeof window === 'undefined') return
     if (sessionStorage.getItem(SESSION_KEY) === 'true') return
@@ -43,14 +34,12 @@ export default function EstimatePopup() {
     return () => clearTimeout(t)
   }, [])
 
-  /* ---------- Trigger entrance animation after mount ---------- */
   useEffect(() => {
     if (!isOpen) return
     const id = requestAnimationFrame(() => setMounted(true))
     return () => cancelAnimationFrame(id)
   }, [isOpen])
 
-  /* ---------- Escape + body scroll lock ---------- */
   useEffect(() => {
     if (!isOpen) return
     const onKey = (e) => { if (e.key === 'Escape') close() }
@@ -85,14 +74,20 @@ export default function EstimatePopup() {
       return
     }
 
-    // Require Policy consent
+    // REQUIRED: Cookies Checkbox
+    if (!consentCookies) {
+      setStatus({ type: 'error', message: 'Please accept our cookies.' })
+      return
+    }
+
+    // REQUIRED: Privacy Policy Checkbox
     if (!consentPolicy) {
       setStatus({ type: 'error', message: 'Please accept the privacy policy and terms of services.' })
       return
     }
 
-    // Accept cookies if the user ticked the cookie box
-    if (consentCookies) acceptConsent()
+    // Trigger cookie acceptance
+    acceptConsent()
 
     setSubmitting(true)
     try {
@@ -138,7 +133,6 @@ export default function EstimatePopup() {
       aria-modal="true"
       aria-label="Request a free ballpark figure"
     >
-      {/* ---------- Card ---------- */}
       <div
         className={`relative w-full max-w-2xl bg-white rounded-3xl overflow-hidden
           transition-all duration-300 ease-out
@@ -148,10 +142,8 @@ export default function EstimatePopup() {
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* ---------- Top accent bar ---------- */}
         <div className="h-1.5 w-full bg-gradient-to-r from-[#0a85a7] via-[#1AA7AD] to-[#44D9E7]" />
 
-        {/* ---------- Close ---------- */}
         <button
           onClick={close}
           aria-label="Close"
@@ -161,9 +153,7 @@ export default function EstimatePopup() {
           <i className="fa-solid fa-xmark text-lg"></i>
         </button>
 
-        {/* ---------- Body ---------- */}
         <div className="px-8 sm:px-12 pt-10 pb-9">
-          {/* ---------- Header: icon + heading + bullet ---------- */}
           <div className="mb-8">
             <div className="flex items-start gap-5 mb-6">
               <div className="relative shrink-0">
@@ -180,7 +170,6 @@ export default function EstimatePopup() {
               </div>
             </div>
 
-            {/* ---------- Bullet point ---------- */}
             <ul className="ml-1 space-y-2 font-inter">
               <li className="flex items-center gap-2.5 text-sm sm:text-base text-gray-600">
                 <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-[#0a85a7]" />
@@ -189,7 +178,6 @@ export default function EstimatePopup() {
             </ul>
           </div>
 
-          {/* ---------- Form ---------- */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field
@@ -229,7 +217,7 @@ export default function EstimatePopup() {
               </span>
             </div>
 
-            {/* ---------- Checkboxes ---------- */}
+            {/* Checkboxes */}
             <div className="pt-2">
               <ConsentCheckbox
                 showCookies={true}
@@ -240,7 +228,6 @@ export default function EstimatePopup() {
               />
             </div>
 
-            {/* ---------- Status ---------- */}
             {status.message && (
               <div
                 className={`flex items-start gap-2.5 px-4 py-3 rounded-xl text-sm font-medium font-inter
@@ -253,7 +240,6 @@ export default function EstimatePopup() {
               </div>
             )}
 
-            {/* ---------- CTA ---------- */}
             <button
               type="submit"
               disabled={submitting}
@@ -282,8 +268,6 @@ export default function EstimatePopup() {
     </div>
   )
 }
-
-/* ---------------- Small sub-components ---------------- */
 
 function Field({ icon, name, value, onChange, placeholder, type = 'text' }) {
   return (
