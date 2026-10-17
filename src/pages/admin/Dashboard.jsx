@@ -16,6 +16,11 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [selectedContact, setSelectedContact] = useState(null)
   const [modalOpen, setModalOpen] = useState(false)
+
+  // Backup states
+  const [isDownloading, setIsDownloading] = useState(false)
+  const [downloadMessage, setDownloadMessage] = useState('')
+
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -44,6 +49,42 @@ export default function Dashboard() {
     load()
   }, [])
 
+  // Handle Backup Download
+  const handleDownloadBackup = async () => {
+    setIsDownloading(true)
+    setDownloadMessage('')
+    try {
+      const res = await axios.get(`${API_BASE_URL}/cron/download`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        responseType: 'blob', // Tells axios to expect a file
+      })
+
+      // Check if the backend returned an error as a blob
+      if (res.data.type === 'application/json') {
+        const text = await res.data.text()
+        const errorData = JSON.parse(text)
+        throw new Error(errorData.error || 'Failed to generate backup')
+      }
+
+      // Create a download link and click it
+      const url = window.URL.createObjectURL(new Blob([res.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `towasic-backup-${new Date().toISOString().split('T')[0]}.zip`)
+      document.body.appendChild(link)
+      link.click()
+      link.parentNode.removeChild(link)
+
+      setDownloadMessage('Backup downloaded successfully!')
+    } catch (err) {
+      console.error(err)
+      setDownloadMessage(err.message || 'Failed to download backup.')
+    } finally {
+      setIsDownloading(false)
+      setTimeout(() => setDownloadMessage(''), 5000) // Clear message after 5s
+    }
+  }
+
   const recentContacts = contacts.slice(0, 5)
 
   return (
@@ -51,6 +92,23 @@ export default function Dashboard() {
       <PageHeader
         title="Dashboard"
         description="Overview of your site activity and recent submissions."
+        actions={
+          <div className="flex flex-col items-end gap-2">
+            <Button
+              onClick={handleDownloadBackup}
+              disabled={isDownloading}
+              className="bg-brand-600 hover:bg-brand-700 text-white shadow-sm"
+            >
+              <i className={`fa-solid ${isDownloading ? 'fa-spinner fa-spin' : 'fa-download'} mr-2`}></i>
+              {isDownloading ? 'Generating...' : 'Download Backup'}
+            </Button>
+            {downloadMessage && (
+              <span className={`text-xs font-medium ${downloadMessage.includes('success') ? 'text-emerald-600' : 'text-red-600'}`}>
+                {downloadMessage}
+              </span>
+            )}
+          </div>
+        }
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
