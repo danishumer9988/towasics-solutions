@@ -205,7 +205,8 @@ export default function Footer() {
                   </p>
                   <p className="flex items-start gap-2.5">
                     <span className="w-6 h-6 bg-white rounded-md flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
-                      <i className="fa-solid fa-location-dot text-[#1877F2] text-[11px]"></i>
+                      {/* REPLACED LOCATION ICON WITH ENVELOPE */}
+                      <i className="fa-solid fa-envelope text-[#1877F2] text-[11px]"></i>
                     </span>
                     <span>3139 W Holcombe Blvd<br />A61 Houston, TX 77025</span>
                   </p>
@@ -223,7 +224,8 @@ export default function Footer() {
                   </p>
                   <p className="flex items-start gap-2.5">
                     <span className="w-6 h-6 bg-white rounded-md flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
-                      <i className="fa-solid fa-location-dot text-[#1877F2] text-[11px]"></i>
+                      {/* REPLACED LOCATION ICON WITH ENVELOPE */}
+                      <i className="fa-solid fa-envelope text-[#1877F2] text-[11px]"></i>
                     </span>
                     <span>23231 Area-31 St-857 Build.7<br />Doha, Qatar 00000</span>
                   </p>
@@ -241,7 +243,8 @@ export default function Footer() {
                   </p>
                   <p className="flex items-start gap-2.5">
                     <span className="w-6 h-6 bg-white rounded-md flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
-                      <i className="fa-solid fa-location-dot text-[#1877F2] text-[11px]"></i>
+                      {/* REPLACED LOCATION ICON WITH ENVELOPE */}
+                      <i className="fa-solid fa-envelope text-[#1877F2] text-[11px]"></i>
                     </span>
                     <span>22D CANAL PARK GULBERG II<br />Lahore, Pakistan 54000</span>
                   </p>
@@ -262,6 +265,3 @@ export default function Footer() {
     </footer>
   )
 }
-
-
-
