@@ -7,6 +7,7 @@ const nav = [
     items: [
       { to: '/dashboard',       label: 'Dashboard', icon: 'fa-gauge-high' },
       { to: '/admin/analytics', label: 'Analytics', icon: 'fa-chart-line' },
+      { to: '/admin/logs',      label: 'System Logs', icon: 'fa-clipboard-list' },
     ],
   },
   {
