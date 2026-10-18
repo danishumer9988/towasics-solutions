@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import mammoth from 'mammoth' // <-- Imported here
 import { API_BASE_URL } from '../../config'
 import AdminLayout from '../../components/admin/AdminLayout'
 import RichTextEditor from '../../components/RichTextEditor'
@@ -15,6 +16,7 @@ export default function PrivacyAdmin() {
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [parsing, setParsing] = useState(false) // New state for file upload
   const [error, setError] = useState('')
   const [toast, setToast] = useState(null)
 
@@ -32,7 +34,6 @@ export default function PrivacyAdmin() {
         setEffectiveDate(res.data.effectiveDate || '01 September 2025')
         setContent(res.data.content || '')
       } catch (err) {
-        // 404 = no content yet — start with blank editor
         if (err.response?.status !== 404) {
           setError('Failed to load privacy policy.')
         }
@@ -48,6 +49,44 @@ export default function PrivacyAdmin() {
     const t = setTimeout(() => setToast(null), 3200)
     return () => clearTimeout(t)
   }, [toast])
+
+  // --- NEW: Handle Word File Upload ---
+  const handleWordUpload = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    if (!file.name.endsWith('.docx')) {
+      setError('Please upload a valid Microsoft Word (.docx) file.')
+      return
+    }
+
+    setParsing(true)
+    setError('')
+
+    const reader = new FileReader()
+    reader.onload = async (event) => {
+      const arrayBuffer = event.target.result
+      try {
+        // Convert Word to HTML
+        const result = await mammoth.convertToHtml({ arrayBuffer })
+
+        if (result.value) {
+          // Insert the converted HTML into the Rich Text Editor
+          setContent(result.value)
+          setToast({ type: 'success', message: 'Word document imported successfully! Please review and click Save.' })
+        } else {
+          setError('The Word file appears to be empty.')
+        }
+      } catch (err) {
+        console.error(err)
+        setError('Failed to read the Word file. Please ensure it is a valid .docx file.')
+      } finally {
+        setParsing(false)
+      }
+    }
+    reader.readAsArrayBuffer(file)
+    e.target.value = null // Reset file input
+  }
 
   const handleSave = async () => {
     if (!title.trim()) {
@@ -123,6 +162,40 @@ export default function PrivacyAdmin() {
               </Field>
             </div>
 
+            {/* --- NEW: Word File Upload Section --- */}
+            <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-5 flex items-center justify-between flex-wrap gap-4">
+              <div>
+                <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                  <i className="fa-solid fa-file-word text-blue-600 text-lg"></i>
+                  Import from Word Document
+                </h3>
+                <p className="text-xs text-gray-500 mt-1 max-w-lg">
+                  Upload a <strong>.docx</strong> file. We will automatically extract the text, headings, and formatting into the editor below. You can review it before saving.
+                </p>
+              </div>
+
+              <label className={`cursor-pointer px-4 py-2.5 rounded-lg font-semibold text-sm transition flex items-center gap-2 ${
+                parsing ? 'bg-gray-300 text-gray-500 cursor-wait' : 'bg-[#0a85a7] hover:bg-[#097390] text-white shadow-sm'
+              }`}>
+                {parsing ? (
+                  <>
+                    <i className="fa-solid fa-spinner fa-spin"></i> Extracting...
+                  </>
+                ) : (
+                  <>
+                    <i className="fa-solid fa-cloud-arrow-up"></i> Upload Word File
+                  </>
+                )}
+                <input
+                  type="file"
+                  accept=".docx"
+                  className="hidden"
+                  onChange={handleWordUpload}
+                  disabled={parsing}
+                />
+              </label>
+            </div>
+
             <Field
               label="Content"
               hint="Use the toolbar to format headings, bold, lists, links, and images."
@@ -130,7 +203,7 @@ export default function PrivacyAdmin() {
               <RichTextEditor
                 value={content}
                 onChange={setContent}
-                placeholder="Write your privacy policy content here…"
+                placeholder="Write your privacy policy content here, or upload a Word file above…"
               />
             </Field>
 
@@ -142,7 +215,7 @@ export default function PrivacyAdmin() {
               >
                 Cancel
               </Button>
-              <Button type="button" onClick={handleSave} disabled={saving}>
+              <Button type="button" onClick={handleSave} disabled={saving || parsing}>
                 {saving ? 'Saving…' : 'Save Privacy Policy'}
               </Button>
             </div>
