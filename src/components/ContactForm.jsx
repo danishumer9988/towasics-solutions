@@ -177,7 +177,7 @@ export default function ContactForm() {
 
     // Require Policy consent
     if (!consentPolicy) {
-      setToast({ type: 'error', message: 'Please accept the privacy policy and terms of services.' })
+      setToast({ type: 'error', message: 'Please accept the privacy policy and terms of service.' })
       return
     }
 

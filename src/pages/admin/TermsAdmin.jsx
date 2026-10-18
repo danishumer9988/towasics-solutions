@@ -147,7 +147,7 @@ export default function TermsAdmin() {
                   <Input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Terms of Services"
+                    placeholder="Terms of Service"
                   />
                 </Field>
               </div>

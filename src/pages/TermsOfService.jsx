@@ -23,7 +23,7 @@ export default function TermsOfService() {
       <Navbar />
 
       <PageHeader
-        title="Terms Of Services"
+        title="Terms Of Service"
         description="Defines the rules, rights, and responsibilities between the company and users, covering usage guidelines, limitations, and legal protections to ensure a safe and fair service experience."
         image="/assets/terms.png"
         imageAlt="Terms of Service Illustration"

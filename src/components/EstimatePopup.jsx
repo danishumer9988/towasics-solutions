@@ -82,7 +82,7 @@ export default function EstimatePopup() {
 
     // REQUIRED: Privacy Policy Checkbox
     if (!consentPolicy) {
-      setStatus({ type: 'error', message: 'Please accept the privacy policy and terms of services.' })
+      setStatus({ type: 'error', message: 'Please accept the privacy policy and terms of service.' })
       return
     }
 
