@@ -585,7 +585,7 @@ export default function AboutUs() {
       />
 
       {/* Leadership Team Section */}
-        <section className="pt-8 sm:pt-10 pb-16 bg-white">
+        <section className="pt-8 sm:pt-10 pb-0 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-4xl mx-auto mb-12">
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#086B87] tracking-tight font-inter mb-6">
@@ -596,7 +596,7 @@ export default function AboutUs() {
               </p>
             </div>
 
-            <div className="flex justify-center max-w-3xl mx-auto" style={{maxWidth:"300px"}}>
+            <div className="flex justify-center max-w-3xl mx-auto" style={{maxWidth:"350px"}}>
               <img
                 src="/team/anas.png"
                 alt="Leadership Team"
