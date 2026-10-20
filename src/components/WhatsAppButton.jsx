@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import ConsentCheckbox from './ConsentCheckbox'
-import { acceptConsent } from '../lib/consent'
 
 export default function WhatsAppButton() {
   const location = useLocation()
@@ -51,8 +50,11 @@ export default function WhatsAppButton() {
   const handleSubmit = (e) => {
     e.preventDefault()
 
-    // Accept cookies if the user ticked the consent box
-    if (consented) acceptConsent()
+    // Require Privacy Policy consent
+    if (!consented) {
+      alert('Please accept the Privacy Policy and Terms of Services to continue.')
+      return
+    }
 
     // Construct formatting WhatsApp message text
     const textMessage = `Hello Towasic Solutions, I would like to get a quote.
@@ -166,11 +168,13 @@ Budget: ${formData.budget}`
               </div>
 
               {/* Consent */}
-              <ConsentCheckbox
-                checked={consented}
-                onChange={setConsented}
-                className="pt-1"
-              />
+              <div className="pt-1">
+                <ConsentCheckbox
+                  showCookies={false}
+                  policyChecked={consented}
+                  onPolicyChange={setConsented}
+                />
+              </div>
 
               <div className="pt-2">
                 <button
