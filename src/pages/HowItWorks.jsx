@@ -48,7 +48,7 @@ export default function HowItWorks() {
       {/* Testimonial Graphic Section */}
       <div className="bg-white mx-auto py-8 px-4 flex justify-center">
         <img 
-          src="/assets/Frame 1000004272.png"
+          src="/assets/Frame1000004272.png"
           alt="Client Testimonial" 
           className="w-full max-w-4xl object-contain" 
         />
