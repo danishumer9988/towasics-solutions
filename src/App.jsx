@@ -43,6 +43,8 @@ import ContactSubmissions from './pages/admin/ContactSubmissions'
 import PrivacyAdmin from './pages/admin/PrivacyAdmin'
 import TermsAdmin from './pages/admin/TermsAdmin'
 
+import BlogCategoryAdmin from './pages/admin/BlogCategoryAdmin'
+
 // ... (Add the import at the top)
 import SystemLogs from './pages/admin/SystemLogs';
 
@@ -132,6 +134,8 @@ function App() {
         <Route path="/blogs" element={<BlogAdmin />} />
         <Route path="/blogs/new" element={<BlogNew />} />
         <Route path="/blogs/edit/:id" element={<BlogEdit />} />
+
+        <Route path="/admin/blog-categories" element={<BlogCategoryAdmin />} />
 
         <Route path="/admin/users" element={<AdminUsers />} />
         <Route path="/subscriptions" element={<Subscriptions />} />

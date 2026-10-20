@@ -14,6 +14,8 @@ export default function BlogForm({ mode = 'create' }) {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [tags, setTags] = useState('')
+  const [category, setCategory] = useState('')
+  const [categories, setCategories] = useState([])
   const [featuredImage, setFeaturedImage] = useState(null)
   const [isFeatured, setIsFeatured] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -28,6 +30,13 @@ export default function BlogForm({ mode = 'create' }) {
     else navigate('/auth/login')
   }, [navigate])
 
+  // Fetch categories
+  useEffect(() => {
+    axios.get(`${API_BASE_URL}/blog-categories`)
+      .then((res) => setCategories(Array.isArray(res.data) ? res.data : []))
+      .catch(console.error)
+  }, [])
+
   useEffect(() => {
     if (!isEdit || !id) return
     ;(async () => {
@@ -38,6 +47,7 @@ export default function BlogForm({ mode = 'create' }) {
         setTitle(b.title)
         setContent(b.content)
         setTags(b.tags?.join(', ') || '')
+        setCategory(b.category || '')
         setFeaturedImage(b.featuredImage)
         setIsFeatured(!!b.isFeatured)
       } catch (err) {
@@ -76,6 +86,7 @@ export default function BlogForm({ mode = 'create' }) {
       title,
       content,
       tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
+      category,
       isPublished: true,
       isFeatured,
       author: currentUser?.name || 'Admin',
@@ -111,6 +122,19 @@ export default function BlogForm({ mode = 'create' }) {
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             <Field label="Title">
               <Input value={title} onChange={(e) => setTitle(e.target.value)} required />
+            </Field>
+
+            <Field label="Category">
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full px-3.5 py-2.5 text-sm bg-white border border-line rounded-lg text-ink focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition"
+              >
+                <option value="">— None —</option>
+                {categories.map((c) => (
+                  <option key={c._id} value={c.slug}>{c.name}</option>
+                ))}
+              </select>
             </Field>
 
             <Field label="Content">
