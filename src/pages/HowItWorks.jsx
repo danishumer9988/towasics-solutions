@@ -32,28 +32,18 @@ export default function HowItWorks() {
         <img src="/assets/herowork.png" alt="Development Workflow" className="max-w-full rounded-2xl" />
       </div>
 
-      {/* Web Scraping Split Section */}
-      <div className="w-full bg-[#EEFCFD] my-12 overflow-hidden">
-        <div className="w-full flex flex-col md:flex-row items-stretch min-h-[380px] md:min-h-[460px]">
-          {/* Left Column - Robot Coding Image (Full Height) */}
-          <div className="w-full md:w-5/12 flex">
-            <img 
-              src="/assets/robothowitworks.png" 
-              alt="AI Robot Web Scraping" 
-              className="w-full h-full object-cover object-center min-h-[350px]" 
-            />
-          </div>
+      {/* Web Scraping Section */}
+        <div className="w-full bg-[#EEFCFD] my-12 overflow-hidden">
+          <div className="w-full min-h-[380px] md:min-h-[460px] flex items-center justify-center p-6 md:p-12">
 
-          {/* Right Column - Web Scraping Diagram (Full Height Cyan Block) */}
-          <div className="w-full md:w-7/12 bg-[#EEFCFD] p-6 md:p-12 flex items-center justify-center text-center">
-            <img 
-              src="/assets/right.png" 
-              alt="Web Scraping Workflow" 
-              className="w-full max-w-2xl max-h-[460px] object-contain" 
+            <img
+              src="/assets/right.png"
+              alt="Web Scraping Workflow"
+              className="w-full max-w-2xl max-h-[460px] object-contain"
             />
+
           </div>
         </div>
-      </div>
 
       {/* Testimonial Graphic Section */}
       <div className="bg-white mx-auto py-8 px-4 flex justify-center">
