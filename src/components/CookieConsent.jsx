@@ -42,17 +42,11 @@ export default function CookieConsent() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6 p-6 sm:p-7 items-center">
 
           <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-2.5">
-              Cookies &amp; Privacy at Towasic Solutions
-            </h3>
 
             <p className="text-sm text-gray-600 leading-relaxed">
               Towasic Solutions LLC uses cookies and similar tracking technologies to
               ensure proper functioning and security, improve your browsing experience,
               analyze traffic, and understand how visitors interact.
-            </p>
-
-            <p className="text-sm text-gray-600 leading-relaxed mt-3">
               By clicking <strong>“Accept All,”</strong> you consent to the use of
               essential and non-essential cookies and similar tracking technologies. By
               clicking <strong>“Decline All,”</strong> you reject all non-essential
@@ -60,9 +54,6 @@ export default function CookieConsent() {
               beacons, and tracking pixels. Strictly necessary technologies will remain
               active to keep our website secure, functional, and to remember your
               preferences.
-            </p>
-
-            <p className="text-sm text-gray-600 leading-relaxed mt-3">
               You can delete cookies and site data at any time through your browser
               settings. For more information about the data we collect, please review
               our{' '}

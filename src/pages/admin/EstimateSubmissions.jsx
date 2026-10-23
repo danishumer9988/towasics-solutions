@@ -51,6 +51,18 @@ export default function EstimateSubmissions() {
 
   useEffect(() => { fetchEstimates() }, [])
 
+  // Mark as read when visiting the page
+  useEffect(() => {
+    const markRead = async () => {
+      try {
+        await axios.put(`${API_BASE_URL}/estimates/mark-read`, {}, { headers: authHeaders() })
+      } catch (err) {
+        console.error('Failed to mark as read', err)
+      }
+    }
+    markRead()
+  }, [])
+
   useEffect(() => {
     if (!toast) return
     const t = setTimeout(() => setToast(null), 3000)

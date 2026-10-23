@@ -31,6 +31,19 @@ export default function Subscriptions() {
     })()
   }, [])
 
+  // Mark as read when visiting the page
+  useEffect(() => {
+    const markRead = async () => {
+      try {
+        const token = localStorage.getItem('token')
+        await axios.put(`${API_BASE_URL}/subscriptions/mark-read`, {}, { headers: { Authorization: `Bearer ${token}` } })
+      } catch (err) {
+        console.error('Failed to mark as read', err)
+      }
+    }
+    markRead()
+  }, [])
+
   /* -------------------- Filtered list -------------------- */
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase()

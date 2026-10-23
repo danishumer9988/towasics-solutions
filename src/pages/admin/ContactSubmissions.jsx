@@ -76,6 +76,18 @@ export default function ContactSubmissions() {
 
   useEffect(() => { fetchContacts() }, [])
 
+  // Mark as read when visiting the page
+  useEffect(() => {
+    const markRead = async () => {
+      try {
+        await axios.put(`${API_BASE_URL}/contacts/mark-read`, {}, { headers: authHeaders() })
+      } catch (err) {
+        console.error('Failed to mark as read', err)
+      }
+    }
+    markRead()
+  }, [])
+
   useEffect(() => {
     if (!toast) return
     const t = setTimeout(() => setToast(null), 3000)
@@ -183,7 +195,6 @@ export default function ContactSubmissions() {
 
   return (
     <AdminLayout>
-      {/* Toast */}
       {toast && (
         <div className="fixed top-6 right-6 z-[9999]">
           <div className={`flex items-start gap-3 min-w-[280px] px-4 py-3 rounded-xl shadow-lg border bg-white ${
@@ -285,7 +296,6 @@ export default function ContactSubmissions() {
             />
           </div>
 
-          {/* Service — now shows ALL services */}
           <div className="w-[210px]">
             <label className="block text-xs font-medium text-ink-subtle mb-1">Service</label>
             <select
@@ -298,7 +308,6 @@ export default function ContactSubmissions() {
             </select>
           </div>
 
-          {/* Budget — now shows ALL budgets */}
           <div className="w-[170px]">
             <label className="block text-xs font-medium text-ink-subtle mb-1">Budget</label>
             <select

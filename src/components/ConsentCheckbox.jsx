@@ -18,7 +18,7 @@ export default function ConsentCheckbox({
             className="mt-1 h-4 w-4 rounded border-gray-300 text-[#0a85a7] focus:ring-[#0a85a7] cursor-pointer"
           />
           <span className="text-sm text-gray-600 font-medium group-hover:text-gray-800 transition-colors">
-            Please accept our cookies
+            Please accept our cookies.
           </span>
         </label>
       )}

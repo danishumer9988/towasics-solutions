@@ -562,12 +562,12 @@ const teamMembers = [
   },
   {
     name: "Danish Umer",
-    image: "/team/Frame 1000004271 (2).png",
+    image: "/team/danish.png",
     skills: [
         "Full-Stack Web Development",
         " Django & Flask Framework",
         "Python, React, Next.js & Node.js Technology",
-        "Web Application Hosting & Deployment"
+        "Android & IOS Development "
     ]
   }
 ];

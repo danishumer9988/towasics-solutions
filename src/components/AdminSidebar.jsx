@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
+import axios from 'axios'
+import { API_BASE_URL } from '../config' // <-- FIXED: Changed from '../../config' to '../config'
 
 const nav = [
   {
@@ -11,23 +13,23 @@ const nav = [
     ],
   },
   {
-  section: 'Content',
-  items: [
-    { to: '/admin/projects',   label: 'Portfolio Projects',         icon: 'fa-diagram-project' },
-    { to: '/admin/industries', label: 'Portfolio Categories',       icon: 'fa-tags' },
-    { to: '/blogs',            label: 'Publish Blog',       icon: 'fa-newspaper' },
-    { to: '/admin/blog-categories', label: 'Blog Categories', icon: 'fa-folder-tree' },
-    { to: '/addfaq',           label: 'FAQs',             icon: 'fa-circle-question' },
-    { to: '/admin/privacy',    label: 'Privacy Policy',   icon: 'fa-shield-halved' },
-    { to: '/admin/terms',      label: 'Terms of Service', icon: 'fa-file-contract' },
-  ],
+    section: 'Content',
+    items: [
+      { to: '/admin/projects',   label: 'Portfolio Projects',         icon: 'fa-diagram-project' },
+      { to: '/admin/industries', label: 'Portfolio Categories',       icon: 'fa-tags' },
+      { to: '/blogs',            label: 'Publish Blog',       icon: 'fa-newspaper' },
+      { to: '/admin/blog-categories', label: 'Blog Categories', icon: 'fa-folder-tree' },
+      { to: '/addfaq',           label: 'FAQs',             icon: 'fa-circle-question' },
+      { to: '/admin/privacy',    label: 'Privacy Policy',   icon: 'fa-shield-halved' },
+      { to: '/admin/terms',      label: 'Terms of Service', icon: 'fa-file-contract' },
+    ],
   },
   {
     section: 'Audience',
     items: [
-      { to: '/admin/contacts',   label: 'Form Submissions', icon: 'fa-inbox' },
-      { to: '/admin/estimates',  label: 'Ballpark Request',   icon: 'fa-calculator' },
-      { to: '/subscriptions',    label: 'Subscriptions',       icon: 'fa-envelope' },
+      { to: '/admin/contacts',   label: 'Form Submissions', icon: 'fa-inbox', statKey: 'contacts' },
+      { to: '/admin/estimates',  label: 'Ballpark Request',   icon: 'fa-calculator', statKey: 'estimates' },
+      { to: '/subscriptions',    label: 'Subscriptions',       icon: 'fa-envelope', statKey: 'subscriptions' },
       { to: '/admin/users',      label: 'Users',               icon: 'fa-users' },
     ],
   },
@@ -35,10 +37,31 @@ const nav = [
 
 export default function AdminSidebar() {
   const [open, setOpen] = useState(false)
+  const [stats, setStats] = useState({ contacts: 0, estimates: 0, subscriptions: 0 })
   const navigate = useNavigate()
   const location = useLocation()
 
   useEffect(() => { setOpen(false) }, [location.pathname])
+
+  // Fetch unread counts
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const token = localStorage.getItem('token')
+        if (!token) return
+        const res = await axios.get(`${API_BASE_URL}/stats/unread`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        setStats(res.data)
+      } catch (err) {
+        // Silent fail
+      }
+    }
+
+    fetchStats()
+    const interval = setInterval(fetchStats, 30000) // Poll every 30 seconds
+    return () => clearInterval(interval)
+  }, [location.pathname]) // Re-fetch when route changes
 
   const handleLogout = () => {
     localStorage.removeItem('user')
@@ -92,23 +115,31 @@ export default function AdminSidebar() {
                 {group.section}
               </p>
               <ul className="space-y-0.5">
-                {group.items.map((item) => (
-                  <li key={item.to}>
-                    <NavLink
-                      to={item.to}
-                      end={item.to === '/dashboard'}
-                      className={({ isActive }) =>
-                        `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition
-                         ${isActive
-                           ? 'bg-brand-50 text-brand-700'
-                           : 'text-ink-muted hover:text-ink hover:bg-gray-50'}`
-                      }
-                    >
-                      <i className={`fa-solid ${item.icon} w-4 text-center`}></i>
-                      <span>{item.label}</span>
-                    </NavLink>
-                  </li>
-                ))}
+                {group.items.map((item) => {
+                  const count = item.statKey ? stats[item.statKey] : 0;
+                  return (
+                    <li key={item.to}>
+                      <NavLink
+                        to={item.to}
+                        end={item.to === '/dashboard'}
+                        className={({ isActive }) =>
+                          `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition
+                           ${isActive
+                             ? 'bg-brand-50 text-brand-700'
+                             : 'text-ink-muted hover:text-ink hover:bg-gray-50'}`
+                        }
+                      >
+                        <i className={`fa-solid ${item.icon} w-4 text-center`}></i>
+                        <span className="flex-1">{item.label}</span>
+                        {count > 0 && (
+                          <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                            {count}
+                          </span>
+                        )}
+                      </NavLink>
+                    </li>
+                  )
+                })}
               </ul>
             </div>
           ))}
