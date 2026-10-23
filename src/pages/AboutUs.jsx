@@ -596,7 +596,7 @@ export default function AboutUs() {
               </p>
             </div>
 
-            <div className="flex justify-center max-w-3xl mx-auto" style={{maxWidth:"600px"}}>
+            <div className="flex justify-center max-w-3xl mx-auto" style={{maxWidth:"700px"}}>
               <img
                 src="/team/Group 4809545122.png"
                 alt="Leadership Team"
