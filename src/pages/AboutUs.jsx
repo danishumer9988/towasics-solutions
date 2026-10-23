@@ -596,9 +596,9 @@ export default function AboutUs() {
               </p>
             </div>
 
-            <div className="flex justify-center max-w-3xl mx-auto" style={{maxWidth:"350px"}}>
+            <div className="flex justify-center max-w-3xl mx-auto" style={{maxWidth:"600px"}}>
               <img
-                src="/team/anas1.png"
+                src="/team/Group 4809545122.png"
                 alt="Leadership Team"
                 className="w-full max-w-10xl rounded-20xl sm:rounded-30xl shadow-xl hover:shadow-20xl transition-all duration-300 object-contain"
               />
