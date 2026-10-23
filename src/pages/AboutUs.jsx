@@ -384,7 +384,7 @@ function PortfolioSlider() {
             <h2 className="text-3xl font-extrabold text-[#086B87] tracking-wider">PORTFOLIO</h2>
             <div className="flex justify-center mt-3">
               <p className="text-gray-700 text-lg font-medium max-w-3xl">
-                Every successful outcome begins with a clear, focused, and well-structured process that lays the foundation for achieving goals with precision and confidence
+                Every successful outcome begins with a clear, focused, and well-structured process that lays the foundation for achieving goals with precision and confidence.
               </p>
             </div>
           </div>
