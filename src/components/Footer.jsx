@@ -225,10 +225,10 @@ export default function Footer() {
                       <span>+974 668 47104</span>
                     </p>
                     <p className="flex items-start gap-1.5">
-                      <span className="w-6 h-6 bg-white rounded-md flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+                      <span className="w-6 h-6 bg-white rounded-md flex items-center justify-center shrink-0 mt-0.4 shadow-sm">
                         <i className="fa-solid fa-envelope text-[#1877F2] text-[11px]"></i>
                       </span>
-                      <span>Doha, Qatar</span>
+                      <span>23231 Area-31 St-857 Build.7 Doha, Qatar 00000</span>
                     </p>
                   </div>
                 </div>

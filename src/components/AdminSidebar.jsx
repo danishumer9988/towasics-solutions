@@ -13,9 +13,9 @@ const nav = [
   {
   section: 'Content',
   items: [
-    { to: '/admin/projects',   label: 'Projects',         icon: 'fa-diagram-project' },
-    { to: '/admin/industries', label: 'Industries',       icon: 'fa-tags' },
-    { to: '/blogs',            label: 'Blog Posts',       icon: 'fa-newspaper' },
+    { to: '/admin/projects',   label: 'Portfolio Projects',         icon: 'fa-diagram-project' },
+    { to: '/admin/industries', label: 'Portfolio Categories',       icon: 'fa-tags' },
+    { to: '/blogs',            label: 'Publish Blog',       icon: 'fa-newspaper' },
     { to: '/admin/blog-categories', label: 'Blog Categories', icon: 'fa-folder-tree' },
     { to: '/addfaq',           label: 'FAQs',             icon: 'fa-circle-question' },
     { to: '/admin/privacy',    label: 'Privacy Policy',   icon: 'fa-shield-halved' },
@@ -25,8 +25,8 @@ const nav = [
   {
     section: 'Audience',
     items: [
-      { to: '/admin/contacts',   label: 'Contact Submissions', icon: 'fa-inbox' },
-      { to: '/admin/estimates',  label: 'Estimate Requests',   icon: 'fa-calculator' },
+      { to: '/admin/contacts',   label: 'Form Submissions', icon: 'fa-inbox' },
+      { to: '/admin/estimates',  label: 'Ballpark Request',   icon: 'fa-calculator' },
       { to: '/subscriptions',    label: 'Subscriptions',       icon: 'fa-envelope' },
       { to: '/admin/users',      label: 'Users',               icon: 'fa-users' },
     ],

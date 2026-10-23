@@ -24,7 +24,7 @@ export const servicesData = {
       image: "chooseimage.png"
     },
     finalline: {
-      title: "Custom Web Scraping Software:",
+      // title: "Custom Web Scraping Software:",
       prefix: "Need a customized software? Check out our ",
       linkText: "Custom Web Scraping Software.",
       description: "Need a customized software? Check out our Custom Web Scraping Software.",
@@ -56,7 +56,7 @@ export const servicesData = {
       image: "chooseimage.png"
     },
     finalline: {
-      title: "Bulk Data Scraping:",
+      // title: "Bulk Data Scraping:",
       prefix: "Need fresh data for reporting? Get our ",
       linkText: "Bulk Data Scraping.",
       description: "Need fresh data for reporting? Get our Bulk Data Scraping.",
@@ -88,7 +88,7 @@ export const servicesData = {
       image: "chooseimage.png"
     },
     finalline: {
-      title: "Web Automation Bots:",
+      // title: "Web Automation Bots:",
       prefix: "Need Help to Develop Bots? Check our ",
       linkText: "Web Automation Bots.",
       description: "Need Help to Develop Bots? Check our Web Automation Bots.",
@@ -120,7 +120,7 @@ export const servicesData = {
       image: "chooseimage.png"
     },
     finalline: {
-      title: "AI Powered Bots:",
+      // title: "AI Powered Bots:",
       prefix: "Need Help for AI Data Enreachment? See our ",
       linkText: "AI Powered Bots.",
       description: "Need Help for AI Data Enreachment? See our AI Powered Bots.",
@@ -152,7 +152,7 @@ export const servicesData = {
       image: "chooseimage.png"
     },
     finalline: {
-      title: "Server Setup for Bots & Scripts:",
+      // title: "Server Setup for Bots & Scripts:",
       prefix: "Need Help for Script Deployment? Explore our ",
       linkText: "Server Setup for Bots & Scripts.",
       description: "Need Help for Script Deployment? Explore our Server Setup for Bots & Scripts.",
@@ -184,7 +184,7 @@ export const servicesData = {
       image: "chooseimage.png"
     },
     finalline: {
-      title: "Server Setup for Bots & Scripts:",
+      // title: "Server Setup for Bots & Scripts:",
       prefix: "Need Help for Script Deployment? Explore our ",
       linkText: "Server Setup for Bots & Scripts.",
       description: "Need Help for Script Deployment? Explore our Server Setup for Bots & Scripts.",
@@ -216,7 +216,7 @@ export const servicesData = {
       image: "chooseimage.png"
     },
     finalline: {
-      title: "Explore AI-Powered Bots:",
+      // title: "Explore AI-Powered Bots:",
       prefix: "Need advanced AI-powered automation? Explore our ",
       linkText: "AI-Powered Bots.",
       description: "Need advanced AI-powered automation? Explore our AI-Powered Bots.",
@@ -248,7 +248,7 @@ export const servicesData = {
       image: "chooseimage.png"
     },
     finalline: {
-      title: "Power BI Dashboard Design:",
+      // title: "Power BI Dashboard Design:",
       prefix: "Need Help to Visualize Data? Check out our ",
       linkText: "Power BI Dashboard Design.",
       description: "Need Help to Visualize Data? Check out our Power BI Dashboard Design.",

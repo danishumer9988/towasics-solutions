@@ -355,7 +355,7 @@ export default function ContactPageForm() {
                   <i className="fa-solid fa-envelope text-[#1D61E7] text-[14px]"></i>
                 </div>
                 <div className="leading-snug text-gray-900 font-medium">
-                  <div className="mt-0.5">Doha, Qatar</div>
+                  <div className="mt-0.5">23231 Area-31 St-857 Build.7 <br/> Doha, Qatar 00000</div>
                 </div>
               </div>
             </div>
