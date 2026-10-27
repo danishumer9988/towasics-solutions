@@ -257,7 +257,7 @@ export default function EstimatePopup() {
                 </>
               ) : (
                 <>
-                  Send Request
+                  Get the best price
                   <i className="fa-solid fa-arrow-right text-xs transition-transform group-hover:translate-x-0.5"></i>
                 </>
               )}
