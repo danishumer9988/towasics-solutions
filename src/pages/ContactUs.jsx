@@ -4,13 +4,29 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import PageHeader from '../components/PageHeader'
 import ContactPageForm from '../components/ContactPageForm'
+import SEO from '../components/SEO'
 
 export default function ContactUs() {
   return (
     <div className="min-h-screen bg-white font-inter">
+
+      {/* ✅ SEO */}
+      <SEO
+        title="Contact Us — Let's Talk About Your Project"
+        description="Talk to our team about your data scraping, automation, or super intelligence project. Offices in Texas, Doha, and Lahore. Response within 48 hours."
+        path="/contactus"
+        image="/assets/og-image.jpg"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "ContactPage",
+          "name": "Contact Towasic Solutions",
+          "url": "https://towasicsolutions.com/contactus",
+          "description": "Contact page for Towasic Solutions — data scraping, automation, and super intelligence solutions."
+        }}
+      />
+
       <Navbar />
 
-      {/* Main Top Hero Banner */}
       <PageHeader
         title="Let's Talk"
         description="Have a question, project idea, or need expert advice? We're here to help you every step of the way."
@@ -18,17 +34,14 @@ export default function ContactUs() {
         imageAlt="Contact Us Hero"
       />
 
-      {/* Reach Out to Us Section (Form on Left, 3 Office Cards on Right) */}
       <ContactPageForm />
 
-      {/* Built on Quality. Driven by Trust Section */}
       <section className="bg-white max-w-6xl mx-auto py-16 px-4">
         <h2 className="text-3xl md:text-4xl text-center font-bold text-[#086B87] mb-16 tracking-tight">
           Built on Quality. Driven by Trust.
         </h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-12 max-w-5xl mx-auto">
-          {/* Item 1 */}
           <div className="flex items-center gap-5">
             <div className="w-14 h-14 flex items-center justify-center flex-shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" width="62" height="77" viewBox="0 0 62 77" fill="none">
@@ -48,7 +61,6 @@ export default function ContactUs() {
             </div>
           </div>
 
-          {/* Item 2 */}
           <div className="flex items-center gap-5">
             <div className="w-14 h-14 flex items-center justify-center flex-shrink-0">
               <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -65,7 +77,6 @@ export default function ContactUs() {
             </div>
           </div>
 
-          {/* Item 3 */}
           <div className="flex items-center gap-5">
             <div className="w-14 h-14 flex items-center justify-center flex-shrink-0">
               <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -83,7 +94,6 @@ export default function ContactUs() {
             </div>
           </div>
 
-          {/* Item 4 */}
           <div className="flex items-center gap-5">
             <div className="w-14 h-14 flex items-center justify-center flex-shrink-0">
               <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -93,13 +103,12 @@ export default function ContactUs() {
             </div>
             <div>
               <h3 className="text-lg md:text-xl font-bold uppercase tracking-wide text-[#0A85A7]">97% CLIENT SATISFACTION</h3>
-              <p className="text-slate-600 font-medium text-sm md:text-base mt-1">Always going beyond what’s expected</p>
+              <p className="text-slate-600 font-medium text-sm md:text-base mt-1">Always going beyond what's expected</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Bottom CTA Block */}
       <section className="py-16 bg-white text-center px-4 max-w-4xl mx-auto">
         <div className="flex justify-center mb-6">
           <img src="/assets/contactus.png" alt="Ready To Explore Illustration" className="w-full max-w-md object-contain" />

@@ -4,6 +4,7 @@ import axios from 'axios'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import PageHeader from '../components/PageHeader'
+import SEO from '../components/SEO'
 import { API_BASE_URL } from '../config'
 
 export default function Blog() {
@@ -21,8 +22,6 @@ export default function Blog() {
           axios.get(`${API_BASE_URL}/blogs`),
           axios.get(`${API_BASE_URL}/blog-categories`)
         ])
-
-        // Only show published blogs
         const publishedBlogs = blogsRes.data.filter(b => b.isPublished !== false)
         setBlogs(publishedBlogs)
         setCategories(Array.isArray(catsRes.data) ? catsRes.data : [])
@@ -47,6 +46,15 @@ export default function Blog() {
 
   return (
     <div className="min-h-screen bg-white">
+
+      {/* ✅ SEO */}
+      <SEO
+        title="Blog — Data Scraping, Automation & Super Intelligence Insights"
+        description="Latest trends, tutorials, and case studies on web scraping, automation, super intelligence, and AI-powered data extraction from Towasic Solutions."
+        path="/blog"
+        image="/assets/og-image.jpg"
+      />
+
       <Navbar />
 
       <PageHeader
@@ -56,7 +64,6 @@ export default function Blog() {
         imageAlt="Blog Illustration"
       />
 
-      {/* Category Tabs (Sticky) */}
       {!loading && categories.length > 0 && (
         <section className="sticky top-16 z-40 bg-white/80 backdrop-blur-md border-b border-gray-100/60 shadow-sm">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -99,7 +106,6 @@ export default function Blog() {
         </section>
       )}
 
-      {/* Welcome Section */}
       <section className="py-12 bg-white max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center border-b border-gray-100">
         <div className="space-y-4 font-inter w-full mx-auto">
           <h2 className="font-bold text-[20px] sm:text-[24px] capitalize" style={{ color: '#096078' }}>
@@ -111,7 +117,6 @@ export default function Blog() {
         </div>
       </section>
 
-      {/* Blog Cards Grid */}
       <section className="py-12 pb-24 bg-white max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {loading ? (
           <div className="text-center py-20 text-gray-500 font-semibold text-lg">Loading latest blogs...</div>

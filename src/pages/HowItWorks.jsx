@@ -3,10 +3,18 @@ import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import PageHeader from '../components/PageHeader'
+import SEO from '../components/SEO'
 
 export default function HowItWorks() {
   return (
     <div className="min-h-screen bg-white">
+
+    <SEO
+        title="How It Works — Our 5-Step Data Scraping Process"
+        description="From consultation to delivery: our proven 5-step process for delivering enterprise-grade data scraping and automation solutions."
+        path="/howworks"
+        image="/assets/og-image.jpg"
+    />
       <Navbar />
 
       {/* Hero Section */}

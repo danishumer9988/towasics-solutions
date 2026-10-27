@@ -8,6 +8,7 @@ import Footer from '../components/Footer'
 import PageHeader from '../components/PageHeader'
 import TestimonialSlider from '../components/TestimonialSlider'
 import { API_BASE_URL } from '../config'
+import SEO from '../components/SEO'   // ← ✅ ADDED
 
 /* -------------------- Image Lightbox (gallery) -------------------- */
 function ImageLightboxModal({ isOpen, image, title, images = [], blurImage = false, onClose }) {
@@ -575,6 +576,12 @@ const teamMembers = [
 export default function AboutUs() {
   return (
     <div className="min-h-screen bg-white">
+    <SEO
+        title="About Us — Data Scraping, Automation & Super Intelligence Team"
+        description="Meet the team behind 235+ delivered projects in data scraping, intelligent automation, and super intelligence. 20+ specialists across Texas, Doha, and Lahore."
+        path="/aboutus"
+        image="/assets/og-image.jpg"
+    />
       <Navbar />
 
       <PageHeader

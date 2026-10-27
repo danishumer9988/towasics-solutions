@@ -4,6 +4,7 @@ import axios from 'axios'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import PageHeader from '../components/PageHeader'
+import SEO from '../components/SEO'
 import { API_BASE_URL } from '../config'
 
 const PER_PAGE = 20
@@ -391,6 +392,13 @@ export default function Portfolio() {
 
   return (
     <div className="min-h-screen bg-white">
+
+    <SEO
+      title="Portfolio — Delivered Data Scraping & Automation Projects"
+      description="235+ delivered projects across web scraping, intelligent automation, AI bots, super intelligence, and dashboards. Browse featured case studies."
+      path="/portfolio"
+      image="/assets/og-image.jpg"
+    />
       <Navbar />
 
       {/* ===================== HERO ===================== */}

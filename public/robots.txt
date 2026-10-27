@@ -1,0 +1,18 @@
+# ============================================================
+# robots.txt — Towasic Solutions
+# ============================================================
+
+User-agent: *
+Allow: /
+
+# Private / admin pages — do not index
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /auth
+Disallow: /subscriptions
+Disallow: /addfaq
+Disallow: /blogs/new
+Disallow: /blogs/edit
+
+# Sitemap location
+Sitemap: https://towasicsolutions.com/sitemap.xml

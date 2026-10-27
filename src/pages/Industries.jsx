@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import PageHeader from '../components/PageHeader'
+import SEO from '../components/SEO'
 
 export default function Industries() {
   const containerVariants = {
@@ -45,6 +46,13 @@ export default function Industries() {
 
   return (
     <div className="min-h-screen bg-white">
+
+        <SEO
+          title="Industries We Serve — Data Scraping Solutions"
+          description="E-commerce, healthcare, finance, real estate, jobs, betting, and 10+ industries. Data scraping and super intelligence solutions tailored to your sector."
+          path="/industries"
+          image="/assets/og-image.jpg"
+        />
       <Navbar />
 
       {/* Hero Header Section */}

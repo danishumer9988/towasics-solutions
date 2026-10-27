@@ -3,6 +3,7 @@ import axios from 'axios'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import PageHeader from '../components/PageHeader'
+import SEO from '../components/SEO'
 import { API_BASE_URL } from '../config'
 
 export default function TermsOfService() {
@@ -20,6 +21,12 @@ export default function TermsOfService() {
 
   return (
     <div className="min-h-screen bg-white font-inter">
+
+    <SEO
+        title="Terms of Service"
+        description="Terms governing the use of Towasic Solutions' data scraping, automation, and super intelligence services."
+        path="/terms-of-service"
+    />
       <Navbar />
 
       <PageHeader

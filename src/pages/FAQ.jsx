@@ -4,6 +4,7 @@ import axios from 'axios'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import PageHeader from '../components/PageHeader'
+import SEO from '../components/SEO'
 import { API_BASE_URL } from '../config'
 
 // Fallback initial categories matching backend model structure
@@ -142,8 +143,32 @@ export default function FAQ() {
 
   const activeCategory = categories.find(cat => cat._id === activeCategoryId) || categories[0]
 
+    // ✅ ADD THIS — build FAQPage schema from the loaded categories
+  const faqSchema = categories.length > 0 ? {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": categories.flatMap(cat =>
+      (cat.faqs || []).map(faq => ({
+        "@type": "Question",
+        "name": faq.question,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": faq.answer
+        }
+      }))
+    )
+  } : null
+
   return (
     <div className="min-h-screen bg-white font-inter">
+
+    <SEO
+        title="Frequently Asked Questions — Data Scraping & Super Intelligence"
+        description="Answers to common questions about our data scraping process, delivery formats, compliance, pricing, and super intelligence solutions."
+        path="/faq"
+        image="/assets/og-image.jpg"
+        structuredData={faqSchema}
+    />
       <Navbar />
 
       {/* Main Top Hero Banner */}
@@ -211,8 +236,8 @@ export default function FAQ() {
                 activeCategory.faqs.map((faq, idx) => {
                   const isOpen = activeFaqIndex === idx
                   return (
-                    <div 
-                      key={faq._id || idx} 
+                    <div
+                      key={faq._id || idx}
                       className={`rounded-2xl border transition duration-200 overflow-hidden ${
                         isOpen ? 'bg-[#F8FAFC] border-gray-200 shadow-sm' : 'bg-white border-gray-100 hover:border-gray-200'
                       }`}
@@ -227,14 +252,14 @@ export default function FAQ() {
                           </span>
                           <span className="text-base text-[#086B87] font-bold">{faq.question}</span>
                         </div>
-                        
+
                         <div className="text-gray-400 ml-4 flex-shrink-0">
-                          <svg 
-                            width="20" 
-                            height="20" 
-                            viewBox="0 0 24 24" 
-                            fill="none" 
-                            stroke="currentColor" 
+                          <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
                             strokeWidth="2.5"
                             className={`transform transition-transform duration-200 ${isOpen ? 'rotate-180 text-[#3EB5D6]' : ''}`}
                           >
@@ -266,7 +291,7 @@ export default function FAQ() {
         <h2 className="text-3xl md:text-4xl text-center font-bold text-[#086B87] mb-16 tracking-tight">
           Built on Quality. Driven by Trust.
         </h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-12 max-w-5xl mx-auto">
           {/* Item 1 */}
           <div className="flex items-center gap-5">
@@ -333,13 +358,13 @@ export default function FAQ() {
       {/* Bottom FAQs Thinking Section (Full-Width Light Cyan Background) */}
       <section className="py-20 bg-[#E7F8FF]">
         <div className="max-w-4xl mx-auto px-4 text-center">
-        
-          
+
+
           <div className="my-8 flex justify-center">
-            <img 
-              src="/assets/faqse.png" 
-              alt="FAQs Illustration" 
-              className="w-full max-w-md object-contain" 
+            <img
+              src="/assets/faqse.png"
+              alt="FAQs Illustration"
+              className="w-full max-w-md object-contain"
             />
           </div>
 

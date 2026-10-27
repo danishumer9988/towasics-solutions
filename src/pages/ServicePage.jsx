@@ -4,6 +4,7 @@ import { servicesData } from '../data/servicesData'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import PageHeader from '../components/PageHeader'
+import SEO from '../components/SEO'
 
 // Map of use case images per service
 const useCasesImages = {
@@ -285,17 +286,23 @@ export default function ServicePage() {
   })
 
   if (!service) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <div className="text-center py-20">
-          <h2 className="text-2xl font-bold text-gray-800">Service not found</h2>
-          <Link to="/" className="text-brand-600 hover:underline mt-4 inline-block">Return to Home</Link>
-        </div>
-        <Footer />
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <SEO
+        title="Service Not Found"
+        description="The service you requested is not available. Browse our other data scraping and automation services."
+        path={`/services/${serviceName}`}
+        noIndex={true}
+      />
+      <Navbar />
+      <div className="text-center py-20">
+        <h2 className="text-2xl font-bold text-gray-800">Service not found</h2>
+        <Link to="/" className="text-brand-600 hover:underline mt-4 inline-block">Return to Home</Link>
       </div>
-    )
-  }
+      <Footer />
+    </div>
+  )
+}
 
   const handleEnlarge = (image, images, initialIndex) => {
     setModalState({
@@ -317,6 +324,26 @@ export default function ServicePage() {
 
   return (
     <div className="min-h-screen bg-white">
+
+    <SEO
+      title={service.seo?.title || service.title}
+      description={service.seo?.description || service.section1.description}
+      path={`/services/${serviceName}`}
+      image={useCasesImages[serviceName] || '/assets/og-image.jpg'}
+      structuredData={{
+        "@context": "https://schema.org",
+        "@type": "Service",
+        "name": service.title,
+        "description": service.section1.description,
+        "provider": {
+          "@type": "Organization",
+          "name": "Towasic Solutions",
+          "url": "https://towasicsolutions.com"
+        },
+        "areaServed": "Worldwide",
+        "serviceType": service.title
+      }}
+    />
 
       <Navbar />
 

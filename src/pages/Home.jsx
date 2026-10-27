@@ -8,7 +8,7 @@ import TestimonialSlider from '../components/TestimonialSlider'
 import HomeServicesGrid from '../components/HomeServicesGrid'
 import HomeRelatedServices from '../components/HomeRelatedServices'
 import HomeBlogs from '../components/HomeBlogs'
-
+import SEO from '../components/SEO'
 
 // Services list matching the 8 dynamic service page routes
 const homeServices = [
@@ -27,7 +27,6 @@ import Slider from 'react-slick'
 // BOT logo base64 inline asset
 const botLogoBase64 = "data:image/png;base64,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"
 
-// Partner Logos list mapping Saturday image paths in exact layout order
 const partnerLogos = [
   { img: "/assets/Saturday 6.png", alt: "Selenium Logo", width: "119px", height: "101px", mt: "20px" },
   { img: "/assets/download.png", alt: "BOT Logo", width: "104px", height: "104px", mt: "20px" },
@@ -86,6 +85,27 @@ function PartnerLogos() {
 export default function Home() {
   return (
     <div className="min-h-screen bg-white">
+
+      {/* ✅ SEO — with "super intelligence" keyword */}
+      <SEO
+        title="Data Scraping, AI Automation & Super Intelligence Solutions"
+        description="Towasic Solutions combines data scraping, intelligent automation, and super intelligence to build AI systems that work smarter. 235+ projects delivered. Trusted by 50+ clients worldwide."
+        path="/"
+        image="/assets/og-image.jpg"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "name": "Towasic Solutions",
+          "url": "https://towasicsolutions.com",
+          "description": "Data scraping, intelligent automation, and super intelligence solutions.",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://towasicsolutions.com/?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        }}
+      />
+
       <Navbar />
 
       {/* Hero Section */}
@@ -114,10 +134,9 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
               >
-                Towasic Solutions specializes in scalable web scraping, intelligent automation, and SI-powered solutions that help businesses work smarter, innovate faster, and grow with confidence.
+                Towasic Solutions specializes in scalable web scraping, intelligent automation, and super intelligence-powered solutions that help businesses work smarter, innovate faster, and grow with confidence.
               </motion.p>
 
-              {/* ---- FIXED BUTTON ---- */}
               <div className="pt-2 sm:pt-4">
               <Link to="/contactus">
                 <motion.button
@@ -158,7 +177,7 @@ export default function Home() {
             >
               <motion.img
                 src="/assets/heroperso.png"
-                alt="Data extraction illustration"
+                alt="Data extraction and super intelligence illustration"
                 className="heroimage animate-float max-h-[380px] sm:max-h-[480px] lg:max-h-[580px] xl:max-h-[620px] object-contain transform translate-y-6 lg:translate-y-16 -mb-6 lg:-mb-16"
                 whileHover={{ scale: 1.05, rotate: 2 }}
                 transition={{ duration: 0.3 }}
@@ -202,7 +221,6 @@ export default function Home() {
 
       <PartnerLogos />
 
-
       {/* Why Choose Us Section */}
         <section className="py-12 sm:py-20 bg-[#E7F8FF] overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -245,12 +263,10 @@ export default function Home() {
                   transition={{ duration: 0.3 }}
                   className="flex flex-col items-center max-w-[340px] mx-auto w-full"
                 >
-                  {/* Floating Icon */}
                   <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto shadow-md bg-[#1aa4ac] -mb-10 z-10">
                     <img src={col.img} alt={col.title} className="w-10 h-10 object-contain" />
                   </div>
 
-                  {/* Card Container */}
                   <div className="bg-white cardslider p-6 sm:p-8 pt-14 border border-[#35D9E1] shadow-lg hover:shadow-xl transition-shadow w-full flex-grow flex flex-col justify-start">
                     <h3 className="text-xl font-bold mb-3 pt-10" style={{ color: '#0A85A7' }}>{col.title}</h3>
                     <p className="text-gray-600 leading-relaxed text-sm font-medium">{col.text}</p>
@@ -267,10 +283,10 @@ export default function Home() {
             <div className="space-y-6">
               <p className="text-brand-600 text-lg font-semibold uppercase tracking-wider">"Beyond scraping — we extract meaning"</p>
               <h2 className="text-3xl md:text-4xl font-extrabold text-[#086B87] leading-tight">
-                Intelligent Web Scraping With AI-Powered Data Enrichment
+                Intelligent Web Scraping With AI & Super Intelligence Enrichment
               </h2>
               <p className="text-gray-600 text-lg leading-relaxed">
-                Our advanced web scraping engine doesn't just collect raw HTML. It integrates AI-powered data enrichment, enabling real-time entity recognition, sentiment analysis, data classification, and even trend forecasting across scraped datasets.
+                Our advanced web scraping engine doesn't just collect raw HTML. It integrates AI and super intelligence-powered data enrichment, enabling real-time entity recognition, sentiment analysis, data classification, and even trend forecasting across scraped datasets.
               </p>
               <div className="text-left">
                   <Link to="/industries" className="inline-block">
@@ -285,27 +301,17 @@ export default function Home() {
             </div>
 
             <div className="flex justify-center lg:justify-end">
-              <img src="/assets/webservice.png" alt="Automation Enrichment" className="max-w-[85%] rounded-2xl shadow-xl" />
+              <img src="/assets/webservice.png" alt="Automation and super intelligence enrichment" className="max-w-[85%] rounded-2xl shadow-xl" />
             </div>
           </div>
         </div>
       </section>
 
-      {/* Services Grid Section */}
       <HomeServicesGrid />
-
-      {/* Reviews Slider */}
       <TestimonialSlider />
-
-      {/* Related Services */}
       <HomeRelatedServices />
-
-      {/* Blogs & Articles */}
       <HomeBlogs />
-
-      {/* Contact Form */}
       <ContactForm />
-
       <Footer />
     </div>
   )

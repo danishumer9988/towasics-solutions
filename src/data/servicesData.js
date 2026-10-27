@@ -3,6 +3,10 @@ export const servicesData = {
     title: "Bulk Data Scraping",
     heroImage: "heroman.png",
     serviceTagline: "Services — Bulk Data Scraping",
+    seo: {
+      title: "Bulk Data Scraping Services",
+      description: "Extract millions of records from any website with 99% accuracy. Fast, scalable, and reliable bulk web scraping for e-commerce, directories, sports, and business analytics."
+    },
     whatsappContact: {
       phone: "+97466847104",
       message: "Hi! I'm interested in your Bulk Data Scraping services. Could you please provide more information about extracting large-scale data from websites?"
@@ -35,6 +39,10 @@ export const servicesData = {
     title: "Power BI dashboard  ",
     heroImage: "heroman.png",
     serviceTagline: "Services — Power BI Dashboard Design",
+    seo: {
+      title: "PowerBI Dashboard Design",
+      description: "Turn raw data into interactive PowerBI dashboards. Real-time insights, custom KPIs, and beautiful visualizations tailored to your business goals."
+    },
     whatsappContact: {
       phone: "+97466847104",
       message: "Hi! I'm interested in your Power BI Dashboard services. Could you please provide more information about creating interactive, visual reports?"
@@ -67,6 +75,10 @@ export const servicesData = {
     title: "Server setup for bots & script",
     heroImage: "heroman.png",
     serviceTagline: "Services — Server Setup for Bots & Script ",
+    seo: {
+      title: "Server Setup for Bots & Scripts",
+      description: "Cloud or on-premise hosting for your automation. 99.9% uptime SLA, monitoring, and scaling for scrapers running 24/7."
+    },
     whatsappContact: {
       phone: "+97466847104",
       message: "Hi! I'm interested in your Server Setup for bots & script services. Could you please provide more information about running your bots and scripts with maximum performance?"
@@ -99,6 +111,10 @@ export const servicesData = {
     title: "Third Party API Integration",
     heroImage: "heroman.png",
     serviceTagline: "Services — Third Party API Integration",
+    seo: {
+      title: "Third-Party API Integration",
+      description: "Connect your bots to external platforms, databases, and services. Real-time data sync, payment gateways, CRM, and social media APIs."
+    },
     whatsappContact: {
       phone: "+97466847104",
       message: "Hi! I'm interested in your Third Party API Integration services. Could you please provide more information about enhancing your bots with the power of third-party API integration?"
@@ -131,6 +147,10 @@ export const servicesData = {
     title: "Daily data feeds",
     heroImage: "heroman.png",
     serviceTagline: "Services — Daily Data Feeds",
+    seo: {
+      title: "Daily Data Feeds — Automated Delivery",
+      description: "Scheduled delivery of fresh, accurate datasets every day. CSV, JSON, Excel, or direct database sync. Zero manual work."
+    },
     whatsappContact: {
       phone: "+97466847104",
       message: "Hi! I'm interested in your Daily Data Feeds services. Could you please provide more information about delivering fresh, accurate, and ready-to-use information straight to you every day?"
@@ -163,6 +183,10 @@ export const servicesData = {
     title: "AI powered bots",
     heroImage: "heroman.png",
     serviceTagline: "Services — AI Powered Bots",
+    seo: {
+      title: "AI-Powered Bots & Super Intelligence Agents",
+      description: "Deploy super intelligence systems: LLM-powered bots that reason, decide, and act autonomously. Automate complex business processes with AI agents that scale from 1 to 1 million tasks per day."
+    },
     whatsappContact: {
       phone: "+97466847104",
       message: "Hi! I'm interested in your AI Powered Bots services. Could you please provide more information about supercharging your business with our AI-powered automation bots?"
@@ -195,6 +219,10 @@ export const servicesData = {
     title: "Web automation bots",
     heroImage: "heroman.png",
     serviceTagline: "Services — Web Automation Bots",
+    seo: {
+      title: "Web Automation Bots",
+      description: "Automate repetitive browser workflows with custom bots. Save 40+ hours per week on data entry, form filling, and reporting."
+    },
     whatsappContact: {
       phone: "+97466847104",
       message: "Hi! I'm interested in your Web Automation Bots services. Could you please provide more information about streamlining your workflow with our custom web automation bots?"
@@ -227,6 +255,10 @@ export const servicesData = {
     title: "Custom web scraping software",
     heroImage: "heroman.png",
     serviceTagline: "Services — Custom Web Scraping Software",
+    seo: {
+      title: "Custom Web Scraping Software",
+      description: "Custom-built web scrapers tailored to your exact needs. Scale from 1K to millions of records. Enterprise SLA available."
+    },
     whatsappContact: {
       phone: "+97466847104",
       message: "Hi! I'm interested in your Custom Web Scraping Software services. Could you please provide more information about getting a custom-built web scraper tailored to your business needs?"

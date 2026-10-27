@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a85a7"/>
+      <stop offset="100%" stop-color="#086B87"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="1100" cy="80" r="220" fill="#44D9E7" opacity="0.12"/>
+  <circle cx="80" cy="580" r="180" fill="#44D9E7" opacity="0.10"/>
+
+  <!-- Brand -->
+  <text x="80" y="120" font-family="Inter, Arial, sans-serif" font-size="26" font-weight="700" fill="#A5EEF5" letter-spacing="6">TOWASIC SOLUTIONS</text>
+
+  <!-- Headline -->
+  <text x="80" y="280" font-family="Inter, Arial, sans-serif" font-size="76" font-weight="800" fill="#ffffff">Data Scraping ·</text>
+  <text x="80" y="370" font-family="Inter, Arial, sans-serif" font-size="76" font-weight="800" fill="#ffffff">Automation · AI</text>
+
+  <!-- Subheadline -->
+  <text x="80" y="460" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="500" fill="#E0F7FA">235+ projects delivered — trusted by 50+ clients worldwide</text>
+
+  <!-- URL bar -->
+  <rect x="80" y="530" rx="30" ry="30" width="420" height="60" fill="#ffffff" opacity="0.15"/>
+  <text x="110" y="570" font-family="Inter, Arial, sans-serif" font-size="26" font-weight="600" fill="#ffffff">towasicsolutions.com</text>
+</svg>

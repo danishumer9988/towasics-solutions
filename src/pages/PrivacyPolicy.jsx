@@ -3,6 +3,7 @@ import axios from 'axios'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import PageHeader from '../components/PageHeader'
+import SEO from '../components/SEO'
 import { API_BASE_URL } from '../config'
 
 export default function PrivacyPolicy() {
@@ -20,6 +21,12 @@ export default function PrivacyPolicy() {
 
   return (
     <div className="min-h-screen bg-white font-inter">
+
+    <SEO
+        title="Privacy Policy"
+        description="How Towasic Solutions collects, uses, and protects your personal data when you use our data scraping and automation services."
+        path="/privacy-policy"
+    />
       <Navbar />
 
       <PageHeader
