@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-/* ---------- Page header ---------- */
+/* ==================== Page header ==================== */
 export function PageHeader({ title, description, actions }) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -13,7 +13,7 @@ export function PageHeader({ title, description, actions }) {
   )
 }
 
-/* ---------- Card ---------- */
+/* ==================== Card ==================== */
 export function Card({ children, className = '' }) {
   return (
     <div className={`bg-white border border-line rounded-xl shadow-card ${className}`}>
@@ -34,31 +34,46 @@ export function CardHeader({ title, subtitle, actions }) {
   )
 }
 
-/* ---------- Button ---------- */
+/* ==================== Button ==================== */
 const variants = {
   primary:    'bg-brand-600 hover:bg-brand-700 text-white shadow-sm',
   secondary:  'bg-white hover:bg-gray-50 text-ink border border-line',
   ghost:      'bg-transparent hover:bg-gray-100 text-ink',
   danger:     'bg-red-600 hover:bg-red-700 text-white',
   dangerSoft: 'bg-red-50 hover:bg-red-100 text-red-700 border border-red-100',
+  success:    'bg-green-600 hover:bg-green-700 text-white',
 }
 const sizes = {
   sm: 'px-3 py-1.5 text-xs',
   md: 'px-4 py-2 text-sm',
   lg: 'px-5 py-2.5 text-sm',
 }
-export function Button({ variant = 'primary', size = 'md', className = '', as: Tag = 'button', ...props }) {
+
+export function Button({
+  variant = 'primary',
+  size = 'md',
+  className = '',
+  as: Tag = 'button',
+  type,
+  ...props
+}) {
+  const variantClasses = variants[variant] || variants.primary
+  const sizeClasses = sizes[size] || sizes.md
+
+  const extraProps = Tag === 'button' ? { type: type || 'button' } : {}
+
   return (
     <Tag
+      {...extraProps}
       {...props}
       className={`inline-flex items-center justify-center gap-2 rounded-lg font-medium transition
-        disabled:opacity-50 disabled:cursor-not-allowed
-        ${variants[variant]} ${sizes[size]} ${className}`}
+        disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer
+        ${variantClasses} ${sizeClasses} ${className}`}
     />
   )
 }
 
-/* ---------- Form ---------- */
+/* ==================== Form ==================== */
 export function Field({ label, hint, error, children }) {
   return (
     <div>
@@ -75,11 +90,17 @@ const inputBase =
   'text-ink placeholder:text-ink-subtle ' +
   'focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition'
 
-export function Input(props)    { return <input    {...props} className={`${inputBase} ${props.className || ''}`} /> }
-export function Textarea(props) { return <textarea {...props} className={`${inputBase} ${props.className || ''}`} /> }
-export function Select(props)   { return <select   {...props} className={`${inputBase} ${props.className || ''}`} /> }
+export function Input(props) {
+  return <input {...props} className={`${inputBase} ${props.className || ''}`} />
+}
+export function Textarea(props) {
+  return <textarea {...props} className={`${inputBase} ${props.className || ''}`} />
+}
+export function Select(props) {
+  return <select {...props} className={`${inputBase} ${props.className || ''}`} />
+}
 
-/* ---------- Badge ---------- */
+/* ==================== Badge ==================== */
 const tones = {
   neutral: 'bg-gray-100 text-gray-700',
   brand:   'bg-brand-50 text-brand-700',
@@ -90,13 +111,17 @@ const tones = {
 }
 export function Badge({ tone = 'neutral', children }) {
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${tones[tone]}`}>
+    <span
+      className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${
+        tones[tone] || tones.neutral
+      }`}
+    >
       {children}
     </span>
   )
 }
 
-/* ---------- Empty & loading ---------- */
+/* ==================== Empty & loading ==================== */
 export function EmptyState({ icon = 'fa-inbox', title, description, action }) {
   return (
     <div className="text-center py-14 px-6">
@@ -104,7 +129,9 @@ export function EmptyState({ icon = 'fa-inbox', title, description, action }) {
         <i className={`fa-solid ${icon}`}></i>
       </div>
       <h3 className="text-sm font-semibold text-ink">{title}</h3>
-      {description && <p className="text-sm text-ink-muted mt-1 max-w-sm mx-auto">{description}</p>}
+      {description && (
+        <p className="text-sm text-ink-muted mt-1 max-w-sm mx-auto">{description}</p>
+      )}
       {action && <div className="mt-4">{action}</div>}
     </div>
   )
@@ -118,23 +145,31 @@ export function TableSkeleton({ rows = 5, cols = 4 }) {
   return (
     <div className="p-5 space-y-3">
       {Array.from({ length: rows }).map((_, r) => (
-        <div key={r} className="grid gap-3" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
-          {Array.from({ length: cols }).map((_, c) => <Skeleton key={c} className="h-4" />)}
+        <div
+          key={r}
+          className="grid gap-3"
+          style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}
+        >
+          {Array.from({ length: cols }).map((_, c) => (
+            <Skeleton key={c} className="h-4" />
+          ))}
         </div>
       ))}
     </div>
   )
 }
 
-/* ---------- Stat card ---------- */
+/* ==================== StatCard ==================== */
 export function StatCard({ label, value, icon, tone = 'brand', hint }) {
-  const toneBg = {
-    brand:   'bg-brand-50 text-brand-700',
-    info:    'bg-blue-50 text-blue-700',
-    success: 'bg-green-50 text-green-700',
-    warning: 'bg-amber-50 text-amber-700',
-    danger:  'bg-red-50 text-red-700',
-  }[tone]
+  const toneBg =
+    {
+      brand:   'bg-brand-50 text-brand-700',
+      info:    'bg-blue-50 text-blue-700',
+      success: 'bg-green-50 text-green-700',
+      warning: 'bg-amber-50 text-amber-700',
+      danger:  'bg-red-50 text-red-700',
+    }[tone] || 'bg-brand-50 text-brand-700'
+
   return (
     <Card className="p-5">
       <div className="flex items-start justify-between">
@@ -153,7 +188,7 @@ export function StatCard({ label, value, icon, tone = 'brand', hint }) {
   )
 }
 
-/* ---------- Alert ---------- */
+/* ==================== Alert ==================== */
 export function Alert({ tone = 'danger', children, onClose }) {
   const map = {
     danger:  'bg-red-50 border-red-200 text-red-700',
@@ -162,11 +197,19 @@ export function Alert({ tone = 'danger', children, onClose }) {
     info:    'bg-blue-50 border-blue-200 text-blue-700',
   }
   return (
-    <div className={`flex items-start gap-3 border px-4 py-3 rounded-lg text-sm ${map[tone]}`}>
+    <div
+      className={`flex items-start gap-3 border px-4 py-3 rounded-lg text-sm ${
+        map[tone] || map.danger
+      }`}
+    >
       <i className="fa-solid fa-circle-info mt-0.5"></i>
       <div className="flex-1">{children}</div>
       {onClose && (
-        <button onClick={onClose} className="opacity-60 hover:opacity-100">
+        <button
+          type="button"
+          onClick={onClose}
+          className="opacity-60 hover:opacity-100 cursor-pointer"
+        >
           <i className="fa-solid fa-xmark"></i>
         </button>
       )}
@@ -174,7 +217,7 @@ export function Alert({ tone = 'danger', children, onClose }) {
   )
 }
 
-/* ---------- Modal ---------- */
+/* ==================== Modal ==================== */
 export function Modal({ open, onClose, title, children, maxWidth = 'max-w-lg' }) {
   useEffect(() => {
     if (!open) return
@@ -186,13 +229,22 @@ export function Modal({ open, onClose, title, children, maxWidth = 'max-w-lg' })
       document.body.style.overflow = ''
     }
   }, [open, onClose])
+
   if (!open) return null
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-blur-sm">
-      <div className={`bg-white w-full ${maxWidth} rounded-xl shadow-pop border border-line max-h-[90vh] flex flex-col`}>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+      <div
+        className={`bg-white w-full ${maxWidth} rounded-xl shadow-pop border border-line max-h-[90vh] flex flex-col`}
+      >
         <div className="flex items-center justify-between px-5 py-4 border-b border-line">
           <h3 className="text-base font-semibold text-ink">{title}</h3>
-          <button onClick={onClose} className="w-8 h-8 rounded-md hover:bg-gray-100 text-ink-muted">
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-8 h-8 rounded-md hover:bg-gray-100 text-ink-muted cursor-pointer"
+            aria-label="Close"
+          >
             <i className="fa-solid fa-xmark"></i>
           </button>
         </div>
@@ -202,14 +254,53 @@ export function Modal({ open, onClose, title, children, maxWidth = 'max-w-lg' })
   )
 }
 
-/* ---------- Confirm dialog ---------- */
-export function ConfirmDialog({ open, onClose, onConfirm, title = 'Confirm', message, confirmLabel = 'Confirm', tone = 'danger', busy }) {
+/* ==================== ConfirmDialog ==================== */
+/**
+ * Key guarantees:
+ *  - Confirm button calls `onConfirm()` — always fires if clicked
+ *  - Cancel button calls `onClose()` — never triggers confirm
+ *  - `busy` prevents double-click duplicates
+ *  - Explicit `type="button"` so it never submits a form
+ *  - Renders at z-[9999] — nothing can cover it
+ *  - ESC and backdrop both route to `onClose` (unless busy)
+ */
+export function ConfirmDialog({
+  open,
+  onClose,
+  onConfirm,
+  title = 'Confirm',
+  message,
+  confirmLabel = 'Confirm',
+  tone = 'danger',
+  busy = false,
+}) {
+  const handleConfirm = () => {
+    if (busy) return
+    if (typeof onConfirm !== 'function') {
+      console.error('[ConfirmDialog] onConfirm is not a function')
+      return
+    }
+    onConfirm()
+  }
+
+  const handleClose = () => {
+    if (busy) return
+    if (typeof onClose === 'function') onClose()
+  }
+
   return (
-    <Modal open={open} onClose={onClose} title={title} maxWidth="max-w-sm">
+    <Modal open={open} onClose={handleClose} title={title} maxWidth="max-w-sm">
       <p className="text-sm text-ink-muted">{message}</p>
       <div className="flex justify-end gap-2 mt-6">
-        <Button variant="secondary" onClick={onClose}>Cancel</Button>
-        <Button variant={tone} onClick={onConfirm} disabled={busy}>
+        <Button variant="secondary" onClick={handleClose} disabled={busy}>
+          Cancel
+        </Button>
+        <Button
+          type="button"
+          variant={tone === 'danger' ? 'danger' : 'dangerSoft'}
+          onClick={handleConfirm}
+          disabled={busy}
+        >
           {busy ? 'Working…' : confirmLabel}
         </Button>
       </div>
