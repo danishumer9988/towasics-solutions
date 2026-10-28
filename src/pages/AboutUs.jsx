@@ -530,6 +530,16 @@ const teamMembers = [
     ]
   },
   {
+    name: "Danish Umer",
+    image: "/team/danish.png",
+    skills: [
+        "Full-Stack Web Development",
+        " Django & Flask Framework",
+        "Python, React, Next.js & Node.js Technology",
+        "Android & IOS Development "
+    ]
+  },
+  {
     name: "Mudassar Hayat",
     image: "/team/Frame 1000004271 (2).png",
     skills: [
@@ -559,16 +569,6 @@ const teamMembers = [
       "Conversational AI & Intelligent Chatbots",
       "LLM Training, Fine-Tuning & Optimization",
       "AI-Powered Automation & Intelligent Solutions"
-    ]
-  },
-  {
-    name: "Danish Umer",
-    image: "/team/danish.png",
-    skills: [
-        "Full-Stack Web Development",
-        " Django & Flask Framework",
-        "Python, React, Next.js & Node.js Technology",
-        "Android & IOS Development "
     ]
   }
 ];
