@@ -8,7 +8,85 @@ import Footer from '../components/Footer'
 import PageHeader from '../components/PageHeader'
 import TestimonialSlider from '../components/TestimonialSlider'
 import { API_BASE_URL } from '../config'
-import SEO from '../components/SEO'   // ← ✅ ADDED
+import SEO from '../components/SEO'
+
+/* -------------------- Animated Counter -------------------- */
+/**
+ * Counts from `start` to `end` when it scrolls into view.
+ * - start > end → counts down (99 → 0)
+ * - start < end → counts up   (1 → 97)
+ * - Animates only once per page load
+ * - Respects prefers-reduced-motion
+ * - `pad` pads the number with leading zeros (e.g. pad=2 → "03")
+ */
+function AnimatedCounter({
+  start,
+  end,
+  duration = 1800,
+  suffix = '',
+  pad = 0,
+  className = '',
+  ariaLabel,
+}) {
+  const [count, setCount] = useState(start)
+  const ref = useRef(null)
+  const hasAnimated = useRef(false)
+
+  useEffect(() => {
+    // Accessibility: skip animation for users who prefer reduced motion
+    if (
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      setCount(end)
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !hasAnimated.current) {
+            hasAnimated.current = true
+
+            const startTime = performance.now()
+            const range = Math.abs(end - start)
+            const direction = end >= start ? 1 : -1
+
+            const animate = (now) => {
+              const elapsed = now - startTime
+              const progress = Math.min(elapsed / duration, 1)
+              // easeOutCubic — fast start, slow finish
+              const eased = 1 - Math.pow(1 - progress, 3)
+              const current = Math.round(start + direction * range * eased)
+              setCount(current)
+
+              if (progress < 1) {
+                requestAnimationFrame(animate)
+              } else {
+                setCount(end) // ensure exact final value
+              }
+            }
+
+            requestAnimationFrame(animate)
+          }
+        })
+      },
+      { threshold: 0.3 } // trigger when 30% of element is visible
+    )
+
+    if (ref.current) observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, [start, end, duration])
+
+  const display = pad > 0 ? String(count).padStart(pad, '0') : String(count)
+
+  return (
+    <span ref={ref} className={className} aria-label={ariaLabel}>
+      {display}
+      {suffix}
+    </span>
+  )
+}
 
 /* -------------------- Image Lightbox (gallery) -------------------- */
 function ImageLightboxModal({ isOpen, image, title, images = [], blurImage = false, onClose }) {
@@ -576,12 +654,12 @@ const teamMembers = [
 export default function AboutUs() {
   return (
     <div className="min-h-screen bg-white">
-    <SEO
+      <SEO
         title="About Us — Data Scraping, Automation & Super Intelligence Team"
         description="Meet the team behind 235+ delivered projects in data scraping, intelligent automation, and super intelligence. 20+ specialists across Texas, Doha, and Lahore."
         path="/aboutus"
         image="/assets/og-image.jpg"
-    />
+      />
       <Navbar />
 
       <PageHeader
@@ -592,26 +670,27 @@ export default function AboutUs() {
       />
 
       {/* Leadership Team Section */}
-        <section className="pt-8 sm:pt-10 pb-0 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-4xl mx-auto mb-12">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#086B87] tracking-tight font-inter mb-6">
-                Leadership Team
-              </h2>
-              <p className="text-gray-600 text-base sm:text-lg leading-relaxed font-medium font-inter">
-                At Towasic Solutions, we are a team of experienced developers specializing in web scraping, automation bots, AI-powered agents, IoT, and full-stack development. With over 5 years of expertise and 235+ successful projects delivered, we pride ourselves on building intelligent, reliable, and efficient solutions for clients worldwide.
-              </p>
-            </div>
-
-            <div className="flex justify-center max-w-3xl mx-auto" style={{maxWidth:"700px"}}>
-              <img
-                src="/team/Group 4809545190.png"
-                alt="Leadership Team"
-                className="w-full max-w-10xl rounded-20xl sm:rounded-30xl shadow-xl hover:shadow-20xl transition-all duration-300 object-contain"
-              />
-            </div>
+      <section className="pt-8 sm:pt-10 pb-0 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-4xl mx-auto mb-12">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#086B87] tracking-tight font-inter mb-6">
+              Leadership Team
+            </h2>
+            <p className="text-gray-600 text-base sm:text-lg leading-relaxed font-medium font-inter">
+              At Towasic Solutions, we are a team of experienced developers specializing in web scraping, automation bots, AI-powered agents, IoT, and full-stack development. With over 5 years of expertise and 235+ successful projects delivered, we pride ourselves on building intelligent, reliable, and efficient solutions for clients worldwide.
+            </p>
           </div>
-        </section>
+
+          <div className="flex justify-center max-w-3xl mx-auto" style={{maxWidth:"700px"}}>
+            <img
+              src="/team/Group 4809545190.png"
+              alt="Leadership Team"
+              className="w-full max-w-10xl rounded-20xl sm:rounded-30xl shadow-xl hover:shadow-20xl transition-all duration-300 object-contain"
+            />
+          </div>
+        </div>
+      </section>
+
       {/* Meet Our Experts Section */}
       <section className="py-24 bg-[#f4fbfc] relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -620,7 +699,7 @@ export default function AboutUs() {
               OUR TEAM
             </span>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#086B87] tracking-tight font-inter mb-4">
-                Meet Our Technology Experts
+              Meet Our Technology Experts
             </h2>
             <p className="text-gray-600 text-base sm:text-lg max-w-3xl mx-auto font-medium font-inter leading-relaxed">
               A talented team of developers, engineers, designers, and strategists working together to build intelligent solutions.
@@ -628,12 +707,12 @@ export default function AboutUs() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-              {teamMembers.map((member, idx) => {
-                return (
-                  <div
-                    key={idx}
-                    className="bg-white rounded-3xl p-6 border border-[#e2eff2] shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-xl transition-all duration-300 flex flex-col sm:flex-row items-center sm:items-start gap-5 hover:-translate-y-1"
-                  >
+            {teamMembers.map((member, idx) => {
+              return (
+                <div
+                  key={idx}
+                  className="bg-white rounded-3xl p-6 border border-[#e2eff2] shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-xl transition-all duration-300 flex flex-col sm:flex-row items-center sm:items-start gap-5 hover:-translate-y-1"
+                >
                   <div className="w-32 h-32 sm:w-36 sm:h-36 shrink-0 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 shadow-xs">
                     <img
                       src={member.image}
@@ -664,26 +743,63 @@ export default function AboutUs() {
         </div>
       </section>
 
-      {/* Statistics Block */}
+      {/* Statistics Block — WITH ANIMATED COUNTERS */}
       <section className="py-12 bg-gradient-to-r from-brand-600 to-brand-800 text-white shadow-inner">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+
+            {/* 20+ — counts UP from 1 → 20 */}
             <div className="text-center">
-              <div className="text-4xl font-extrabold mb-1">20+</div>
+              <AnimatedCounter
+                start={1}
+                end={20}
+                suffix="+"
+                duration={1800}
+                className="block text-4xl font-extrabold mb-1"
+                ariaLabel="Over 20 tech experts"
+              />
               <div className="text-white/90 text-sm font-semibold uppercase tracking-wider">Tech Experts</div>
             </div>
+
+            {/* 235+ — counts UP from 1 → 235 */}
             <div className="text-center">
-              <div className="text-4xl font-extrabold mb-1">235+</div>
+              <AnimatedCounter
+                start={1}
+                end={235}
+                suffix="+"
+                duration={1800}
+                className="block text-4xl font-extrabold mb-1"
+                ariaLabel="Over 235 projects completed"
+              />
               <div className="text-white/90 text-sm font-semibold uppercase tracking-wider">Projects Completed</div>
             </div>
+
+            {/* 97% — counts UP from 1 → 97 */}
             <div className="text-center">
-              <div className="text-4xl font-extrabold mb-1">97%</div>
+              <AnimatedCounter
+                start={1}
+                end={97}
+                suffix="%"
+                duration={1800}
+                className="block text-4xl font-extrabold mb-1"
+                ariaLabel="97 percent client satisfaction"
+              />
               <div className="text-white/90 text-sm font-semibold uppercase tracking-wider">Client satisfaction</div>
             </div>
+
+            {/* 03 — counts UP from 1 → 3, padded to "03" */}
             <div className="text-center">
-              <div className="text-4xl font-extrabold mb-1">03</div>
+              <AnimatedCounter
+                start={1}
+                end={3}
+                pad={2}
+                duration={1800}
+                className="block text-4xl font-extrabold mb-1"
+                ariaLabel="Three team locations"
+              />
               <div className="text-white/90 text-sm font-semibold uppercase tracking-wider">Team Locations</div>
             </div>
+
           </div>
         </div>
       </section>

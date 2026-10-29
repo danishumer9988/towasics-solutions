@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import Navbar from '../components/Navbar'
@@ -9,6 +9,73 @@ import HomeServicesGrid from '../components/HomeServicesGrid'
 import HomeRelatedServices from '../components/HomeRelatedServices'
 import HomeBlogs from '../components/HomeBlogs'
 import SEO from '../components/SEO'
+
+/* -------------------- Animated Counter -------------------- */
+/**
+ * Counts from `start` to `end` when it scrolls into view.
+ * - start > end → counts down (99 → 0)
+ * - start < end → counts up   (1 → 97)
+ * - Animates only once per page load
+ * - Respects prefers-reduced-motion
+ */
+function AnimatedCounter({ start, end, duration = 1800, suffix = '', className = '', ariaLabel }) {
+  const [count, setCount] = useState(start)
+  const ref = useRef(null)
+  const hasAnimated = useRef(false)
+
+  useEffect(() => {
+    // Accessibility: skip animation for users who prefer reduced motion
+    if (
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      setCount(end)
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !hasAnimated.current) {
+            hasAnimated.current = true
+
+            const startTime = performance.now()
+            const range = Math.abs(end - start)
+            const direction = end >= start ? 1 : -1
+
+            const animate = (now) => {
+              const elapsed = now - startTime
+              const progress = Math.min(elapsed / duration, 1)
+              // easeOutCubic — fast start, slow finish
+              const eased = 1 - Math.pow(1 - progress, 3)
+              const current = Math.round(start + direction * range * eased)
+              setCount(current)
+
+              if (progress < 1) {
+                requestAnimationFrame(animate)
+              } else {
+                setCount(end) // ensure exact final value
+              }
+            }
+
+            requestAnimationFrame(animate)
+          }
+        })
+      },
+      { threshold: 0.3 } // trigger when 30% of element is visible
+    )
+
+    if (ref.current) observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, [start, end, duration])
+
+  return (
+    <span ref={ref} className={className} aria-label={ariaLabel}>
+      {count}
+      {suffix}
+    </span>
+  )
+}
 
 // Services list matching the 8 dynamic service page routes
 const homeServices = [
@@ -198,18 +265,45 @@ export default function Home() {
 
           <div className="counterslider p-4 sm:p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-white/20 w-full items-center text-center">
+
+              {/* 97% — counts UP from 1 → 97 */}
               <div className="inneritem py-3 sm:py-3.5 px-2 h-full flex flex-col justify-center">
-                <div className="text-2xl sm:text-3xl font-black text-white mb-1">97%</div>
+                <AnimatedCounter
+                  start={1}
+                  end={97}
+                  suffix="%"
+                  duration={1800}
+                  className="text-2xl sm:text-3xl font-black text-white mb-1"
+                  ariaLabel="97 percent client satisfaction rate"
+                />
                 <div className="text-white opacity-90 text-xs sm:text-sm font-semibold">Client Satisfaction Rate</div>
               </div>
+
+              {/* 0 — counts DOWN from 99 → 0 */}
               <div className="inneritem py-3 sm:py-3.5 px-2 h-full flex flex-col justify-center">
-                <div className="text-2xl sm:text-3xl font-black text-white mb-1">0</div>
+                <AnimatedCounter
+                  start={99}
+                  end={0}
+                  duration={1800}
+                  className="text-2xl sm:text-3xl font-black text-white mb-1"
+                  ariaLabel="Zero detractors"
+                />
                 <div className="text-white opacity-90 text-xs sm:text-sm font-semibold">Detractors</div>
               </div>
+
+              {/* 85 — counts UP from 1 → 85 */}
               <div className="inneritem py-3 sm:py-3.5 px-2 h-full flex flex-col justify-center">
-                <div className="text-2xl sm:text-3xl font-black text-white mb-1">85</div>
+                <AnimatedCounter
+                  start={1}
+                  end={85}
+                  duration={1800}
+                  className="text-2xl sm:text-3xl font-black text-white mb-1"
+                  ariaLabel="Net Promoter Score of 85"
+                />
                 <div className="text-white opacity-90 text-xs sm:text-sm font-semibold">Net Promoter Score</div>
               </div>
+
+              {/* Avg. 3 Years — unchanged (text, no animation) */}
               <div className="inneritem py-3 sm:py-3.5 px-2 h-full flex flex-col justify-center">
                 <div className="text-2xl sm:text-3xl font-black text-white mb-1">Avg. 3 Years</div>
                 <div className="text-white opacity-90 text-xs sm:text-sm font-semibold">Client Relationship</div>
@@ -222,60 +316,60 @@ export default function Home() {
       <PartnerLogos />
 
       {/* Why Choose Us Section */}
-        <section className="py-12 sm:py-20 bg-[#E7F8FF] overflow-hidden">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-              className="text-center mb-6"
-            >
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[48px] font-extrabold text-[#086B87] text-center capitalize leading-tight font-inter">
-                Why Towasic Solutions?
-              </h2>
-              <p className="text-base sm:text-lg text-gray-600 font-medium font-inter mt-4 max-w-2xl mx-auto">
-                "At Towasic Solutions, growing your business is our first priority."
-              </p>
-            </motion.div>
+      <section className="py-12 sm:py-20 bg-[#E7F8FF] overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mb-6"
+          >
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[48px] font-extrabold text-[#086B87] text-center capitalize leading-tight font-inter">
+              Why Towasic Solutions?
+            </h2>
+            <p className="text-base sm:text-lg text-gray-600 font-medium font-inter mt-4 max-w-2xl mx-auto">
+              "At Towasic Solutions, growing your business is our first priority."
+            </p>
+          </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 pt-6 max-w-5xl mx-auto">
-              {[
-                {
-                    title: 'Our Mission',
-                    img: '/assets/our mission.png',
-                    text: 'At the core of our company, we are driven by a mission to revolutionize the way businesses access and utilize data. We believe that the power of web scraping can unlock unprecedented insights, driving innovation and fueling strategic decision-making.'
-                  },
-                  {
-                    title: 'Our Expertise',
-                    img: '/assets/our experise.png',
-                    text: 'With a team of seasoned data engineers, web scraping specialists, and software developers, we possess a deep understanding of the latest techniques and technologies in the field. Our expertise spans everything from custom scraper development to scalable data extraction solutions.'
-                  },
-                  {
-                    title: 'Our Commitment',
-                    img: '/assets/our comitment.png',
-                    text: 'We are dedicated to providing our clients with exceptional service, tailored solutions, and a seamless experience. Our commitment to customer satisfaction is at the heart of everything we do, ensuring that our clients can focus on leveraging the data they need to drive their business forward.'
-                  }
-              ].map((col, idx) => (
-                <motion.div
-                  key={idx}
-                  whileHover={{ y: -6 }}
-                  transition={{ duration: 0.3 }}
-                  className="flex flex-col items-center max-w-[340px] mx-auto w-full"
-                >
-                  <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto shadow-md bg-[#1aa4ac] -mb-10 z-10">
-                    <img src={col.img} alt={col.title} className="w-10 h-10 object-contain" />
-                  </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 pt-6 max-w-5xl mx-auto">
+            {[
+              {
+                title: 'Our Mission',
+                img: '/assets/our mission.png',
+                text: 'At the core of our company, we are driven by a mission to revolutionize the way businesses access and utilize data. We believe that the power of web scraping can unlock unprecedented insights, driving innovation and fueling strategic decision-making.'
+              },
+              {
+                title: 'Our Expertise',
+                img: '/assets/our experise.png',
+                text: 'With a team of seasoned data engineers, web scraping specialists, and software developers, we possess a deep understanding of the latest techniques and technologies in the field. Our expertise spans everything from custom scraper development to scalable data extraction solutions.'
+              },
+              {
+                title: 'Our Commitment',
+                img: '/assets/our comitment.png',
+                text: 'We are dedicated to providing our clients with exceptional service, tailored solutions, and a seamless experience. Our commitment to customer satisfaction is at the heart of everything we do, ensuring that our clients can focus on leveraging the data they need to drive their business forward.'
+              }
+            ].map((col, idx) => (
+              <motion.div
+                key={idx}
+                whileHover={{ y: -6 }}
+                transition={{ duration: 0.3 }}
+                className="flex flex-col items-center max-w-[340px] mx-auto w-full"
+              >
+                <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto shadow-md bg-[#1aa4ac] -mb-10 z-10">
+                  <img src={col.img} alt={col.title} className="w-10 h-10 object-contain" />
+                </div>
 
-                  <div className="bg-white cardslider p-6 sm:p-8 pt-14 border border-[#35D9E1] shadow-lg hover:shadow-xl transition-shadow w-full flex-grow flex flex-col justify-start">
-                    <h3 className="text-xl font-bold mb-3 pt-10" style={{ color: '#0A85A7' }}>{col.title}</h3>
-                    <p className="text-gray-600 leading-relaxed text-sm font-medium">{col.text}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+                <div className="bg-white cardslider p-6 sm:p-8 pt-14 border border-[#35D9E1] shadow-lg hover:shadow-xl transition-shadow w-full flex-grow flex flex-col justify-start">
+                  <h3 className="text-xl font-bold mb-3 pt-10" style={{ color: '#0A85A7' }}>{col.title}</h3>
+                  <p className="text-gray-600 leading-relaxed text-sm font-medium">{col.text}</p>
+                </div>
+              </motion.div>
+            ))}
           </div>
-        </section>
+        </div>
+      </section>
 
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -289,14 +383,14 @@ export default function Home() {
                 Our advanced web scraping engine doesn't just collect raw HTML. It integrates AI and super intelligence-powered data enrichment, enabling real-time entity recognition, sentiment analysis, data classification, and even trend forecasting across scraped datasets.
               </p>
               <div className="text-left">
-                  <Link to="/industries" className="inline-block">
-                    <button className="bg-[#0a85a7] hover:bg-[#097390] text-white px-8 py-3 rounded-lg font-medium text-lg transition-colors inline-flex items-center gap-3 shadow-md">
-                      <span>View All Industries</span>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="16" viewBox="0 0 31 16" fill="none">
-                        <path d="M30.3369 8.70711C30.7274 8.31658 30.7274 7.68342 30.3369 7.29289L23.9729 0.928932C23.5824 0.538408 22.9492 0.538408 22.5587 0.928932C22.1682 1.31946 22.1682 1.95262 22.5587 2.34315L28.2156 8L22.5587 13.6569C22.1682 14.0474 22.1682 14.6805 22.5587 15.0711C22.9492 15.4616 23.5824 15.4616 23.9729 15.0711L30.3369 8.70711ZM0.496582 8V9H29.6298V8V7H0.496582V8Z" fill="white" />
-                      </svg>
-                    </button>
-                  </Link>
+                <Link to="/industries" className="inline-block">
+                  <button className="bg-[#0a85a7] hover:bg-[#097390] text-white px-8 py-3 rounded-lg font-medium text-lg transition-colors inline-flex items-center gap-3 shadow-md">
+                    <span>View All Industries</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="16" viewBox="0 0 31 16" fill="none">
+                      <path d="M30.3369 8.70711C30.7274 8.31658 30.7274 7.68342 30.3369 7.29289L23.9729 0.928932C23.5824 0.538408 22.9492 0.538408 22.5587 0.928932C22.1682 1.31946 22.1682 1.95262 22.5587 2.34315L28.2156 8L22.5587 13.6569C22.1682 14.0474 22.1682 14.6805 22.5587 15.0711C22.9492 15.4616 23.5824 15.4616 23.9729 15.0711L30.3369 8.70711ZM0.496582 8V9H29.6298V8V7H0.496582V8Z" fill="white" />
+                    </svg>
+                  </button>
+                </Link>
               </div>
             </div>
 
