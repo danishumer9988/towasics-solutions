@@ -129,7 +129,7 @@ export default function Footer() {
                 { icon: 'fa-x-twitter', href: 'https://x.com/towasicsolution', label: 'Twitter / X' },
                 { icon: 'fa-youtube', href: 'http://www.youtube.com/@TowasicSolutions', label: 'YouTube' },
                 { icon: 'fa-instagram', href: 'https://www.instagram.com/towasicsolutions/', label: 'Instagram' },
-                { icon: 'fa-linkedin-in', href: '#', label: 'LinkedIn' }
+                { icon: 'fa-linkedin-in', href: 'https://www.linkedin.com/company/towasicsolutions/home/?viewAsMember=true', label: 'LinkedIn' }
               ].map((item, i) => (
                 <a 
                   key={i} 
