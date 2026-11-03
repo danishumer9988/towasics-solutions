@@ -1,3 +1,4 @@
+import ProjectDescriptionBlocks from '../components/public/ProjectDescriptionBlocks'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
@@ -205,13 +206,11 @@ function ProjectDetailModal({ isOpen, project, onClose }) {
             </div>
           )}
 
-          {/* Full title + description */}
+          {/* Full title + description blocks */}
           <h2 className="text-2xl sm:text-3xl font-extrabold text-[#086B87] mb-4 leading-tight font-inter">
             {project.title}
           </h2>
-          <p className="text-gray-600 leading-relaxed text-sm sm:text-base whitespace-pre-line font-medium font-inter">
-            {project.description}
-          </p>
+          <ProjectDescriptionBlocks project={project} />
 
           {((project.link && project.link.trim()) || getVideoUrl(project)) && (
             <div className="mt-6 pt-5 border-t border-gray-100 flex flex-wrap gap-3">

@@ -8,6 +8,24 @@ import {
   TableSkeleton, ConfirmDialog, Alert,
 } from '../../components/admin/ui'
 
+/* Derive a short preview text for the admin table */
+const htmlToText = (html = '') =>
+  html
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+const blockPreview = (p) => {
+  if (Array.isArray(p.descriptions) && p.descriptions.length > 0) {
+    const first = p.descriptions[0]
+    return first.heading || htmlToText(first.content || '') || '—'
+  }
+  return p.description || '—'
+}
+
 export default function ProjectAdmin() {
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
@@ -106,40 +124,51 @@ export default function ProjectAdmin() {
                 </tr>
               </thead>
               <tbody>
-                {projects.map((p) => (
-                  <tr key={p._id} className="border-b border-line last:border-0 hover:bg-gray-50/60">
-                    <td className="px-5 py-3"><Badge tone="brand">#{p.projectNumber}</Badge></td>
-                    <td className="px-5 py-3">
-                      {p.images?.[0] ? (
-                        <img src={p.images[0]} alt="" className="w-10 h-10 rounded-lg object-cover border border-line" />
-                      ) : (
-                        <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-ink-subtle text-xs">—</div>
-                      )}
-                    </td>
-                    <td className="px-5 py-3">
-                      {p.featured ? (
-                        <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-semibold">
-                          <i className="fa-solid fa-star text-[10px]"></i>
-                          Featured
-                        </span>
-                      ) : (
-                        <span className="text-xs text-ink-subtle">—</span>
-                      )}
-                    </td>
-                    <td className="px-5 py-3 font-medium text-ink">{p.title}</td>
-                    <td className="px-5 py-3 text-ink-muted hidden md:table-cell max-w-md truncate">{p.description}</td>
-                    <td className="px-5 py-3 text-right">
-                      <div className="inline-flex gap-1">
-                        <Button variant="ghost" size="sm" as={Link} to={`/admin/projects/edit/${p._id}`}>
-                          <i className="fa-solid fa-pen-to-square"></i>
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => setConfirmId(p._id)} className="text-red-600 hover:bg-red-50">
-                          <i className="fa-solid fa-trash"></i>
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {projects.map((p) => {
+                  const blockCount = Array.isArray(p.descriptions) ? p.descriptions.length : 0
+                  return (
+                    <tr key={p._id} className="border-b border-line last:border-0 hover:bg-gray-50/60">
+                      <td className="px-5 py-3"><Badge tone="brand">#{p.projectNumber}</Badge></td>
+                      <td className="px-5 py-3">
+                        {p.images?.[0] ? (
+                          <img src={p.images[0]} alt="" className="w-10 h-10 rounded-lg object-cover border border-line" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-ink-subtle text-xs">—</div>
+                        )}
+                      </td>
+                      <td className="px-5 py-3">
+                        {p.featured ? (
+                          <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-semibold">
+                            <i className="fa-solid fa-star text-[10px]"></i>
+                            Featured
+                          </span>
+                        ) : (
+                          <span className="text-xs text-ink-subtle">—</span>
+                        )}
+                      </td>
+                      <td className="px-5 py-3 font-medium text-ink">{p.title}</td>
+                      <td className="px-5 py-3 text-ink-muted hidden md:table-cell max-w-md">
+                        <p className="truncate">{blockPreview(p)}</p>
+                        {blockCount > 1 && (
+                          <span className="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded bg-gray-100 text-[10px] font-semibold text-ink-muted">
+                            <i className="fa-solid fa-layer-group"></i>
+                            {blockCount} blocks
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-5 py-3 text-right">
+                        <div className="inline-flex gap-1">
+                          <Button variant="ghost" size="sm" as={Link} to={`/admin/projects/edit/${p._id}`}>
+                            <i className="fa-solid fa-pen-to-square"></i>
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => setConfirmId(p._id)} className="text-red-600 hover:bg-red-50">
+                            <i className="fa-solid fa-trash"></i>
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>

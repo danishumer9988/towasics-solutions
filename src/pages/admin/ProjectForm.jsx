@@ -3,9 +3,22 @@ import { useNavigate, useParams } from 'react-router-dom'
 import axios from 'axios'
 import { API_BASE_URL } from '../../config'
 import AdminLayout from '../../components/admin/AdminLayout'
+import RichTextEditor from '../../components/RichTextEditor'
 import {
-  PageHeader, Card, Button, Field, Input, Textarea, Alert,
+  PageHeader, Card, Button, Field, Input, Alert,
 } from '../../components/admin/ui'
+
+/* ---------- helpers ---------- */
+const htmlToText = (html = '') =>
+  html
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+const emptyBlock = () => ({ heading: '', content: '' })
 
 export default function ProjectForm({ mode = 'create' }) {
   const isEdit = mode === 'edit'
@@ -14,7 +27,8 @@ export default function ProjectForm({ mode = 'create' }) {
 
   const [projectNumber, setProjectNumber] = useState('')
   const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
+  // Array of { heading, content } blocks
+  const [descriptions, setDescriptions] = useState([emptyBlock()])
   const [link, setLink] = useState('')
   const [videoLink, setVideoLink] = useState('')
   const [industry, setIndustry] = useState('')
@@ -44,6 +58,7 @@ export default function ProjectForm({ mode = 'create' }) {
     })()
   }, [])
 
+  /* Load project in edit mode */
   useEffect(() => {
     if (!isEdit || !id) return
     ;(async () => {
@@ -53,7 +68,21 @@ export default function ProjectForm({ mode = 'create' }) {
         const p = res.data
         setProjectNumber(p.projectNumber)
         setTitle(p.title)
-        setDescription(p.description)
+
+        // Prefer `descriptions[]`, fall back to legacy `description`
+        if (Array.isArray(p.descriptions) && p.descriptions.length > 0) {
+          setDescriptions(
+            p.descriptions.map((d) => ({
+              heading: d.heading || '',
+              content: d.content || '',
+            }))
+          )
+        } else if (p.description) {
+          setDescriptions([{ heading: '', content: p.description }])
+        } else {
+          setDescriptions([emptyBlock()])
+        }
+
         setLink(p.link || '')
         setVideoLink(p.videoLink || '')
         setIndustry(p.industry || '')
@@ -67,6 +96,7 @@ export default function ProjectForm({ mode = 'create' }) {
     })()
   }, [isEdit, id])
 
+  /* ---------- image handlers ---------- */
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files)
     if (!files.length) return
@@ -104,17 +134,60 @@ export default function ProjectForm({ mode = 'create' }) {
     setImages(next)
   }
 
+  /* ---------- description block handlers ---------- */
+  const addDescriptionBlock = () => {
+    setDescriptions((prev) => [...prev, emptyBlock()])
+  }
+
+  const removeDescriptionBlock = (index) => {
+    setDescriptions((prev) => {
+      if (prev.length === 1) return prev
+      return prev.filter((_, i) => i !== index)
+    })
+  }
+
+  const moveDescriptionBlock = (from, to) => {
+    if (to < 0 || to >= descriptions.length) return
+    setDescriptions((prev) => {
+      const next = [...prev]
+      const [item] = next.splice(from, 1)
+      next.splice(to, 0, item)
+      return next
+    })
+  }
+
+  const updateBlock = (index, patch) => {
+    setDescriptions((prev) =>
+      prev.map((b, i) => (i === index ? { ...b, ...patch } : b))
+    )
+  }
+
+  /* ---------- submit ---------- */
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!projectNumber || !title || !description) {
-      setError('Please fill in all required fields')
+
+    // Drop completely empty blocks
+    const cleanedBlocks = descriptions
+      .map((b) => ({
+        heading: (b.heading || '').trim(),
+        content: (b.content || '').trim(),
+      }))
+      .filter((b) => b.heading || b.content)
+
+    if (!projectNumber || !title || cleanedBlocks.length === 0) {
+      setError('Please fill in the project number, title, and at least one description block.')
       return
     }
+
     setSaving(true); setError('')
+
+    const legacyDescription = htmlToText(cleanedBlocks[0]?.content || '')
+
     const postData = {
       projectNumber: Number(projectNumber),
       title,
-      description,
+      descriptions: cleanedBlocks,      // new: array of { heading, content(HTML) }
+      description: legacyDescription,   // legacy plain-text fallback
       link: link.trim(),
       videoLink: videoLink.trim(),
       industry,
@@ -122,6 +195,7 @@ export default function ProjectForm({ mode = 'create' }) {
       featured,
       images,
     }
+
     try {
       const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       if (isEdit) await axios.put(`${API_BASE_URL}/projects/${id}`, postData, config)
@@ -147,6 +221,7 @@ export default function ProjectForm({ mode = 'create' }) {
           <div className="p-10 text-center text-ink-muted text-sm">Loading…</div>
         ) : (
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            {/* Project Number + Title */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               <Field label="Project Number">
                 <Input type="number" value={projectNumber} onChange={(e) => setProjectNumber(e.target.value)} placeholder="e.g. 1" required />
@@ -158,6 +233,7 @@ export default function ProjectForm({ mode = 'create' }) {
               </div>
             </div>
 
+            {/* Industry + External Link */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <Field
                 label="Industry"
@@ -189,7 +265,7 @@ export default function ProjectForm({ mode = 'create' }) {
               </Field>
             </div>
 
-            {/* ===================== YouTube Video Link (optional) ===================== */}
+            {/* YouTube Video Link */}
             <Field
               label="YouTube Video Link (optional)"
               hint="If provided, a 'Watch on YouTube' button will appear in the project's Read More popup, next to the project number."
@@ -202,7 +278,7 @@ export default function ProjectForm({ mode = 'create' }) {
               />
             </Field>
 
-            {/* ===================== Featured Toggle ===================== */}
+            {/* Featured Toggle */}
             <div className="border border-line rounded-lg p-4 bg-gray-50">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
@@ -212,7 +288,6 @@ export default function ProjectForm({ mode = 'create' }) {
                     Non-featured projects only appear on the <strong>Portfolio page</strong>.
                   </p>
                 </div>
-
                 <button
                   type="button"
                   role="switch"
@@ -229,7 +304,6 @@ export default function ProjectForm({ mode = 'create' }) {
                   />
                 </button>
               </div>
-
               {featured && (
                 <div className="mt-3 flex items-center gap-2 text-xs">
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 font-semibold">
@@ -240,7 +314,7 @@ export default function ProjectForm({ mode = 'create' }) {
               )}
             </div>
 
-            {/* ===================== Blur Toggle ===================== */}
+            {/* Blur Toggle */}
             <div className="border border-line rounded-lg p-4 bg-gray-50">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
@@ -250,7 +324,6 @@ export default function ProjectForm({ mode = 'create' }) {
                     confidential or private client projects that shouldn't be shown in full detail.
                   </p>
                 </div>
-
                 <button
                   type="button"
                   role="switch"
@@ -267,7 +340,6 @@ export default function ProjectForm({ mode = 'create' }) {
                   />
                 </button>
               </div>
-
               {images.length > 0 && (
                 <div className="mt-4 flex items-center gap-3">
                   <div className="relative w-24 h-16 rounded-lg overflow-hidden border border-line bg-gray-100 shrink-0">
@@ -290,10 +362,87 @@ export default function ProjectForm({ mode = 'create' }) {
               )}
             </div>
 
-            <Field label="Description">
-              <Textarea rows={6} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Write project description…" required />
-            </Field>
+            {/* ===================== Description Blocks ===================== */}
+            <div className="border border-line rounded-lg">
+              <div className="flex items-center justify-between gap-3 px-4 py-3 bg-gray-50 border-b border-line rounded-t-lg">
+                <div>
+                  <p className="text-sm font-semibold text-ink">Description Blocks</p>
+                  <p className="text-xs text-ink-muted mt-0.5">
+                    Add one or more titled sections of rich text. These are shown in the project's Read More popup on the public site.
+                  </p>
+                </div>
+                <Button type="button" variant="secondary" size="sm" onClick={addDescriptionBlock}>
+                  <i className="fa-solid fa-plus mr-1.5"></i>
+                  Add Block
+                </Button>
+              </div>
 
+              <div className="p-4 space-y-4">
+                {descriptions.map((block, idx) => (
+                  <div key={idx} className="border border-line rounded-lg bg-white">
+                    <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-line bg-gray-50/60 rounded-t-lg">
+                      <span className="text-xs font-semibold text-ink-muted">
+                        Block {idx + 1}
+                        {idx === 0 && (
+                          <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-brand-50 text-brand-700">primary</span>
+                        )}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        {idx > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => moveDescriptionBlock(idx, idx - 1)}
+                            className="w-7 h-7 flex items-center justify-center rounded-md text-ink-muted hover:text-brand-600 hover:bg-white border border-transparent hover:border-line transition"
+                            title="Move up"
+                          >
+                            <i className="fa-solid fa-arrow-up text-xs"></i>
+                          </button>
+                        )}
+                        {idx < descriptions.length - 1 && (
+                          <button
+                            type="button"
+                            onClick={() => moveDescriptionBlock(idx, idx + 1)}
+                            className="w-7 h-7 flex items-center justify-center rounded-md text-ink-muted hover:text-brand-600 hover:bg-white border border-transparent hover:border-line transition"
+                            title="Move down"
+                          >
+                            <i className="fa-solid fa-arrow-down text-xs"></i>
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => removeDescriptionBlock(idx)}
+                          disabled={descriptions.length === 1}
+                          className="w-7 h-7 flex items-center justify-center rounded-md text-ink-muted hover:text-red-600 hover:bg-white border border-transparent hover:border-line transition disabled:opacity-40 disabled:cursor-not-allowed"
+                          title={descriptions.length === 1 ? 'At least one block is required' : 'Remove block'}
+                        >
+                          <i className="fa-solid fa-trash text-xs"></i>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="p-3 space-y-3">
+                      <Field label="Heading (optional)" hint="Shown as a sub-heading above this block's content">
+                        <Input
+                          value={block.heading}
+                          onChange={(e) => updateBlock(idx, { heading: e.target.value })}
+                          placeholder="e.g. The Challenge"
+                        />
+                      </Field>
+
+                      <Field label="Content">
+                        <RichTextEditor
+                          value={block.content}
+                          onChange={(val) => updateBlock(idx, { content: val })}
+                          placeholder="Write this section's content…"
+                        />
+                      </Field>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Images */}
             <div>
               <p className="text-sm font-medium text-ink mb-2">Project Images</p>
               <div className="flex flex-col sm:flex-row gap-3">
@@ -360,6 +509,7 @@ export default function ProjectForm({ mode = 'create' }) {
               )}
             </div>
 
+            {/* Actions */}
             <div className="flex justify-end gap-2 pt-5 border-t border-line">
               <Button type="button" variant="secondary" onClick={() => navigate('/admin/projects')}>Cancel</Button>
               <Button type="submit" disabled={saving || uploading}>

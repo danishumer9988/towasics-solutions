@@ -1,3 +1,4 @@
+import ProjectDescriptionBlocks from '../components/public/ProjectDescriptionBlocks'
 import React, { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
@@ -278,13 +279,11 @@ function ProjectDetailModal({ isOpen, project, onClose }) {
             </div>
           )}
 
-          {/* Full title + description */}
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#086B87] mb-4 leading-tight font-inter">
-            {project.title}
-          </h2>
-          <p className="text-gray-600 leading-relaxed text-sm sm:text-base whitespace-pre-line font-medium font-inter">
-            {project.description}
-          </p>
+          {/* Full title + description blocks */}
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#086B87] mb-4 leading-tight font-inter">
+              {project.title}
+            </h2>
+            <ProjectDescriptionBlocks project={project} />
         </div>
       </div>
     </div>
