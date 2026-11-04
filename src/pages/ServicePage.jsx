@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import PageHeader from '../components/PageHeader'
 import SEO from '../components/SEO'
+import ProjectImageLightbox from '../components/public/ProjectImageLightbox'
 
 // Map of use case images per service
 const useCasesImages = {
@@ -83,16 +84,29 @@ const serviceSection2Images = {
   ]
 }
 
+/* Shared img protection */
+const IMG_PROTECT = {
+  draggable: false,
+  onDragStart: (e) => e.preventDefault(),
+  onContextMenu: (e) => e.preventDefault(),
+}
+
 function ServiceImagesCollage({ serviceName, fallbackImg, onEnlarge }) {
   const images = serviceSection2Images[serviceName]
 
   if (!images || images.length === 0) {
     return (
-      <div 
+      <div
         onClick={() => onEnlarge && onEnlarge(fallbackImg, [fallbackImg], 0)}
-        className="cursor-pointer group relative rounded-2xl overflow-hidden"
+        onContextMenu={(e) => e.preventDefault()}
+        className="cursor-pointer group relative rounded-2xl overflow-hidden select-none"
       >
-        <img src={fallbackImg} alt="Technical Details" className="max-w-[85%] rounded-2xl object-cover" />
+        <img
+          src={fallbackImg}
+          alt="Technical Details"
+          className="max-w-[85%] rounded-2xl object-cover"
+          {...IMG_PROTECT}
+        />
       </div>
     )
   }
@@ -102,15 +116,17 @@ function ServiceImagesCollage({ serviceName, fallbackImg, onEnlarge }) {
       {/* Top row: 2 images side by side */}
       <div className="grid grid-cols-2 gap-4">
         {images.slice(0, 2).map((img, i) => (
-          <div 
-            key={i} 
+          <div
+            key={i}
             onClick={() => onEnlarge && onEnlarge(img, images, i)}
-            className="group relative rounded-2xl sm:rounded-3xl overflow-hidden hover:scale-[1.03] transition-all duration-300 cursor-pointer shadow-sm hover:shadow-xl border border-gray-100 bg-white"
+            onContextMenu={(e) => e.preventDefault()}
+            className="group relative rounded-2xl sm:rounded-3xl overflow-hidden hover:scale-[1.03] transition-all duration-300 cursor-pointer shadow-sm hover:shadow-xl border border-gray-100 bg-white select-none"
           >
-            <img 
-              src={img} 
-              alt={`Sample ${i + 1}`} 
+            <img
+              src={img}
+              alt={`Sample ${i + 1}`}
               className="w-full h-full object-cover rounded-2xl sm:rounded-3xl"
+              {...IMG_PROTECT}
             />
             <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl sm:rounded-3xl">
               <span className="bg-black/75 text-white text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg backdrop-blur-xs">
@@ -123,14 +139,16 @@ function ServiceImagesCollage({ serviceName, fallbackImg, onEnlarge }) {
 
       {/* Bottom row: 1 wide image */}
       {images[2] && (
-        <div 
+        <div
           onClick={() => onEnlarge && onEnlarge(images[2], images, 2)}
-          className="group relative rounded-2xl sm:rounded-3xl overflow-hidden hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-sm hover:shadow-xl border border-gray-100 bg-white"
+          onContextMenu={(e) => e.preventDefault()}
+          className="group relative rounded-2xl sm:rounded-3xl overflow-hidden hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-sm hover:shadow-xl border border-gray-100 bg-white select-none"
         >
-          <img 
-            src={images[2]} 
-            alt="Sample 3" 
+          <img
+            src={images[2]}
+            alt="Sample 3"
             className="w-full h-auto object-cover rounded-2xl sm:rounded-3xl"
+            {...IMG_PROTECT}
           />
           <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl sm:rounded-3xl">
             <span className="bg-black/75 text-white text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg backdrop-blur-xs">
@@ -143,102 +161,16 @@ function ServiceImagesCollage({ serviceName, fallbackImg, onEnlarge }) {
   )
 }
 
-function ServiceImageModal({ isOpen, image, images = [], initialIndex = 0, title = '', onClose }) {
-  const [currentIndex, setCurrentIndex] = React.useState(initialIndex)
-
-  React.useEffect(() => {
-    setCurrentIndex(initialIndex)
-  }, [initialIndex, image])
-
-  React.useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') onClose()
-      if (e.key === 'ArrowRight' && images.length > 1) {
-        setCurrentIndex((prev) => (prev + 1) % images.length)
-      }
-      if (e.key === 'ArrowLeft' && images.length > 1) {
-        setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)
-      }
-    }
-    if (isOpen) {
-      window.addEventListener('keydown', handleKeyDown)
-      document.body.style.overflow = 'hidden'
-    }
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-      document.body.style.overflow = 'unset'
-    }
-  }, [isOpen, images, onClose])
-
-  if (!isOpen) return null
-
-  const currentImg = images.length > 0 ? images[currentIndex] : image
-
-  return (
-    <div 
-      className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 transition-all duration-300"
-      onClick={onClose}
-    >
-      <div 
-        className="relative max-w-5xl max-h-[90vh] w-full flex flex-col items-center justify-center"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Close (Cross) Button */}
-        <button
-          onClick={onClose}
-          className="absolute -top-12 right-0 sm:-top-5 sm:-right-10 bg-white/20 hover:bg-red-600 text-white rounded-full w-10 h-10 flex items-center justify-center transition-all shadow-xl text-xl"
-          title="Close (Esc)"
-        >
-          <i className="fa-solid fa-xmark"></i>
-        </button>
-
-        {/* Enlarged Image */}
-        <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/20 bg-black/40 flex items-center justify-center max-h-[80vh] w-full">
-          <img
-            src={currentImg}
-            alt={title || "Enlarged Service Image"}
-            className="max-h-[80vh] max-w-full object-contain"
-          />
-        </div>
-
-        {/* Controls */}
-        <div className="mt-4 flex items-center justify-between w-full max-w-2xl px-2 text-white">
-          <p className="text-sm sm:text-base font-semibold truncate font-inter text-white/90">
-            {title} {images.length > 1 && `(${currentIndex + 1} of ${images.length})`}
-          </p>
-
-          {images.length > 1 && (
-            <div className="flex gap-2">
-              <button
-                onClick={() => setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)}
-                className="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5"
-              >
-                <i className="fa-solid fa-chevron-left text-xs"></i> Prev
-              </button>
-              <button
-                onClick={() => setCurrentIndex((prev) => (prev + 1) % images.length)}
-                className="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5"
-              >
-                Next <i className="fa-solid fa-chevron-right text-xs"></i>
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
-
 function BottomLinkSection({ service, serviceName }) {
   const useCaseImg = useCasesImages[serviceName] || '/assets/forservice.png'
-  
+
   const prefixText = service.finalline.prefix || service.finalline.description
   const linkText = service.finalline.linkText || (service.finalline.title ? service.finalline.title.replace(':', '').trim() : '')
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-0">
       <div className="text-center mb-8">
-        <h2 
+        <h2
           className="text-[24px] md:text-[36px]"
           style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, lineHeight: '100%', letterSpacing: '0%', textAlign: 'center', color: '#1AA7AD' }}
         >
@@ -246,23 +178,23 @@ function BottomLinkSection({ service, serviceName }) {
         </h2>
       </div>
       <div className="flex justify-center mb-12">
-        <img src={useCaseImg} alt="Use Cases" className="max-w-full rounded-xl" style={{ maxHeight: '500px' }} />
+        <img src={useCaseImg} alt="Use Cases" className="max-w-full rounded-xl" style={{ maxHeight: '500px' }} {...IMG_PROTECT} />
       </div>
-      
+
       <div className="text-center my-20">
-        <h2 
+        <h2
           className="text-[24px] md:text-[36px] mb-3"
           style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, lineHeight: '100%', letterSpacing: '0%', textAlign: 'center', color: '#1AA7AD' }}
         >
           {service.finalline.title}
         </h2>
-        <p 
+        <p
           className="text-[16px] md:text-[20px]"
           style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, lineHeight: '100%', letterSpacing: '0%', textAlign: 'center', color: '#5A5A5A' }}
         >
           {prefixText}
-          <Link 
-            to={service.finalline.url} 
+          <Link
+            to={service.finalline.url}
             className="hover:opacity-80 transition-opacity ml-1"
             style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, lineHeight: '100%', letterSpacing: '0%', textDecoration: 'underline', textDecorationStyle: 'solid', color: '#1AA7AD' }}
           >
@@ -278,72 +210,83 @@ export default function ServicePage() {
   const { serviceName } = useParams()
   const service = servicesData[serviceName]
 
-  const [modalState, setModalState] = React.useState({
+  // Shared lightbox state — matches ProjectImageLightbox API
+  const [lightbox, setLightbox] = React.useState({
     isOpen: false,
     image: '',
     images: [],
-    initialIndex: 0
+    title: '',
+    blurImage: false,
   })
 
   if (!service) {
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <SEO
-        title="Service Not Found"
-        description="The service you requested is not available. Browse our other data scraping and automation services."
-        path={`/services/${serviceName}`}
-        noIndex={true}
-      />
-      <Navbar />
-      <div className="text-center py-20">
-        <h2 className="text-2xl font-bold text-gray-800">Service not found</h2>
-        <Link to="/" className="text-brand-600 hover:underline mt-4 inline-block">Return to Home</Link>
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <SEO
+          title="Service Not Found"
+          description="The service you requested is not available. Browse our other data scraping and automation services."
+          path={`/services/${serviceName}`}
+          noIndex={true}
+        />
+        <Navbar />
+        <div className="text-center py-20">
+          <h2 className="text-2xl font-bold text-gray-800">Service not found</h2>
+          <Link to="/" className="text-brand-600 hover:underline mt-4 inline-block">Return to Home</Link>
+        </div>
+        <Footer />
       </div>
-      <Footer />
-    </div>
-  )
-}
+    )
+  }
 
+  // Adapter: existing calls pass (image, images, initialIndex)
+  // ProjectImageLightbox expects (image, images, title, blurImage)
+  // We use the image path to jump to the right slide (lightbox finds index by `images.indexOf(image)`)
   const handleEnlarge = (image, images, initialIndex) => {
-    setModalState({
+    // Reorder so the clicked image comes first — lightbox jumps to image === images[currentIndex]
+    const arr = images && images.length > 0 ? images : [image]
+    const idx = typeof initialIndex === 'number' && initialIndex >= 0 && initialIndex < arr.length
+      ? initialIndex
+      : Math.max(0, arr.indexOf(image))
+
+    setLightbox({
       isOpen: true,
-      image,
-      images: images && images.length > 0 ? images : [image],
-      initialIndex: initialIndex || 0
+      image: arr[idx],            // lightbox will find this in `images` and set currentIndex
+      images: arr,
+      title: service.section2.title || service.title,
+      blurImage: false,
     })
   }
 
   const handleCloseModal = () => {
-    setModalState({ isOpen: false, image: '', images: [], initialIndex: 0 })
+    setLightbox({ isOpen: false, image: '', images: [], title: '', blurImage: false })
   }
 
   const heroImgUrl = serviceImages[service.heroImage] || '/assets/heroman.png'
   const section1ImgUrl = serviceImages[service.section1.image] || '/assets/servic.png'
   const section2ImgUrl = serviceImages[service.section2.image] || '/assets/service2.png'
-  const whyChooseImgUrl = serviceImages[service.whyChoose.image] || '/assets/chooseimage.png'
 
   return (
     <div className="min-h-screen bg-white">
 
-    <SEO
-      title={service.seo?.title || service.title}
-      description={service.seo?.description || service.section1.description}
-      path={`/services/${serviceName}`}
-      image={useCasesImages[serviceName] || '/assets/og-image.jpg'}
-      structuredData={{
-        "@context": "https://schema.org",
-        "@type": "Service",
-        "name": service.title,
-        "description": service.section1.description,
-        "provider": {
-          "@type": "Organization",
-          "name": "Towasic Solutions",
-          "url": "https://towasicsolutions.com"
-        },
-        "areaServed": "Worldwide",
-        "serviceType": service.title
-      }}
-    />
+      <SEO
+        title={service.seo?.title || service.title}
+        description={service.seo?.description || service.section1.description}
+        path={`/services/${serviceName}`}
+        image={useCasesImages[serviceName] || '/assets/og-image.jpg'}
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "name": service.title,
+          "description": service.section1.description,
+          "provider": {
+            "@type": "Organization",
+            "name": "Towasic Solutions",
+            "url": "https://towasicsolutions.com"
+          },
+          "areaServed": "Worldwide",
+          "serviceType": service.title
+        }}
+      />
 
       <Navbar />
 
@@ -355,98 +298,100 @@ export default function ServicePage() {
         imageAlt={service.title}
       />
 
-        {/* Section 1 - Overview */}
-        <section className="py-16 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div className="space-y-6">
-                <Link
-                  to="/"
-                  className="text-[18px] md:text-[24px] hover:opacity-80 transition"
-                  style={{
-                    fontFamily: "'Inria Serif', serif",
-                    fontWeight: 700,
-                    lineHeight: '100%',
-                    letterSpacing: '0%',
-                    color: '#44D9E7'
-                  }}
-                >
-                  Towasic Solutions
-                </Link>
+      {/* Section 1 - Overview */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6">
+              <Link
+                to="/"
+                className="text-[18px] md:text-[24px] hover:opacity-80 transition"
+                style={{
+                  fontFamily: "'Inria Serif', serif",
+                  fontWeight: 700,
+                  lineHeight: '100%',
+                  letterSpacing: '0%',
+                  color: '#44D9E7'
+                }}
+              >
+                Towasic Solutions
+              </Link>
 
-                <h2
-                  className="text-[28px] md:text-[40px]"
-                  style={{
-                    fontFamily: "'Inter', sans-serif",
-                    fontWeight: 700,
-                    lineHeight: '100%',
-                    letterSpacing: '0%',
-                    textTransform: 'capitalize',
-                    color: '#086B87'
-                  }}
-                >
-                  {service.section1.title}
-                </h2>
+              <h2
+                className="text-[28px] md:text-[40px]"
+                style={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontWeight: 700,
+                  lineHeight: '100%',
+                  letterSpacing: '0%',
+                  textTransform: 'capitalize',
+                  color: '#086B87'
+                }}
+              >
+                {service.section1.title}
+              </h2>
 
-                <p className="text-gray-600 text-lg leading-relaxed">
-                  {service.section1.description}
-                </p>
+              <p className="text-gray-600 text-lg leading-relaxed">
+                {service.section1.description}
+              </p>
 
-                {/* Stats Grid */}
-                <div className="grid grid-cols-2 gap-6 pt-4">
-                  {service.section1.stats.map((stat, idx) => (
-                    <div key={idx} className="border-l-4 border-brand-500 pl-4">
-                      <div className="text-3xl font-black text-brand-600 mb-1">
-                        {stat.value}
-                      </div>
-                      <div className="text-gray-600 font-medium text-sm">
-                        {stat.label}
-                      </div>
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 gap-6 pt-4">
+                {service.section1.stats.map((stat, idx) => (
+                  <div key={idx} className="border-l-4 border-brand-500 pl-4">
+                    <div className="text-3xl font-black text-brand-600 mb-1">
+                      {stat.value}
                     </div>
-                  ))}
-                </div>
-
-                <div className="pt-6">
-                  <Link
-                    to="/industries"
-                    className="bg-[#0a85a7] hover:bg-[#097390] text-white px-6 py-3 rounded-lg hover:shadow-lg transition shadow-md flex items-center gap-2 w-fit font-semibold font-inter"
-                  >
-                    View All Industries
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M14 5l7 7m0 0l-7 7m7-7H3"
-                      />
-                    </svg>
-                  </Link>
-                </div>
+                    <div className="text-gray-600 font-medium text-sm">
+                      {stat.label}
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              <div className="flex justify-center lg:justify-end">
-                <img
-                  src={section1ImgUrl}
-                  alt="Overview"
-                  className="max-w-[85%] rounded-2xl object-cover"
-                />
+              <div className="pt-6">
+                <Link
+                  to="/industries"
+                  className="bg-[#0a85a7] hover:bg-[#097390] text-white px-6 py-3 rounded-lg hover:shadow-lg transition shadow-md flex items-center gap-2 w-fit font-semibold font-inter"
+                >
+                  View All Industries
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M14 5l7 7m0 0l-7 7m7-7H3"
+                    />
+                  </svg>
+                </Link>
               </div>
             </div>
+
+            <div className="flex justify-center lg:justify-end">
+              <img
+                src={section1ImgUrl}
+                alt="Overview"
+                className="max-w-[85%] rounded-2xl object-cover"
+                {...IMG_PROTECT}
+              />
+            </div>
           </div>
-        </section>
+        </div>
+      </section>
+
       {/* Section 2 - Technical Details */}
       <section className="py-16 bg-gray-50 border-t border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="flex justify-center lg:justify-start order-2 lg:order-1">
-              <ServiceImagesCollage 
-                serviceName={serviceName} 
-                fallbackImg={section2ImgUrl} 
+              <ServiceImagesCollage
+                serviceName={serviceName}
+                fallbackImg={section2ImgUrl}
                 onEnlarge={handleEnlarge}
               />
             </div>
             <div className="space-y-6 order-1 lg:order-2">
-              <h2 
+              <h2
                 className="text-[24px] md:text-[36px]"
                 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, lineHeight: '100%', letterSpacing: '0%', textTransform: 'capitalize', color: '#1AA7AD' }}
               >
@@ -466,7 +411,7 @@ export default function ServicePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
-              <h2 
+              <h2
                 className="text-[24px] md:text-[36px]"
                 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, lineHeight: '100%', letterSpacing: '0%', color: '#61F7FF' }}
               >
@@ -476,14 +421,13 @@ export default function ServicePage() {
                 {service.whyChoose.points.map((point, idx) => (
                   <div key={idx} className="flex items-start gap-4">
                     <span className="">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="23" height="19" viewBox="0 0 23 19" fill="none"><path d="M2 12.2273C2 12.2273 4.03571 12.2273 6.75 17C6.75 17 14.2944 4.49955 21 2" stroke="#61F7FF" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"></path></svg>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="23" height="19" viewBox="0 0 23 19" fill="none"><path d="M2 12.2273C2 12.2273 4.03571 12.2273 6.75 17C6.75 17 14.2944 4.49955 21 2" stroke="#61F7FF" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"></path></svg>
                     </span>
                     <p className="text-gray-300 text-lg font-medium">{point}</p>
                   </div>
                 ))}
               </div>
             </div>
-            {/* Right column kept empty to let the background pattern's loop graphic display cleanly */}
             <div className="hidden lg:block"></div>
           </div>
         </div>
@@ -492,13 +436,13 @@ export default function ServicePage() {
       {/* Use Cases & Bottom Link Section */}
       <BottomLinkSection service={service} serviceName={serviceName} />
 
-      {/* Service Image Modal */}
-      <ServiceImageModal
-        isOpen={modalState.isOpen}
-        image={modalState.image}
-        images={modalState.images}
-        initialIndex={modalState.initialIndex}
-        title={service.section2.title}
+      {/* Shared lightbox — same component used by Portfolio & About pages */}
+      <ProjectImageLightbox
+        isOpen={lightbox.isOpen}
+        image={lightbox.image}
+        images={lightbox.images}
+        title={lightbox.title}
+        blurImage={lightbox.blurImage}
         onClose={handleCloseModal}
       />
 
