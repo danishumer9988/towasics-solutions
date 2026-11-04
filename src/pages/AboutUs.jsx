@@ -1,4 +1,3 @@
-import ProjectDescriptionBlocks from '../components/public/ProjectDescriptionBlocks'
 import React, { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
@@ -8,18 +7,13 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import PageHeader from '../components/PageHeader'
 import TestimonialSlider from '../components/TestimonialSlider'
-import { API_BASE_URL } from '../config'
 import SEO from '../components/SEO'
+import ProjectImageLightbox from '../components/public/ProjectImageLightbox'
+import ProjectDetailModal from '../components/public/ProjectDetailModal'
+import ProjectCard from '../components/public/ProjectCard'
+import { API_BASE_URL } from '../config'
 
 /* -------------------- Animated Counter -------------------- */
-/**
- * Counts from `start` to `end` when it scrolls into view.
- * - start > end → counts down (99 → 0)
- * - start < end → counts up   (1 → 97)
- * - Animates only once per page load
- * - Respects prefers-reduced-motion
- * - `pad` pads the number with leading zeros (e.g. pad=2 → "03")
- */
 function AnimatedCounter({
   start,
   end,
@@ -34,7 +28,6 @@ function AnimatedCounter({
   const hasAnimated = useRef(false)
 
   useEffect(() => {
-    // Accessibility: skip animation for users who prefer reduced motion
     if (
       typeof window !== 'undefined' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -56,7 +49,6 @@ function AnimatedCounter({
             const animate = (now) => {
               const elapsed = now - startTime
               const progress = Math.min(elapsed / duration, 1)
-              // easeOutCubic — fast start, slow finish
               const eased = 1 - Math.pow(1 - progress, 3)
               const current = Math.round(start + direction * range * eased)
               setCount(current)
@@ -64,7 +56,7 @@ function AnimatedCounter({
               if (progress < 1) {
                 requestAnimationFrame(animate)
               } else {
-                setCount(end) // ensure exact final value
+                setCount(end)
               }
             }
 
@@ -72,7 +64,7 @@ function AnimatedCounter({
           }
         })
       },
-      { threshold: 0.3 } // trigger when 30% of element is visible
+      { threshold: 0.3 }
     )
 
     if (ref.current) observer.observe(ref.current)
@@ -89,328 +81,28 @@ function AnimatedCounter({
   )
 }
 
-/* -------------------- Image Lightbox (gallery) -------------------- */
-function ImageLightboxModal({ isOpen, image, title, images = [], blurImage = false, onClose }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  useEffect(() => {
-    if (images && image) {
-      const idx = images.indexOf(image);
-      if (idx !== -1) setCurrentIndex(idx);
-      else setCurrentIndex(0);
-    }
-  }, [image, images]);
-
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowRight' && images.length > 1) {
-        setCurrentIndex((prev) => (prev + 1) % images.length);
-      }
-      if (e.key === 'ArrowLeft' && images.length > 1) {
-        setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
-      }
-    };
-    if (isOpen) {
-      window.addEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'hidden';
-    }
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen, images, onClose]);
-
-  if (!isOpen) return null;
-
-  const currentImg = images.length > 0 ? images[currentIndex] : image;
-
-  return (
-    <div
-      className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 transition-all duration-300"
-      onClick={onClose}
-    >
-      <div
-        className="relative max-w-5xl max-h-[90vh] w-full flex flex-col items-center justify-center"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          onClick={onClose}
-          className="absolute -top-12 right-0 sm:-top-5 sm:-right-10 bg-white/20 hover:bg-red-600 text-white rounded-full w-10 h-10 flex items-center justify-center transition-all shadow-xl text-xl"
-          title="Close (Esc)"
-        >
-          <i className="fa-solid fa-xmark"></i>
-        </button>
-
-        <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/20 bg-black/40 flex items-center justify-center max-h-[80vh] w-full">
-          <img
-            src={currentImg}
-            alt={title || "Enlarged Project View"}
-            className={`max-h-[80vh] max-w-full object-contain ${blurImage ? 'img-blur-modal' : ''}`}
-            onError={(e) => { e.target.src = '/assets/slider.png' }}
-          />
-          {blurImage && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <span className="bg-black/60 backdrop-blur-sm text-white px-4 py-2 rounded-full text-xs font-semibold inline-flex items-center gap-2 shadow-lg">
-                <i className="fa-solid fa-lock text-xs"></i>
-                Confidential project — image blurred
-              </span>
-            </div>
-          )}
-        </div>
-
-        <div className="mt-4 flex items-center justify-between w-full max-w-2xl px-2 text-white">
-          <p className="text-sm sm:text-base font-semibold truncate font-inter text-white/90">
-            {title} {images.length > 1 && `(${currentIndex + 1} of ${images.length})`}
-          </p>
-
-          {images.length > 1 && (
-            <div className="flex gap-2">
-              <button
-                onClick={() => setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)}
-                className="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5"
-              >
-                <i className="fa-solid fa-chevron-left text-xs"></i> Prev
-              </button>
-              <button
-                onClick={() => setCurrentIndex((prev) => (prev + 1) % images.length)}
-                className="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5"
-              >
-                Next <i className="fa-solid fa-chevron-right text-xs"></i>
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* -------------------- Project Detail Modal (full title + description) -------------------- */
-function ProjectDetailModal({ isOpen, project, onClose }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const images = project?.images?.length ? project.images : ['/assets/slider.png'];
-
-  useEffect(() => {
-    if (isOpen) setCurrentIndex(0);
-  }, [isOpen, project]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKey = (e) => {
-      if (e.key === 'Escape') onClose();
-      if (images.length > 1) {
-        if (e.key === 'ArrowRight') setCurrentIndex((p) => (p + 1) % images.length);
-        if (e.key === 'ArrowLeft')  setCurrentIndex((p) => (p - 1 + images.length) % images.length);
-      }
-    };
-    document.body.style.overflow = 'hidden';
-    window.addEventListener('keydown', handleKey);
-    return () => {
-      document.body.style.overflow = 'unset';
-      window.removeEventListener('keydown', handleKey);
-    };
-  }, [isOpen, images.length, onClose]);
-
-  if (!isOpen || !project) return null;
-
-  return (
-    <div
-      className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-gray-100 shrink-0">
-          <span className="bg-[#0a85a7] text-white px-3 py-1 rounded-full text-xs font-bold">
-            Project #{project.projectNumber?.toString().padStart(2, '0') || '—'}
-          </span>
-          <button
-            onClick={onClose}
-            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500 transition cursor-pointer"
-            title="Close (Esc)"
-          >
-            <i className="fa-solid fa-xmark text-lg"></i>
-          </button>
-        </div>
-
-        {/* Scrollable body */}
-        <div className="overflow-y-auto p-5 sm:p-7">
-          {/* Main image (with blur if enabled) */}
-          <div className="rounded-2xl overflow-hidden bg-gray-50 aspect-video mb-4 flex items-center justify-center relative">
-            <img
-              src={images[currentIndex]}
-              alt={project.title}
-              className={`w-full h-full object-contain ${project.blurImage ? 'img-blur-modal' : ''}`}
-              onError={(e) => { e.target.src = '/assets/slider.png' }}
-            />
-            {project.blurImage && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <span className="bg-black/60 backdrop-blur-sm text-white px-4 py-2 rounded-full text-xs font-semibold inline-flex items-center gap-2 shadow-lg">
-                  <i className="fa-solid fa-lock text-xs"></i>
-                  Confidential project — image blurred
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Thumbnails (with blur if enabled) */}
-          {images.length > 1 && (
-            <div className="flex gap-2 overflow-x-auto pb-2 mb-5 scrollbar-thin">
-              {images.map((img, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentIndex(i)}
-                  className={`h-14 w-24 rounded-lg overflow-hidden border-2 flex-shrink-0 transition cursor-pointer ${
-                    currentIndex === i ? 'border-[#0a85a7] scale-105 shadow-sm' : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <img
-                    src={img}
-                    alt={`Thumb ${i + 1}`}
-                    loading="lazy"
-                    className={`w-full h-full object-cover ${project.blurImage ? 'img-blur-thumb' : ''}`}
-                  />
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Full title + description blocks */}
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#086B87] mb-4 leading-tight font-inter">
-              {project.title}
-            </h2>
-            <ProjectDescriptionBlocks project={project} />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* -------------------- Project Card -------------------- */
-function ProjectCard({ project, onEnlarge, onReadMore }) {
-  const [activeImage, setActiveImage] = useState(
-    project.images && project.images.length > 0 ? project.images[0] : '/assets/slider.png'
-  );
-
-  return (
-    <div className="px-2 flex justify-center w-full">
-      <div className="bg-white rounded-3xl shadow-xl overflow-hidden p-6 md:p-8 w-full max-w-5xl border border-white/20 min-h-[400px] flex flex-col justify-center">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-          {/* Details */}
-          <div className="space-y-4 text-left">
-            <span className="inline-block bg-[#0a85a7] text-white px-4 py-1.5 rounded-full font-bold text-sm tracking-wide shadow-sm font-sans">
-              Project #{project.projectNumber?.toString().padStart(2, '0') || '—'}
-            </span>
-
-            <h3 className="text-2xl md:text-3xl font-extrabold text-[#086B87] leading-tight font-inter">
-              {project.title}
-            </h3>
-
-            {/* 2-line clamped description */}
-            <p
-              className="text-gray-600 leading-relaxed text-sm md:text-base font-medium font-inter"
-              style={{
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-              }}
-            >
-              {project.description}
-            </p>
-
-            {/* Read More button */}
-            <button
-              type="button"
-              onClick={() => onReadMore(project)}
-              className="inline-flex items-center gap-2 text-[#0a85a7] hover:text-[#097390] font-semibold text-sm transition-all hover:gap-3 cursor-pointer bg-transparent border-0 p-0 mt-2"
-            >
-              Read More
-              <i className="fa-solid fa-arrow-right text-xs"></i>
-            </button>
-          </div>
-
-          {/* Images */}
-          <div className="flex flex-col gap-4">
-            <div
-              onClick={() => onEnlarge && onEnlarge(activeImage, project.images, project.title, project.blurImage)}
-              className="rounded-2xl overflow-hidden border border-gray-100 aspect-video shadow-md bg-gray-50 flex items-center justify-center cursor-pointer group relative"
-              title="Click to enlarge image"
-            >
-              <img
-                src={activeImage}
-                alt={project.title}
-                className={`w-full h-full object-cover transition-all duration-300 group-hover:scale-105 ${
-                  project.blurImage ? 'img-blur-cover' : ''
-                }`}
-                onError={(e) => { e.target.src = '/assets/slider.png' }}
-              />
-              {project.blurImage && (
-                <span className="absolute top-3 right-3 bg-black/70 backdrop-blur-sm text-white px-3 py-1 rounded-full text-[11px] font-semibold shadow-md inline-flex items-center gap-1.5 z-10">
-                  <i className="fa-solid fa-eye-slash"></i>
-                  Confidential
-                </span>
-              )}
-              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <span className="bg-black/75 text-white text-xs font-semibold px-3.5 py-2 rounded-full flex items-center gap-2 shadow-lg backdrop-blur-xs">
-                  <i className="fa-solid fa-magnifying-glass-plus text-sm"></i> Click to Enlarge
-                </span>
-              </div>
-            </div>
-
-            {project.images && project.images.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto py-1 scrollbar-thin">
-                {project.images.map((img, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setActiveImage(img)}
-                    className={`h-12 w-20 rounded-lg overflow-hidden border-2 flex-shrink-0 transition-all ${
-                      activeImage === img ? 'border-[#0a85a7] scale-105 shadow-sm' : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <img
-                      src={img}
-                      alt={`Thumb ${i}`}
-                      className={`w-full h-full object-cover ${project.blurImage ? 'img-blur-thumb' : ''}`}
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /* -------------------- Portfolio Section (About Page) — Featured Only -------------------- */
 function PortfolioSlider() {
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [modalState, setModalState] = useState({ isOpen: false, image: '', images: [], title: '', blurImage: false });
-  const [detailProject, setDetailProject] = useState(null);
-  const sliderRef = useRef(null);
+  const [projects, setProjects] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [modalState, setModalState] = useState({ isOpen: false, image: '', images: [], title: '', blurImage: false })
+  const [detailProject, setDetailProject] = useState(null)
+  const sliderRef = useRef(null)
 
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        // Only show featured projects on the About page
-        const res = await axios.get(`${API_BASE_URL}/projects?featured=true`);
-        const all = Array.isArray(res.data) ? res.data : [];
-        setProjects(all);
+        const res = await axios.get(`${API_BASE_URL}/projects?featured=true`)
+        const all = Array.isArray(res.data) ? res.data : []
+        setProjects(all)
       } catch (err) {
-        console.error('Error loading featured projects:', err);
+        console.error('Error loading featured projects:', err)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
-    fetchProjects();
-  }, []);
+    }
+    fetchProjects()
+  }, [])
 
   const handleEnlargeImage = (image, images, title, blurImage = false) => {
     setModalState({
@@ -419,12 +111,12 @@ function PortfolioSlider() {
       images: images && images.length > 0 ? images : [image],
       title,
       blurImage,
-    });
-  };
+    })
+  }
 
   const handleCloseModal = () => {
-    setModalState({ isOpen: false, image: '', images: [], title: '', blurImage: false });
-  };
+    setModalState({ isOpen: false, image: '', images: [], title: '', blurImage: false })
+  }
 
   if (loading) {
     return (
@@ -433,14 +125,12 @@ function PortfolioSlider() {
           Loading portfolio...
         </div>
       </section>
-    );
+    )
   }
 
-  if (projects.length === 0) {
-    return null;
-  }
+  if (projects.length === 0) return null
 
-  const displayProjects = projects;
+  const displayProjects = projects
 
   const settings = {
     infinite: displayProjects.length > 1,
@@ -451,8 +141,8 @@ function PortfolioSlider() {
     autoplay: false,
     arrows: false,
     centerMode: false,
-    initialSlide: 0
-  };
+    initialSlide: 0,
+  }
 
   return (
     <>
@@ -496,13 +186,13 @@ function PortfolioSlider() {
                     project={project}
                     onEnlarge={handleEnlargeImage}
                     onReadMore={setDetailProject}
+                    variant="slider"
                   />
                 ))}
               </Slider>
             </div>
           </div>
 
-          {/* View More CTA */}
           <div className="text-center mt-10">
             <Link
               to="/portfolio"
@@ -515,8 +205,7 @@ function PortfolioSlider() {
         </div>
       </section>
 
-      {/* Image Lightbox */}
-      <ImageLightboxModal
+      <ProjectImageLightbox
         isOpen={modalState.isOpen}
         image={modalState.image}
         images={modalState.images}
@@ -525,130 +214,29 @@ function PortfolioSlider() {
         onClose={handleCloseModal}
       />
 
-      {/* Project Detail Modal (Read More) */}
       <ProjectDetailModal
         isOpen={!!detailProject}
         project={detailProject}
         onClose={() => setDetailProject(null)}
+        onEnlarge={handleEnlargeImage}
       />
     </>
-  );
+  )
 }
 
 const teamMembers = [
-  {
-    name: "Bilal Ahmed",
-    image: "/team/Team Avatar.png",
-    skills: [
-      "AI Engineering & IoT",
-      "Robotics & Simulation",
-      "ROS & ROS 2"
-    ]
-  },
-  {
-    name: "Azmat Hussain",
-    image: "/team/Team Avatar (1).png",
-    skills: [
-      "AI Product Strategy & Architecture",
-      "Embedded Systems & Robotics",
-      "Sensor Fusion & Edge AI",
-      "Autonomous Systems"
-    ]
-  },
-  {
-    name: "Noor Gohar",
-    image: "/team/Team Avatar (2).png",
-    skills: [
-      "Linux Administration",
-      "Azure Cloud",
-      "Digital Ocean",
-      "Docker & Containerization"
-    ]
-  },
-  {
-    name: "Haris Ahmed",
-    image: "/team/Frame 1000004271.png",
-    skills: [
-      "Python Automation & Bots",
-      "CRM Integration & Automation",
-      "Web Automation",
-      "Data Engineering"
-    ]
-  },
-  {
-    name: "Saad Afzal",
-    image: "/team/Team Avatar (3).png",
-    skills: [
-      "Full-Stack Web Development",
-      "Shopify & WordPress Development",
-      "React, Next.js & React Native",
-      "Node.js & Backend Development",
-      "Web Application Hosting"
-    ]
-  },
-  {
-    name: "Ali Ijaz",
-    image: "/team/Team Avatar (4).png",
-    skills: [
-      "Digital Marketing",
-      "Advertising & Campaign Management",
-      "B2B & B2C Lead Generation",
-      "Marketing Analytics & Growth"
-    ]
-  },
-  {
-    name: "Tahir Abbas",
-    image: "/team/Frame 1000004271 (1).png",
-    skills: [
-      "RAG & LLM Application Development",
-      "AI Agents & Agentic Systems",
-      "Computer Vision",
-      "Python & Node.js Backend"
-    ]
-  },
-  {
-    name: "Danish Umer",
-    image: "/team/danish.png",
-    skills: [
-        "Full-Stack Web Development",
-        " Django & Flask Framework",
-        "Python, React, Next.js & Node.js Technology",
-        "Android & IOS Development "
-    ]
-  },
-  {
-    name: "Mudassar Hayat",
-    image: "/team/Frame 1000004271 (2).png",
-    skills: [
-      "Generative AI & Agentic Systems",
-      "RAG & LLM Fine-Tuning",
-      "Machine Learning & Deep Learning",
-      "Computer Vision & NLP",
-      "Cloud & MLOps"
-    ]
-  },
-  {
-    name: "Ahsan Rajpoot",
-    image: "/team/Frame 1000004271 (2).png",
-    skills: [
-      "Data Engineering & Analytics",
-      "Data Quality & Migration",
-      "Google Cloud & Data Stack",
-      "Oracle Applications & Power BI"
-    ]
-  },
-  {
-    name: "Hassan Basra",
-    image: "/team/Frame 1000004271 (2).png",
-    skills: [
-      "Generative AI & LLM Applications",
-      "Agentic AI & Autonomous Systems",
-      "Conversational AI & Intelligent Chatbots",
-      "LLM Training, Fine-Tuning & Optimization",
-      "AI-Powered Automation & Intelligent Solutions"
-    ]
-  }
-];
+  { name: "Bilal Ahmed", image: "/team/Team Avatar.png", skills: ["AI Engineering & IoT", "Robotics & Simulation", "ROS & ROS 2"] },
+  { name: "Azmat Hussain", image: "/team/Team Avatar (1).png", skills: ["AI Product Strategy & Architecture", "Embedded Systems & Robotics", "Sensor Fusion & Edge AI", "Autonomous Systems"] },
+  { name: "Noor Gohar", image: "/team/Team Avatar (2).png", skills: ["Linux Administration", "Azure Cloud", "Digital Ocean", "Docker & Containerization"] },
+  { name: "Haris Ahmed", image: "/team/Frame 1000004271.png", skills: ["Python Automation & Bots", "CRM Integration & Automation", "Web Automation", "Data Engineering"] },
+  { name: "Saad Afzal", image: "/team/Team Avatar (3).png", skills: ["Full-Stack Web Development", "Shopify & WordPress Development", "React, Next.js & React Native", "Node.js & Backend Development", "Web Application Hosting"] },
+  { name: "Ali Ijaz", image: "/team/Team Avatar (4).png", skills: ["Digital Marketing", "Advertising & Campaign Management", "B2B & B2C Lead Generation", "Marketing Analytics & Growth"] },
+  { name: "Tahir Abbas", image: "/team/Frame 1000004271 (1).png", skills: ["RAG & LLM Application Development", "AI Agents & Agentic Systems", "Computer Vision", "Python & Node.js Backend"] },
+  { name: "Danish Umer", image: "/team/danish.png", skills: ["Full-Stack Web Development", " Django & Flask Framework", "Python, React, Next.js & Node.js Technology", "Android & IOS Development "] },
+  { name: "Mudassar Hayat", image: "/team/Frame 1000004271 (2).png", skills: ["Generative AI & Agentic Systems", "RAG & LLM Fine-Tuning", "Machine Learning & Deep Learning", "Computer Vision & NLP", "Cloud & MLOps"] },
+  { name: "Ahsan Rajpoot", image: "/team/Frame 1000004271 (2).png", skills: ["Data Engineering & Analytics", "Data Quality & Migration", "Google Cloud & Data Stack", "Oracle Applications & Power BI"] },
+  { name: "Hassan Basra", image: "/team/Frame 1000004271 (2).png", skills: ["Generative AI & LLM Applications", "Agentic AI & Autonomous Systems", "Conversational AI & Intelligent Chatbots", "LLM Training, Fine-Tuning & Optimization", "AI-Powered Automation & Intelligent Solutions"] },
+]
 
 export default function AboutUs() {
   return (
@@ -706,99 +294,51 @@ export default function AboutUs() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {teamMembers.map((member, idx) => {
-              return (
-                <div
-                  key={idx}
-                  className="bg-white rounded-3xl p-6 border border-[#e2eff2] shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-xl transition-all duration-300 flex flex-col sm:flex-row items-center sm:items-start gap-5 hover:-translate-y-1"
-                >
-                  <div className="w-32 h-32 sm:w-36 sm:h-36 shrink-0 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 shadow-xs">
-                    <img
-                      src={member.image}
-                      alt={member.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="text-left flex-1 min-w-0">
-                    <h3 className="text-xl font-bold text-gray-900 mb-3 tracking-tight">
-                      {member.name}
-                    </h3>
-                    <ul className="space-y-1.5">
-                      {member.skills.map((skill, sIdx) => (
-                        <li
-                          key={sIdx}
-                          className="text-xs sm:text-[13px] text-gray-600 flex items-start gap-2 leading-relaxed"
-                        >
-                          <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 shrink-0"></span>
-                          <span>{skill}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+            {teamMembers.map((member, idx) => (
+              <div
+                key={idx}
+                className="bg-white rounded-3xl p-6 border border-[#e2eff2] shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-xl transition-all duration-300 flex flex-col sm:flex-row items-center sm:items-start gap-5 hover:-translate-y-1"
+              >
+                <div className="w-32 h-32 sm:w-36 sm:h-36 shrink-0 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 shadow-xs">
+                  <img src={member.image} alt={member.name} className="w-full h-full object-cover" />
                 </div>
-              );
-            })}
+                <div className="text-left flex-1 min-w-0">
+                  <h3 className="text-xl font-bold text-gray-900 mb-3 tracking-tight">{member.name}</h3>
+                  <ul className="space-y-1.5">
+                    {member.skills.map((skill, sIdx) => (
+                      <li key={sIdx} className="text-xs sm:text-[13px] text-gray-600 flex items-start gap-2 leading-relaxed">
+                        <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 shrink-0"></span>
+                        <span>{skill}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Statistics Block — WITH ANIMATED COUNTERS */}
+      {/* Statistics Block */}
       <section className="py-12 bg-gradient-to-r from-brand-600 to-brand-800 text-white shadow-inner">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-
-            {/* 20+ — counts UP from 1 → 20 */}
             <div className="text-center">
-              <AnimatedCounter
-                start={1}
-                end={20}
-                suffix="+"
-                duration={1800}
-                className="block text-4xl font-extrabold mb-1"
-                ariaLabel="Over 20 tech experts"
-              />
+              <AnimatedCounter start={1} end={20} suffix="+" duration={1800} className="block text-4xl font-extrabold mb-1" ariaLabel="Over 20 tech experts" />
               <div className="text-white/90 text-sm font-semibold uppercase tracking-wider">Tech Experts</div>
             </div>
-
-            {/* 235+ — counts UP from 1 → 235 */}
             <div className="text-center">
-              <AnimatedCounter
-                start={1}
-                end={235}
-                suffix="+"
-                duration={1800}
-                className="block text-4xl font-extrabold mb-1"
-                ariaLabel="Over 235 projects completed"
-              />
+              <AnimatedCounter start={1} end={235} suffix="+" duration={1800} className="block text-4xl font-extrabold mb-1" ariaLabel="Over 235 projects completed" />
               <div className="text-white/90 text-sm font-semibold uppercase tracking-wider">Projects Completed</div>
             </div>
-
-            {/* 97% — counts UP from 1 → 97 */}
             <div className="text-center">
-              <AnimatedCounter
-                start={1}
-                end={97}
-                suffix="%"
-                duration={1800}
-                className="block text-4xl font-extrabold mb-1"
-                ariaLabel="97 percent client satisfaction"
-              />
+              <AnimatedCounter start={1} end={97} suffix="%" duration={1800} className="block text-4xl font-extrabold mb-1" ariaLabel="97 percent client satisfaction" />
               <div className="text-white/90 text-sm font-semibold uppercase tracking-wider">Client satisfaction</div>
             </div>
-
-            {/* 03 — counts UP from 1 → 3, padded to "03" */}
             <div className="text-center">
-              <AnimatedCounter
-                start={1}
-                end={3}
-                pad={2}
-                duration={1800}
-                className="block text-4xl font-extrabold mb-1"
-                ariaLabel="Three team locations"
-              />
+              <AnimatedCounter start={1} end={3} pad={2} duration={1800} className="block text-4xl font-extrabold mb-1" ariaLabel="Three team locations" />
               <div className="text-white/90 text-sm font-semibold uppercase tracking-wider">Team Locations</div>
             </div>
-
           </div>
         </div>
       </section>
@@ -807,19 +347,11 @@ export default function AboutUs() {
       <section className="py-20 bg-brand-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
-            <h2 className="text-brand-600 text-lg font-semibold uppercase tracking-wider mb-2">
-              Why Choose Us?
-            </h2>
-            <p className="text-4xl font-bold text-brand-800">
-              Our Core Values
-            </p>
+            <h2 className="text-brand-600 text-lg font-semibold uppercase tracking-wider mb-2">Why Choose Us?</h2>
+            <p className="text-4xl font-bold text-brand-800">Our Core Values</p>
           </div>
           <div className="flex justify-center mt-12">
-            <img
-              src="/assets/aboutsec.png"
-              alt="Core Values infographics"
-              className="w-full max-w-5xl rounded-2xl shadow-xl"
-            />
+            <img src="/assets/aboutsec.png" alt="Core Values infographics" className="w-full max-w-5xl rounded-2xl shadow-xl" />
           </div>
         </div>
       </section>
@@ -828,19 +360,11 @@ export default function AboutUs() {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
-            <h2 className="text-brand-600 text-lg font-semibold uppercase tracking-wider mb-2">
-              Testimonials
-            </h2>
-            <p className="text-4xl font-bold text-brand-800">
-              Trusted by Industry Leaders
-            </p>
+            <h2 className="text-brand-600 text-lg font-semibold uppercase tracking-wider mb-2">Testimonials</h2>
+            <p className="text-4xl font-bold text-brand-800">Trusted by Industry Leaders</p>
           </div>
           <div className="flex justify-center mt-12">
-            <img
-              src="/team/Group 48095430.png"
-              alt="CDL Tech Review"
-              className="w-full max-w-3xl rounded-2xl shadow-xl"
-            />
+            <img src="/team/Group 48095430.png" alt="CDL Tech Review" className="w-full max-w-3xl rounded-2xl shadow-xl" />
           </div>
         </div>
       </section>
