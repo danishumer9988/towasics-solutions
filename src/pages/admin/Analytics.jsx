@@ -560,20 +560,6 @@ export default function Analytics() {
         )}
       </div>
 
-      {/* Advanced stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {loading || !summary ? (
-          Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24" />)
-        ) : (
-          <>
-            <StatCard label="Bounce Rate"        value={fmtPct(summary.bounceRate)} icon="fa-arrow-right-from-bracket" tone="warning" />
-            <StatCard label="New Visitors"       value={summary.newVisitors}        icon="fa-user-plus"                tone="success" />
-            <StatCard label="Returning Visitors" value={summary.returningVisitors}  icon="fa-rotate-right"             tone="info" />
-            <StatCard label="Avg. Pages/Session" value={summary.avgPagesPerSession} icon="fa-file-lines"               tone="brand" />
-          </>
-        )}
-      </div>
-
       {/* Live now */}
       {!loading && activeVisitors.length > 0 && (
         <Card className="mb-6">
