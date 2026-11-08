@@ -504,7 +504,7 @@ export default function Analytics() {
               value={summary.totalVisitors ?? 0}
               icon="fa-users"
               tone="brand"
-              hint="All consent states combined"
+              hint={`${summary.acceptedVisitors ?? 0} acc + ${summary.declinedVisitors ?? 0} dec + ${summary.unknownVisitors ?? 0} unk + ${summary.newVisitors ?? 0} new + ${summary.returningVisitors ?? 0} ret`}
             />
             <StatCard
               label="Accepted"
@@ -552,8 +552,8 @@ export default function Analytics() {
           Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24" />)
         ) : (
           <>
-            <StatCard label="New Visitors"       value={summary.newVisitors}         icon="fa-user-plus"  tone="success" hint="First visit in range" />
-            <StatCard label="Returning Visitors" value={summary.returningVisitors}   icon="fa-rotate-right" tone="info"  hint="Seen before the range" />
+            <StatCard label="One-time Visitors" value={summary.newVisitors}        icon="fa-user"          tone="success" hint="Visited only once (ever)" />
+            <StatCard label="Repeat Visitors"   value={summary.returningVisitors}  icon="fa-rotate-right"  tone="info"    hint="Visited 2+ times (ever)" />
             <StatCard label="Avg. Pages/Session" value={summary.avgPagesPerSession}  icon="fa-file-lines" tone="brand" />
             <StatCard label="Avg. Clicks/Session" value={summary.avgClicksPerSession} icon="fa-computer-mouse" tone="brand" />
           </>
