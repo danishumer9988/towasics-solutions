@@ -493,52 +493,69 @@ export default function Analytics() {
 
       {error && <div className="mb-4"><Alert>{error}</Alert></div>}
 
-      {/* Primary stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+      {/* ────────── Row 1: Audience overview (ALL consent states) ────────── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
         {loading || !summary ? (
-          Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-28" />)
-        ) : (
-          <>
-            <StatCard label="Unique Visitors" value={summary.uniqueVisitors} icon="fa-user-group"       tone="brand" />
-            <StatCard label="Sessions"        value={summary.sessions}       icon="fa-clock"            tone="info" />
-            <StatCard label="Page Views"      value={summary.pageViews}      icon="fa-eye"              tone="success" />
-            <StatCard label="Clicks"          value={summary.clicks}         icon="fa-hand-pointer"     tone="warning" />
-            <StatCard label="Avg. Session"    value={fmtDuration(summary.avgSessionMs)} icon="fa-hourglass-half" tone="brand" />
-          </>
-        )}
-      </div>
-
-      {/* Three-way consent stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        {loading || !summary ? (
-          <>
-            <Skeleton className="h-24" />
-            <Skeleton className="h-24" />
-            <Skeleton className="h-24" />
-          </>
+          Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28" />)
         ) : (
           <>
             <StatCard
-              label="Accepted Cookies"
+              label="Total Visitors"
+              value={summary.totalVisitors ?? 0}
+              icon="fa-users"
+              tone="brand"
+              hint="All consent states combined"
+            />
+            <StatCard
+              label="Accepted"
               value={summary.acceptedVisitors ?? 0}
               icon="fa-circle-check"
               tone="success"
               hint="Full tracking"
             />
             <StatCard
-              label="Declined Cookies"
+              label="Declined"
               value={summary.declinedVisitors ?? 0}
               icon="fa-circle-xmark"
               tone="warning"
               hint="Basic data only (5 fields)"
             />
             <StatCard
-              label="Unknown (left without choosing)"
+              label="Unknown"
               value={summary.unknownVisitors ?? 0}
               icon="fa-circle-question"
               tone="info"
-              hint="Basic data only (5 fields)"
+              hint="Left without choosing"
             />
+          </>
+        )}
+      </div>
+
+      {/* ────────── Row 2: Engagement (ACCEPTED visitors only) ────────── */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+        {loading || !summary ? (
+          Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-28" />)
+        ) : (
+          <>
+            <StatCard label="Sessions"      value={summary.sessions}   icon="fa-clock"            tone="info"    hint="Accepted only" />
+            <StatCard label="Page Views"    value={summary.pageViews}  icon="fa-eye"              tone="success" hint="Accepted only" />
+            <StatCard label="Clicks"        value={summary.clicks}     icon="fa-hand-pointer"     tone="warning" hint="Accepted only" />
+            <StatCard label="Avg. Session"  value={fmtDuration(summary.avgSessionMs)} icon="fa-hourglass-half" tone="brand" hint="Accepted only" />
+            <StatCard label="Bounce Rate"   value={fmtPct(summary.bounceRate)}        icon="fa-arrow-right-from-bracket" tone="warning" hint="Accepted only" />
+          </>
+        )}
+      </div>
+
+      {/* ────────── Row 3: Visitor breakdown (ACCEPTED only) ────────── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {loading || !summary ? (
+          Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24" />)
+        ) : (
+          <>
+            <StatCard label="New Visitors"       value={summary.newVisitors}         icon="fa-user-plus"  tone="success" hint="First visit in range" />
+            <StatCard label="Returning Visitors" value={summary.returningVisitors}   icon="fa-rotate-right" tone="info"  hint="Seen before the range" />
+            <StatCard label="Avg. Pages/Session" value={summary.avgPagesPerSession}  icon="fa-file-lines" tone="brand" />
+            <StatCard label="Avg. Clicks/Session" value={summary.avgClicksPerSession} icon="fa-computer-mouse" tone="brand" />
           </>
         )}
       </div>
