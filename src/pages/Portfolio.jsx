@@ -31,7 +31,7 @@ export default function Portfolio() {
       try {
         const [indRes, projRes] = await Promise.all([
           axios.get(`${API_BASE_URL}/industries`),
-          axios.get(`${API_BASE_URL}/projects`),
+          axios.get(`${API_BASE_URL}/projects?active=true`),
         ])
         if (cancelled) return
         setIndustries(Array.isArray(indRes.data) ? indRes.data : [])

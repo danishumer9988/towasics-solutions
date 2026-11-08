@@ -19,7 +19,7 @@ export default function Blog() {
       setLoading(true)
       try {
         const [blogsRes, catsRes] = await Promise.all([
-          axios.get(`${API_BASE_URL}/blogs`),
+          axios.get(`${API_BASE_URL}/blogs?published=true`),
           axios.get(`${API_BASE_URL}/blog-categories`)
         ])
         const publishedBlogs = blogsRes.data.filter(b => b.isPublished !== false)

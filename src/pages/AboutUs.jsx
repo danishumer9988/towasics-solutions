@@ -92,7 +92,7 @@ function PortfolioSlider() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const res = await axios.get(`${API_BASE_URL}/projects?featured=true`)
+        const res = await axios.get(`${API_BASE_URL}/projects?featured=true&active=true`)
         const all = Array.isArray(res.data) ? res.data : []
         setProjects(all)
       } catch (err) {

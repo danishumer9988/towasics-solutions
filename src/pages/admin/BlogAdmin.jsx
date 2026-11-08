@@ -8,19 +8,21 @@ import {
   ConfirmDialog, Alert, Badge,
 } from '../../components/admin/ui'
 
+const isBlogPublished = (b) => b.isPublished !== false
+
 export default function BlogAdmin() {
   const [blogs, setBlogs] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [confirmId, setConfirmId] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [togglingId, setTogglingId] = useState(null)   // NEW
   const navigate = useNavigate()
 
   useEffect(() => {
     if (!localStorage.getItem('user')) navigate('/auth/login')
   }, [navigate])
 
-  /* ---------- Load blogs ---------- */
   const fetchBlogs = async () => {
     setLoading(true)
     setError('')
@@ -35,11 +37,8 @@ export default function BlogAdmin() {
     }
   }
 
-  useEffect(() => {
-    fetchBlogs()
-  }, [])
+  useEffect(() => { fetchBlogs() }, [])
 
-  /* ---------- Delete ---------- */
   const handleDelete = async () => {
     if (!confirmId || deleting) return
     setDeleting(true)
@@ -57,7 +56,30 @@ export default function BlogAdmin() {
     }
   }
 
-  /* ---------- Render ---------- */
+  /* ---------- NEW: toggle published ---------- */
+  const togglePublished = async (blog) => {
+    if (togglingId) return
+    setTogglingId(blog._id)
+    const nextState = !isBlogPublished(blog)
+    setBlogs((prev) =>
+      prev.map((b) => (b._id === blog._id ? { ...b, isPublished: nextState } : b))
+    )
+    try {
+      await axios.put(`${API_BASE_URL}/blogs/${blog._id}`, { isPublished: nextState })
+    } catch (err) {
+      console.error(err)
+      setBlogs((prev) =>
+        prev.map((b) => (b._id === blog._id ? { ...b, isPublished: blog.isPublished } : b))
+      )
+      setError('Failed to change publish status')
+    } finally {
+      setTogglingId(null)
+    }
+  }
+
+  const publishedCount = blogs.filter(isBlogPublished).length
+  const draftCount = blogs.length - publishedCount
+
   return (
     <AdminLayout>
       <PageHeader
@@ -74,6 +96,24 @@ export default function BlogAdmin() {
       {error && (
         <div className="mb-4">
           <Alert onClose={() => setError('')}>{error}</Alert>
+        </div>
+      )}
+
+      {/* Summary chips */}
+      {!loading && blogs.length > 0 && (
+        <div className="mb-4 flex flex-wrap gap-2">
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-50 border border-brand-100 text-xs font-medium text-brand-700">
+            <i className="fa-solid fa-newspaper"></i>
+            {blogs.length} total
+          </span>
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 text-xs font-medium text-emerald-700">
+            <i className="fa-solid fa-circle-check"></i>
+            {publishedCount} published
+          </span>
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-100 text-xs font-medium text-amber-700">
+            <i className="fa-solid fa-eye-slash"></i>
+            {draftCount} draft{draftCount === 1 ? '' : 's'}
+          </span>
         </div>
       )}
 
@@ -101,59 +141,82 @@ export default function BlogAdmin() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {blogs.map((b) => (
-            <Card key={b._id} className="overflow-hidden flex flex-col">
-              {b.featuredImage && (
-                <div className="h-44 bg-gray-100 overflow-hidden">
-                  <img src={b.featuredImage} alt="" className="w-full h-full object-cover" />
-                </div>
-              )}
-              <div className="p-5 flex-1 flex flex-col">
-                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  {b.isFeatured && <Badge tone="warning">Featured</Badge>}
-                  {b.tags?.slice(0, 2).map((t) => (
-                    <Badge key={t}>{t}</Badge>
-                  ))}
-                </div>
-                <Link
-                  to={`/blogs/${b.slug}`}
-                  className="text-base font-semibold text-ink hover:text-brand-600 line-clamp-2"
-                >
-                  {b.title}
-                </Link>
-                <div
-                  className="text-sm text-ink-muted mt-2 line-clamp-3"
-                  dangerouslySetInnerHTML={{ __html: b.content }}
-                />
-              </div>
-              <div className="px-5 py-3 border-t border-line flex justify-between items-center">
-                <Link
-                  to={`/blogs/${b.slug}`}
-                  className="text-brand-600 text-sm font-medium hover:underline"
-                >
-                  Read more →
-                </Link>
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="sm" as={Link} to={`/blogs/edit/${b._id}`}>
-                    <i className="fa-solid fa-pen-to-square"></i>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setConfirmId(b._id)}
-                    className="text-red-600 hover:bg-red-50"
-                    title="Delete blog post"
+          {blogs.map((b) => {
+            const published = isBlogPublished(b)
+            const busy = togglingId === b._id
+            return (
+              <Card key={b._id} className="overflow-hidden flex flex-col">
+                {b.featuredImage && (
+                  <div className="h-44 bg-gray-100 overflow-hidden">
+                    <img src={b.featuredImage} alt="" className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <div className="p-5 flex-1 flex flex-col">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    {/* NEW: Published toggle */}
+                    <button
+                      type="button"
+                      onClick={() => togglePublished(b)}
+                      disabled={busy}
+                      title={published ? 'Click to unpublish (move to draft)' : 'Click to publish'}
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold transition cursor-pointer disabled:opacity-60 disabled:cursor-wait ${
+                        published
+                          ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                          : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+                      }`}
+                    >
+                      {busy ? (
+                        <i className="fa-solid fa-spinner fa-spin text-[10px]"></i>
+                      ) : (
+                        <i className={`fa-solid ${published ? 'fa-eye' : 'fa-eye-slash'} text-[10px]`}></i>
+                      )}
+                      {published ? 'Published' : 'Draft'}
+                    </button>
+
+                    {b.isFeatured && <Badge tone="warning">Featured</Badge>}
+                    {b.tags?.slice(0, 2).map((t) => (
+                      <Badge key={t}>{t}</Badge>
+                    ))}
+                  </div>
+                  <Link
+                    to={`/blogs/${b.slug}`}
+                    className="text-base font-semibold text-ink hover:text-brand-600 line-clamp-2"
                   >
-                    <i className="fa-solid fa-trash"></i>
-                  </Button>
+                    {b.title}
+                  </Link>
+                  <div
+                    className="text-sm text-ink-muted mt-2 line-clamp-3"
+                    dangerouslySetInnerHTML={{ __html: b.content }}
+                  />
                 </div>
-              </div>
-            </Card>
-          ))}
+                <div className="px-5 py-3 border-t border-line flex justify-between items-center">
+                  <Link
+                    to={`/blogs/${b.slug}`}
+                    className="text-brand-600 text-sm font-medium hover:underline"
+                  >
+                    Read more →
+                  </Link>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="sm" as={Link} to={`/blogs/edit/${b._id}`}>
+                      <i className="fa-solid fa-pen-to-square"></i>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setConfirmId(b._id)}
+                      className="text-red-600 hover:bg-red-50"
+                      title="Delete blog post"
+                    >
+                      <i className="fa-solid fa-trash"></i>
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            )
+          })}
         </div>
       )}
 
-      {/* Delete confirmation dialog — now with busy state + proper wiring */}
       <ConfirmDialog
         open={!!confirmId}
         onClose={() => !deleting && setConfirmId(null)}

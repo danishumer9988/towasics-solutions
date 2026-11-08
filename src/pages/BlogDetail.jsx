@@ -18,7 +18,13 @@ export default function BlogDetail() {
       setLoading(true)
       try {
         const res = await axios.get(`${API_BASE_URL}/blogs/${slug}`)
-        setBlog(res.data)
+        const data = res.data
+        if (data && data.isPublished === false) {
+          setError('Blog post not found')
+          setBlog(null)
+        } else {
+          setBlog(data)
+        }
       } catch (err) {
         setError('Blog post not found')
         console.error(err)

@@ -8,7 +8,6 @@ import {
   TableSkeleton, ConfirmDialog, Alert,
 } from '../../components/admin/ui'
 
-/* Derive a short preview text for the admin table */
 const htmlToText = (html = '') =>
   html
     .replace(/<style[\s\S]*?<\/style>/gi, '')
@@ -26,12 +25,16 @@ const blockPreview = (p) => {
   return p.description || '—'
 }
 
+// Legacy-safe active check: undefined => treated as active
+const isProjectActive = (p) => p.isActive !== false
+
 export default function ProjectAdmin() {
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [confirmId, setConfirmId] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [togglingId, setTogglingId] = useState(null)   // NEW
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -65,7 +68,35 @@ export default function ProjectAdmin() {
     }
   }
 
+  /* ---------- NEW: toggle active ---------- */
+  const toggleActive = async (project) => {
+    if (togglingId) return
+    setTogglingId(project._id)
+    const nextState = !isProjectActive(project)
+    // Optimistic update
+    setProjects((prev) =>
+      prev.map((p) => (p._id === project._id ? { ...p, isActive: nextState } : p))
+    )
+    try {
+      await axios.put(
+        `${API_BASE_URL}/projects/${project._id}`,
+        { isActive: nextState },
+        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+      )
+    } catch (err) {
+      console.error(err)
+      // Revert on failure
+      setProjects((prev) =>
+        prev.map((p) => (p._id === project._id ? { ...p, isActive: project.isActive } : p))
+      )
+      setError('Failed to change project status')
+    } finally {
+      setTogglingId(null)
+    }
+  }
+
   const featuredCount = projects.filter(p => p.featured).length
+  const activeCount = projects.filter(isProjectActive).length
 
   return (
     <AdminLayout>
@@ -80,7 +111,11 @@ export default function ProjectAdmin() {
         }
       />
 
-      {error && <div className="mb-4"><Alert>{error}</Alert></div>}
+      {error && (
+        <div className="mb-4">
+          <Alert onClose={() => setError('')}>{error}</Alert>
+        </div>
+      )}
 
       {/* Summary chips */}
       {!loading && projects.length > 0 && (
@@ -90,19 +125,23 @@ export default function ProjectAdmin() {
             {projects.length} total
           </span>
           <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 text-xs font-medium text-emerald-700">
-            <i className="fa-solid fa-star"></i>
-            {featuredCount} featured
+            <i className="fa-solid fa-circle-check"></i>
+            {activeCount} active
           </span>
           <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-200 text-xs font-medium text-gray-600">
-            <i className="fa-solid fa-list"></i>
-            {projects.length - featuredCount} on Portfolio page only
+            <i className="fa-solid fa-eye-slash"></i>
+            {projects.length - activeCount} inactive
+          </span>
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-100 text-xs font-medium text-amber-700">
+            <i className="fa-solid fa-star"></i>
+            {featuredCount} featured
           </span>
         </div>
       )}
 
       <Card className="overflow-hidden">
         {loading ? (
-          <TableSkeleton rows={5} cols={6} />
+          <TableSkeleton rows={5} cols={7} />
         ) : projects.length === 0 ? (
           <EmptyState
             icon="fa-diagram-project"
@@ -118,6 +157,7 @@ export default function ProjectAdmin() {
                   <th className="px-5 py-3 font-medium w-20">No.</th>
                   <th className="px-5 py-3 font-medium w-28">Cover</th>
                   <th className="px-5 py-3 font-medium w-28">Featured</th>
+                  <th className="px-5 py-3 font-medium w-32">Status</th>
                   <th className="px-5 py-3 font-medium">Title</th>
                   <th className="px-5 py-3 font-medium hidden md:table-cell">Description</th>
                   <th className="px-5 py-3 font-medium w-28 text-right">Actions</th>
@@ -126,6 +166,8 @@ export default function ProjectAdmin() {
               <tbody>
                 {projects.map((p) => {
                   const blockCount = Array.isArray(p.descriptions) ? p.descriptions.length : 0
+                  const active = isProjectActive(p)
+                  const busy = togglingId === p._id
                   return (
                     <tr key={p._id} className="border-b border-line last:border-0 hover:bg-gray-50/60">
                       <td className="px-5 py-3"><Badge tone="brand">#{p.projectNumber}</Badge></td>
@@ -146,6 +188,29 @@ export default function ProjectAdmin() {
                           <span className="text-xs text-ink-subtle">—</span>
                         )}
                       </td>
+
+                      {/* NEW: Status toggle */}
+                      <td className="px-5 py-3">
+                        <button
+                          type="button"
+                          onClick={() => toggleActive(p)}
+                          disabled={busy}
+                          title={active ? 'Click to deactivate' : 'Click to activate'}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition cursor-pointer disabled:opacity-60 disabled:cursor-wait ${
+                            active
+                              ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                              : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                          }`}
+                        >
+                          {busy ? (
+                            <i className="fa-solid fa-spinner fa-spin text-[10px]"></i>
+                          ) : (
+                            <span className={`w-1.5 h-1.5 rounded-full ${active ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+                          )}
+                          {active ? 'Active' : 'Inactive'}
+                        </button>
+                      </td>
+
                       <td className="px-5 py-3 font-medium text-ink">{p.title}</td>
                       <td className="px-5 py-3 text-ink-muted hidden md:table-cell max-w-md">
                         <p className="truncate">{blockPreview(p)}</p>
