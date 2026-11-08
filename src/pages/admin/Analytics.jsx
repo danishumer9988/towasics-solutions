@@ -493,7 +493,7 @@ export default function Analytics() {
 
       {error && <div className="mb-4"><Alert>{error}</Alert></div>}
 
-      {/* ────────── Row 1: Audience overview (ALL consent states) ────────── */}
+      {/* ────────── Row 1: Audience (all consent states) ────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
         {loading || !summary ? (
           Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28" />)
@@ -504,57 +504,89 @@ export default function Analytics() {
               value={summary.totalVisitors ?? 0}
               icon="fa-users"
               tone="brand"
-              hint={`${summary.acceptedVisitors ?? 0} acc + ${summary.declinedVisitors ?? 0} dec + ${summary.unknownVisitors ?? 0} unk + ${summary.newVisitors ?? 0} new + ${summary.returningVisitors ?? 0} ret`}
+              hint={`${summary.acceptedVisitors ?? 0} accepted + ${summary.declinedVisitors ?? 0} declined + ${summary.unknownVisitors ?? 0} unknown`}
             />
-            <StatCard
-              label="Accepted"
-              value={summary.acceptedVisitors ?? 0}
-              icon="fa-circle-check"
-              tone="success"
-              hint="Full tracking"
-            />
-            <StatCard
-              label="Declined"
-              value={summary.declinedVisitors ?? 0}
-              icon="fa-circle-xmark"
-              tone="warning"
-              hint="Basic data only (5 fields)"
-            />
-            <StatCard
-              label="Unknown"
-              value={summary.unknownVisitors ?? 0}
-              icon="fa-circle-question"
-              tone="info"
-              hint="Left without choosing"
-            />
+            <StatCard label="Accepted" value={summary.acceptedVisitors ?? 0} icon="fa-circle-check"    tone="success" hint="Full tracking" />
+            <StatCard label="Declined" value={summary.declinedVisitors ?? 0} icon="fa-circle-xmark"    tone="warning" hint="Basic data only" />
+            <StatCard label="Unknown"  value={summary.unknownVisitors  ?? 0} icon="fa-circle-question" tone="info"    hint="Left without choosing" />
           </>
         )}
       </div>
 
-      {/* ────────── Row 2: Engagement (ACCEPTED visitors only) ────────── */}
+      {/* ────────── Row 2: Engagement (accepted only) ────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
         {loading || !summary ? (
           Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-28" />)
         ) : (
           <>
-            <StatCard label="Sessions"      value={summary.sessions}   icon="fa-clock"            tone="info"    hint="Accepted only" />
-            <StatCard label="Page Views"    value={summary.pageViews}  icon="fa-eye"              tone="success" hint="Accepted only" />
-            <StatCard label="Clicks"        value={summary.clicks}     icon="fa-hand-pointer"     tone="warning" hint="Accepted only" />
-            <StatCard label="Avg. Session"  value={fmtDuration(summary.avgSessionMs)} icon="fa-hourglass-half" tone="brand" hint="Accepted only" />
-            <StatCard label="Bounce Rate"   value={fmtPct(summary.bounceRate)}        icon="fa-arrow-right-from-bracket" tone="warning" hint="Accepted only" />
+            <StatCard label="Sessions"     value={summary.sessions}   icon="fa-clock"          tone="info"    hint="Accepted only" />
+            <StatCard label="Page Views"   value={summary.pageViews}  icon="fa-eye"            tone="success" hint="Accepted only" />
+            <StatCard label="Clicks"       value={summary.clicks}     icon="fa-hand-pointer"   tone="warning" hint="Accepted only" />
+            <StatCard label="Avg. Session" value={fmtDuration(summary.avgSessionMs)} icon="fa-hourglass-half" tone="brand" hint="Accepted only" />
+            <StatCard label="Bounce Rate"  value={fmtPct(summary.bounceRate)}        icon="fa-arrow-right-from-bracket" tone="warning" hint="Accepted only" />
           </>
         )}
       </div>
 
-      {/* ────────── Row 3: Visitor breakdown (ACCEPTED only) ────────── */}
+      {/* ────────── Row 2.5: Sessions across ALL consent states ────────── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+        {loading || !summary ? (
+          Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28" />)
+        ) : (
+          <>
+            <StatCard
+              label="Total Sessions (all types)"
+              value={summary.totalSessionsAll ?? 0}
+              icon="fa-clock-rotate-left"
+              tone="brand"
+              hint="Accepted + Declined + Unknown"
+            />
+            <StatCard
+              label="Accepted Sessions"
+              value={summary.acceptedSessions ?? 0}
+              icon="fa-circle-check"
+              tone="success"
+              hint="Exact — from Session data"
+            />
+            <StatCard
+              label="Declined Sessions"
+              value={summary.declinedSessionsEstimate ?? 0}
+              icon="fa-circle-xmark"
+              tone="warning"
+              hint="Estimated from time gap"
+            />
+            <StatCard
+              label="Unknown Sessions"
+              value={summary.unknownSessionsEstimate ?? 0}
+              icon="fa-circle-question"
+              tone="info"
+              hint="Estimated from time gap"
+            />
+          </>
+        )}
+      </div>
+
+      {/* ────────── Row 3: New / Returning across ALL consent states ────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {loading || !summary ? (
           Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24" />)
         ) : (
           <>
-            <StatCard label="One-time Visitors" value={summary.newVisitors}        icon="fa-user"          tone="success" hint="Visited only once (ever)" />
-            <StatCard label="Repeat Visitors"   value={summary.returningVisitors}  icon="fa-rotate-right"  tone="info"    hint="Visited 2+ times (ever)" />
-            <StatCard label="Avg. Pages/Session" value={summary.avgPagesPerSession}  icon="fa-file-lines" tone="brand" />
+            <StatCard
+              label="New Visitors"
+              value={summary.newVisitors}
+              icon="fa-user-plus"
+              tone="success"
+              hint="Visited only once (all consent states)"
+            />
+            <StatCard
+              label="Returning Visitors"
+              value={summary.returningVisitors}
+              icon="fa-rotate-right"
+              tone="info"
+              hint="Visited 2+ times (all consent states)"
+            />
+            <StatCard label="Avg. Pages/Session"  value={summary.avgPagesPerSession}  icon="fa-file-lines"     tone="brand" />
             <StatCard label="Avg. Clicks/Session" value={summary.avgClicksPerSession} icon="fa-computer-mouse" tone="brand" />
           </>
         )}
@@ -1027,6 +1059,7 @@ export function VisitorDetail() {
   const visitor = data?.visitor
   const hasCoords = typeof visitor?.lat === 'number' && visitor?.lat !== null
   const active = visitor ? isActive(visitor) : false
+  const visitCount = data?.visitCount ?? data?.sessions?.length ?? 0
 
   return (
     <AdminLayout>
@@ -1040,7 +1073,12 @@ export function VisitorDetail() {
         title="Visitor Details"
         description={visitorId ? `Visitor ID: ${visitorId}` : ''}
         actions={visitor && (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {/* NEW: total visits badge */}
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-50 border border-brand-100 text-xs font-semibold text-brand-700">
+              <i className="fa-solid fa-rotate-right text-[10px]"></i>
+              {visitCount} total visit{visitCount === 1 ? '' : 's'}
+            </span>
             <ConsentBadge value="accepted" />
             {active ? (
               <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 text-xs font-medium text-emerald-700">
@@ -1096,13 +1134,13 @@ export function VisitorDetail() {
             <CardHeader title="Overview" />
             <div className="p-5 grid grid-cols-2 md:grid-cols-4 gap-5 text-sm">
               {[
-                ['First Visit', fmtDateTime(visitor.first_seen)],
-                ['Last Visit',  fmtDateTime(visitor.last_seen)],
-                ['Last Page',   visitor.last_page || '—'],
-                ['Sessions',    data.sessions?.length ?? 0],
-                ['Page Views',  data.pageViews?.length ?? 0],
-                ['Clicks',      clicks.length],
-                ['Consent',     'Accepted'],
+                ['Total Visits', visitCount],
+                ['First Visit',  fmtDateTime(visitor.first_seen)],
+                ['Last Visit',   fmtDateTime(visitor.last_seen)],
+                ['Last Page',    visitor.last_page || '—'],
+                ['Page Views',   data.pageViews?.length ?? 0],
+                ['Clicks',       clicks.length],
+                ['Consent',      'Accepted'],
               ].map(([k, v]) => (
                 <div key={k}>
                   <p className="text-xs uppercase tracking-wide text-ink-subtle font-medium">{k}</p>
@@ -1152,7 +1190,7 @@ export function VisitorDetail() {
             </Card>
 
             <Card className="overflow-hidden">
-              <CardHeader title="Sessions" subtitle={`${data.sessions?.length ?? 0} total`} />
+              <CardHeader title="Sessions" subtitle={`${visitCount} total visit${visitCount === 1 ? '' : 's'}`} />
               {data.sessions?.length === 0 ? (
                 <EmptyState icon="fa-clock" title="No sessions recorded." />
               ) : (
