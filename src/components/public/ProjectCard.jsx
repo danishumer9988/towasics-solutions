@@ -1,5 +1,12 @@
 import { useState } from 'react'
 
+/**
+ * Two visual variants:
+ *   variant="grid"    → Portfolio page — cover image + bottom overlay
+ *   variant="slider"  → About page — thumbnail image + side details column
+ *
+ * Images are protected against right-click / drag-to-desktop.
+ */
 export default function ProjectCard({ project, onEnlarge, onReadMore, variant = 'grid' }) {
   if (variant === 'slider') {
     return <SliderProjectCard project={project} onEnlarge={onEnlarge} onReadMore={onReadMore} />
@@ -7,6 +14,7 @@ export default function ProjectCard({ project, onEnlarge, onReadMore, variant = 
   return <GridProjectCard project={project} onEnlarge={onEnlarge} onReadMore={onReadMore} />
 }
 
+/* ---------- shared image protection props ---------- */
 const IMG_PROTECT = {
   draggable: false,
   onDragStart: (e) => e.preventDefault(),
@@ -15,32 +23,28 @@ const IMG_PROTECT = {
 
 /* ---------- Grid variant ---------- */
 function GridProjectCard({ project, onReadMore, onEnlarge }) {
-  // Safely extract the cover image URL and blur state
-  const rawCover = project.images?.[0];
-  const coverUrl = typeof rawCover === 'string' ? rawCover : (rawCover?.url || '/assets/slider.png');
-  const isBlurred = typeof rawCover === 'object' ? rawCover?.blurred : false;
+  const cover = project.images?.[0] || '/assets/slider.png'
 
   return (
     <div className="bg-white rounded-3xl shadow-lg overflow-hidden border border-white/40 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
       <div
         className="relative aspect-[4/3] overflow-hidden bg-gray-100 cursor-pointer group select-none"
-        // Updated to pass the raw image objects to the lightbox
-        onClick={() => onEnlarge && onEnlarge(coverUrl, project.images, project.title)}
+        onClick={() => onEnlarge && onEnlarge(cover, project.images?.length ? project.images : [cover], project.title, project.blurImage)}
         onContextMenu={(e) => e.preventDefault()}
         title="Click to enlarge image"
       >
         <img
-          src={coverUrl}
+          src={cover}
           alt={project.title}
           loading="lazy"
           className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
-            isBlurred ? 'img-blur-cover' : ''
+            project.blurImage ? 'img-blur-cover' : ''
           }`}
           onError={(e) => { e.target.src = '/assets/slider.png' }}
           {...IMG_PROTECT}
         />
 
-        {isBlurred && (
+        {project.blurImage && (
           <span className="absolute top-3 right-3 bg-black/70 backdrop-blur-sm text-white px-3 py-1 rounded-full text-[11px] font-semibold shadow-md inline-flex items-center gap-1.5 z-10">
             <i className="fa-solid fa-eye-slash"></i>
             Confidential
@@ -87,12 +91,9 @@ function GridProjectCard({ project, onReadMore, onEnlarge }) {
 
 /* ---------- Slider variant ---------- */
 function SliderProjectCard({ project, onEnlarge, onReadMore }) {
-  // Map images to ensure backward compatibility
-  const safeImages = project.images?.map(img => typeof img === 'string' ? { url: img, blurred: false } : img) || [{ url: '/assets/slider.png', blurred: false }]
-
-  // Track index instead of URL string
-  const [activeIndex, setActiveIndex] = useState(0)
-  const activeImage = safeImages[activeIndex]
+  const [activeImage, setActiveImage] = useState(
+    project.images && project.images.length > 0 ? project.images[0] : '/assets/slider.png'
+  )
 
   return (
     <div className="px-2 flex justify-center w-full">
@@ -110,7 +111,12 @@ function SliderProjectCard({ project, onEnlarge, onReadMore }) {
 
             <p
               className="text-gray-600 leading-relaxed text-sm md:text-base font-medium font-inter"
-              style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+              style={{
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}
             >
               {project.description}
             </p>
@@ -128,21 +134,21 @@ function SliderProjectCard({ project, onEnlarge, onReadMore }) {
           {/* Images */}
           <div className="flex flex-col gap-4">
             <div
-              onClick={() => onEnlarge && onEnlarge(activeImage.url, project.images, project.title)}
+              onClick={() => onEnlarge && onEnlarge(activeImage, project.images, project.title, project.blurImage)}
               onContextMenu={(e) => e.preventDefault()}
               className="rounded-2xl overflow-hidden border border-gray-100 aspect-video shadow-md bg-gray-50 flex items-center justify-center cursor-pointer group relative select-none"
               title="Click to enlarge image"
             >
               <img
-                src={activeImage.url}
+                src={activeImage}
                 alt={project.title}
                 className={`w-full h-full object-cover transition-all duration-300 group-hover:scale-105 ${
-                  activeImage.blurred ? 'img-blur-cover' : ''
+                  project.blurImage ? 'img-blur-cover' : ''
                 }`}
                 onError={(e) => { e.target.src = '/assets/slider.png' }}
                 {...IMG_PROTECT}
               />
-              {activeImage.blurred && (
+              {project.blurImage && (
                 <span className="absolute top-3 right-3 bg-black/70 backdrop-blur-sm text-white px-3 py-1 rounded-full text-[11px] font-semibold shadow-md inline-flex items-center gap-1.5 z-10">
                   <i className="fa-solid fa-eye-slash"></i>
                   Confidential
@@ -155,21 +161,21 @@ function SliderProjectCard({ project, onEnlarge, onReadMore }) {
               </div>
             </div>
 
-            {safeImages.length > 1 && (
+            {project.images && project.images.length > 1 && (
               <div className="flex gap-2 overflow-x-auto py-1 scrollbar-thin">
-                {safeImages.map((img, i) => (
+                {project.images.map((img, i) => (
                   <button
                     key={i}
-                    onClick={() => setActiveIndex(i)}
+                    onClick={() => setActiveImage(img)}
                     onContextMenu={(e) => e.preventDefault()}
                     className={`h-12 w-20 rounded-lg overflow-hidden border-2 flex-shrink-0 transition-all ${
-                      activeIndex === i ? 'border-[#0a85a7] scale-105 shadow-sm' : 'border-gray-200 hover:border-gray-300'
+                      activeImage === img ? 'border-[#0a85a7] scale-105 shadow-sm' : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     <img
-                      src={img.url}
+                      src={img}
                       alt={`Thumb ${i}`}
-                      className={`w-full h-full object-cover ${img.blurred ? 'img-blur-thumb' : ''}`}
+                      className={`w-full h-full object-cover ${project.blurImage ? 'img-blur-thumb' : ''}`}
                       {...IMG_PROTECT}
                     />
                   </button>

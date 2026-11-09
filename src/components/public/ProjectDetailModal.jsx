@@ -6,21 +6,21 @@ const getVideoUrl = (project) => {
   return /^https?:\/\//i.test(url) ? url : ''
 }
 
+/* Shared img protection */
 const IMG_PROTECT = {
   draggable: false,
   onDragStart: (e) => e.preventDefault(),
   onContextMenu: (e) => e.preventDefault(),
 }
 
+/**
+ * "Read More" popup for a project.
+ * Main image is clickable → opens the shared lightbox via onEnlarge.
+ * All images are protected against right-click / drag-to-desktop.
+ */
 export default function ProjectDetailModal({ isOpen, project, onClose, onEnlarge }) {
   const [currentIndex, setCurrentIndex] = useState(0)
-
-  // Normalize images to ensure objects
-  const safeImages = project?.images?.length
-    ? project.images.map(img => typeof img === 'string' ? { url: img, blurred: false } : img)
-    : [{ url: '/assets/slider.png', blurred: false }]
-
-  const currentImage = safeImages[currentIndex] || safeImages[0]
+  const images = project?.images?.length ? project.images : ['/assets/slider.png']
 
   useEffect(() => {
     if (isOpen) setCurrentIndex(0)
@@ -30,9 +30,9 @@ export default function ProjectDetailModal({ isOpen, project, onClose, onEnlarge
     if (!isOpen) return
     const onKey = (e) => {
       if (e.key === 'Escape') onClose()
-      if (safeImages.length > 1) {
-        if (e.key === 'ArrowRight') setCurrentIndex((p) => (p + 1) % safeImages.length)
-        if (e.key === 'ArrowLeft') setCurrentIndex((p) => (p - 1 + safeImages.length) % safeImages.length)
+      if (images.length > 1) {
+        if (e.key === 'ArrowRight') setCurrentIndex((p) => (p + 1) % images.length)
+        if (e.key === 'ArrowLeft') setCurrentIndex((p) => (p - 1 + images.length) % images.length)
       }
     }
     document.body.style.overflow = 'hidden'
@@ -41,7 +41,7 @@ export default function ProjectDetailModal({ isOpen, project, onClose, onEnlarge
       document.body.style.overflow = 'unset'
       window.removeEventListener('keydown', onKey)
     }
-  }, [isOpen, safeImages.length, onClose])
+  }, [isOpen, images.length, onClose])
 
   if (!isOpen || !project) return null
 
@@ -55,6 +55,7 @@ export default function ProjectDetailModal({ isOpen, project, onClose, onEnlarge
         className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-gray-100 shrink-0">
           <span className="bg-[#0a85a7] text-white px-3 py-1 rounded-full text-xs font-bold">
             Project #{project.projectNumber?.toString().padStart(2, '0') || '—'}
@@ -68,20 +69,22 @@ export default function ProjectDetailModal({ isOpen, project, onClose, onEnlarge
           </button>
         </div>
 
+        {/* Scrollable body */}
         <div className="overflow-y-auto p-5 sm:p-7">
+          {/* Main image — clickable to open the lightbox */}
           <div
             className="rounded-2xl overflow-hidden bg-gray-50 aspect-video mb-4 flex items-center justify-center relative cursor-zoom-in"
-            onClick={() => onEnlarge?.(currentImage.url, safeImages.map(img => img.url), project.title)}
+            onClick={() => onEnlarge?.(images[currentIndex], images, project.title, project.blurImage)}
             onContextMenu={(e) => e.preventDefault()}
           >
             <img
-              src={currentImage.url}
+              src={images[currentIndex]}
               alt={project.title}
-              className={`w-full h-full object-contain ${currentImage.blurred ? 'img-blur-modal' : ''}`}
+              className={`w-full h-full object-contain ${project.blurImage ? 'img-blur-modal' : ''}`}
               onError={(e) => { e.target.src = '/assets/slider.png' }}
               {...IMG_PROTECT}
             />
-            {currentImage.blurred && (
+            {project.blurImage && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <span className="bg-black/60 backdrop-blur-sm text-white px-4 py-2 rounded-full text-xs font-semibold inline-flex items-center gap-2 shadow-lg">
                   <i className="fa-solid fa-lock text-xs"></i>
@@ -91,9 +94,10 @@ export default function ProjectDetailModal({ isOpen, project, onClose, onEnlarge
             )}
           </div>
 
-          {safeImages.length > 1 && (
+          {/* Thumbnails */}
+          {images.length > 1 && (
             <div className="flex gap-2 overflow-x-auto pb-2 mb-5 scrollbar-thin">
-              {safeImages.map((img, i) => (
+              {images.map((img, i) => (
                 <button
                   key={i}
                   onClick={() => setCurrentIndex(i)}
@@ -103,10 +107,10 @@ export default function ProjectDetailModal({ isOpen, project, onClose, onEnlarge
                   }`}
                 >
                   <img
-                    src={img.url}
+                    src={img}
                     alt={`Thumb ${i + 1}`}
                     loading="lazy"
-                    className={`w-full h-full object-cover ${img.blurred ? 'img-blur-thumb' : ''}`}
+                    className={`w-full h-full object-cover ${project.blurImage ? 'img-blur-thumb' : ''}`}
                     {...IMG_PROTECT}
                   />
                 </button>
@@ -114,11 +118,13 @@ export default function ProjectDetailModal({ isOpen, project, onClose, onEnlarge
             </div>
           )}
 
+          {/* Title + description blocks */}
           <h2 className="text-2xl sm:text-3xl font-extrabold text-[#086B87] mb-4 leading-tight font-inter">
             {project.title}
           </h2>
           <ProjectDescriptionBlocks project={project} />
 
+          {/* Visit / Watch buttons */}
           {((project.link && project.link.trim()) || getVideoUrl(project)) && (
             <div className="mt-6 pt-5 border-t border-gray-100 flex flex-wrap gap-3">
               {project.link && project.link.trim() && (
