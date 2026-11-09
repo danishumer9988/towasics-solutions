@@ -85,7 +85,14 @@ function AnimatedCounter({
 function PortfolioSlider() {
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
-  const [modalState, setModalState] = useState({ isOpen: false, image: '', images: [], title: '', blurImage: false })
+  const [modalState, setModalState] = useState({
+    isOpen: false,
+    image: '',
+    images: [],
+    title: '',
+    project: null,       // NEW
+    blurImage: false,
+  })
   const [detailProject, setDetailProject] = useState(null)
   const sliderRef = useRef(null)
 
@@ -104,18 +111,27 @@ function PortfolioSlider() {
     fetchProjects()
   }, [])
 
-  const handleEnlargeImage = (image, images, title, blurImage = false) => {
+  /* NEW: 4th arg is now `project` (was blurImage) */
+  const handleEnlargeImage = (image, images, title, project = null) => {
     setModalState({
       isOpen: true,
       image,
       images: images && images.length > 0 ? images : [image],
       title,
-      blurImage,
+      project,
+      blurImage: false,
     })
   }
 
   const handleCloseModal = () => {
-    setModalState({ isOpen: false, image: '', images: [], title: '', blurImage: false })
+    setModalState({
+      isOpen: false,
+      image: '',
+      images: [],
+      title: '',
+      project: null,
+      blurImage: false,
+    })
   }
 
   if (loading) {
@@ -210,6 +226,7 @@ function PortfolioSlider() {
         image={modalState.image}
         images={modalState.images}
         title={modalState.title}
+        project={modalState.project}
         blurImage={modalState.blurImage}
         onClose={handleCloseModal}
       />

@@ -1,93 +1,109 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
-import axios from 'axios'
-import Navbar from '../components/Navbar'
-import Footer from '../components/Footer'
-import PageHeader from '../components/PageHeader'
-import SEO from '../components/SEO'
-import ProjectImageLightbox from '../components/public/ProjectImageLightbox'
-import ProjectDetailModal from '../components/public/ProjectDetailModal'
-import ProjectCard from '../components/public/ProjectCard'
-import { API_BASE_URL } from '../config'
+import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import axios from 'axios';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import PageHeader from '../components/PageHeader';
+import SEO from '../components/SEO';
+import ProjectImageLightbox from '../components/public/ProjectImageLightbox';
+import ProjectDetailModal from '../components/public/ProjectDetailModal';
+import ProjectCard from '../components/public/ProjectCard';
+import { API_BASE_URL } from '../config';
 
-const PER_PAGE = 20
+const PER_PAGE = 20;
 
-/* ===================== Main Page ===================== */
 export default function Portfolio() {
-  const [industries, setIndustries] = useState([])
-  const [projects, setProjects] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [selectedIndustry, setSelectedIndustry] = useState('all')
-  const [page, setPage] = useState(1)
-  const [selectedProject, setSelectedProject] = useState(null)
-  const [lightbox, setLightbox] = useState({ isOpen: false, image: '', images: [], title: '', blurImage: false })
+  const [industries, setIndustries] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [selectedIndustry, setSelectedIndustry] = useState('all');
+  const [page, setPage] = useState(1);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [lightbox, setLightbox] = useState({
+    isOpen: false,
+    image: '',
+    images: [],
+    title: '',
+    project: null,   // NEW
+    blurImage: false,
+  });
 
   useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      setLoading(true)
-      setError('')
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError('');
       try {
         const [indRes, projRes] = await Promise.all([
           axios.get(`${API_BASE_URL}/industries`),
           axios.get(`${API_BASE_URL}/projects?active=true`),
-        ])
-        if (cancelled) return
-        setIndustries(Array.isArray(indRes.data) ? indRes.data : [])
-        setProjects(Array.isArray(projRes.data) ? projRes.data : [])
+        ]);
+        if (cancelled) return;
+        setIndustries(Array.isArray(indRes.data) ? indRes.data : []);
+        setProjects(Array.isArray(projRes.data) ? projRes.data : []);
       } catch (err) {
-        console.error(err)
-        if (!cancelled) setError('Failed to load portfolio. Please try again.')
+        console.error(err);
+        if (!cancelled) setError('Failed to load portfolio. Please try again.');
       } finally {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) setLoading(false);
       }
-    })()
-    return () => { cancelled = true }
-  }, [])
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const filtered = useMemo(() => {
-    if (selectedIndustry === 'all') return projects
-    return projects.filter((p) => p.industry === selectedIndustry)
-  }, [projects, selectedIndustry])
+    if (selectedIndustry === 'all') return projects;
+    return projects.filter((p) => p.industry === selectedIndustry);
+  }, [projects, selectedIndustry]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE))
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
   const pageItems = useMemo(() => {
-    const start = (page - 1) * PER_PAGE
-    return filtered.slice(start, start + PER_PAGE)
-  }, [filtered, page])
+    const start = (page - 1) * PER_PAGE;
+    return filtered.slice(start, start + PER_PAGE);
+  }, [filtered, page]);
 
   const handleSelectIndustry = (slug) => {
-    setSelectedIndustry(slug)
-    setPage(1)
-  }
+    setSelectedIndustry(slug);
+    setPage(1);
+  };
 
   const goToPage = (p) => {
-    if (p < 1 || p > totalPages) return
-    setPage(p)
-    window.scrollTo({ top: 320, behavior: 'smooth' })
-  }
+    if (p < 1 || p > totalPages) return;
+    setPage(p);
+    window.scrollTo({ top: 320, behavior: 'smooth' });
+  };
 
-  const handleEnlargeImage = (image, images, title, blurImage = false) => {
+  /* NEW: 4th arg is now the project (was blurImage) */
+  const handleEnlargeImage = (image, images, title, project = null) => {
     setLightbox({
       isOpen: true,
       image,
       images: images && images.length > 0 ? images : [image],
       title,
-      blurImage,
-    })
-  }
+      project,
+      blurImage: false,
+    });
+  };
 
   const handleCloseLightbox = () => {
-    setLightbox({ isOpen: false, image: '', images: [], title: '', blurImage: false })
-  }
+    setLightbox({
+      isOpen: false,
+      image: '',
+      images: [],
+      title: '',
+      project: null,
+      blurImage: false,
+    });
+  };
 
   const countForIndustry = (slug) =>
-    slug === 'all' ? projects.length : projects.filter((p) => p.industry === slug).length
+    slug === 'all' ? projects.length : projects.filter((p) => p.industry === slug).length;
 
   return (
     <div className="min-h-screen bg-white">
-
       <SEO
         title="Portfolio — Delivered Data Scraping & Automation Projects"
         description="235+ delivered projects across web scraping, intelligent automation, AI bots, super intelligence, and dashboards. Browse featured case studies."
@@ -96,7 +112,6 @@ export default function Portfolio() {
       />
       <Navbar />
 
-      {/* ===================== HERO ===================== */}
       <PageHeader
         title="Portfolio"
         description="Explore the projects we've delivered across industries, from web scraping and automation to full-stack AI-powered IoT systems."
@@ -104,7 +119,6 @@ export default function Portfolio() {
         imageAlt="Portfolio"
       />
 
-      {/* ===================== INDUSTRY TAB BAR ===================== */}
       <section className="sticky top-16 z-40 bg-white/60 backdrop-blur-md border-b border-gray-100/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-5">
@@ -121,7 +135,9 @@ export default function Portfolio() {
                 All
                 <span
                   className={`ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full ${
-                    selectedIndustry === 'all' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
+                    selectedIndustry === 'all'
+                      ? 'bg-white/20 text-white'
+                      : 'bg-gray-100 text-gray-600'
                   }`}
                 >
                   {projects.length}
@@ -129,8 +145,8 @@ export default function Portfolio() {
               </button>
 
               {industries.map((ind) => {
-                const count = countForIndustry(ind.slug)
-                const active = selectedIndustry === ind.slug
+                const count = countForIndustry(ind.slug);
+                const active = selectedIndustry === ind.slug;
                 return (
                   <button
                     key={ind._id}
@@ -151,17 +167,15 @@ export default function Portfolio() {
                       {count}
                     </span>
                   </button>
-                )
+                );
               })}
             </div>
           </div>
         </div>
       </section>
 
-      {/* ===================== PROJECT GRID ===================== */}
       <section className="py-12 sm:py-16 bg-[#F7FBFD] min-h-[400px]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
               {Array.from({ length: 6 }).map((_, i) => (
@@ -185,7 +199,9 @@ export default function Portfolio() {
             <div className="max-w-xl mx-auto text-center bg-white rounded-2xl shadow-md p-10 border border-[#e2eff2]">
               <i className="fa-regular fa-folder-open text-[#0a85a7] text-4xl mb-4"></i>
               <h3 className="text-xl font-bold text-[#086B87] mb-2">
-                {selectedIndustry === 'all' ? 'Portfolio coming soon' : 'No projects in this industry yet'}
+                {selectedIndustry === 'all'
+                  ? 'Portfolio coming soon'
+                  : 'No projects in this industry yet'}
               </h3>
               <p className="text-gray-600 text-sm">
                 {selectedIndustry === 'all'
@@ -207,7 +223,6 @@ export default function Portfolio() {
                 ))}
               </div>
 
-              {/* Pagination */}
               {totalPages > 1 && (
                 <div className="mt-12 flex items-center justify-center gap-1.5 flex-wrap">
                   <button
@@ -226,14 +241,14 @@ export default function Portfolio() {
 
                   {Array.from({ length: totalPages }, (_, i) => i + 1)
                     .filter((n) => {
-                      if (totalPages <= 7) return true
-                      if (n === 1 || n === totalPages) return true
-                      if (Math.abs(n - page) <= 1) return true
-                      return false
+                      if (totalPages <= 7) return true;
+                      if (n === 1 || n === totalPages) return true;
+                      if (Math.abs(n - page) <= 1) return true;
+                      return false;
                     })
                     .map((n, idx, arr) => {
-                      const prev = arr[idx - 1]
-                      const gap = prev && n - prev > 1
+                      const prev = arr[idx - 1];
+                      const gap = prev && n - prev > 1;
                       return (
                         <span key={n} className="inline-flex items-center gap-1.5">
                           {gap && <span className="px-2 text-gray-400">…</span>}
@@ -249,7 +264,7 @@ export default function Portfolio() {
                             {n}
                           </button>
                         </span>
-                      )
+                      );
                     })}
 
                   <button
@@ -269,7 +284,8 @@ export default function Portfolio() {
               )}
 
               <p className="text-center text-xs text-gray-500 mt-5">
-                Showing {pageItems.length} of {filtered.length} project{filtered.length === 1 ? '' : 's'}
+                Showing {pageItems.length} of {filtered.length} project
+                {filtered.length === 1 ? '' : 's'}
                 {totalPages > 1 && ` · Page ${page} of ${totalPages}`}
               </p>
             </>
@@ -277,14 +293,16 @@ export default function Portfolio() {
         </div>
       </section>
 
-      {/* ===================== CTA ===================== */}
       <section className="py-16 bg-white text-center px-4 max-w-4xl mx-auto">
         <h2 className="text-3xl md:text-4xl font-bold text-[#086B87] mb-4">
           Have a project in mind?
         </h2>
         <p className="text-slate-600 text-base md:text-lg font-medium leading-relaxed max-w-2xl mx-auto">
           Let's discuss how we can help you engineer your project.{' '}
-          <Link to="/contactus" className="text-[#3EB5D6] underline hover:text-[#096078] font-semibold transition">
+          <Link
+            to="/contactus"
+            className="text-[#3EB5D6] underline hover:text-[#096078] font-semibold transition"
+          >
             Schedule a call
           </Link>
           .
@@ -303,11 +321,12 @@ export default function Portfolio() {
         image={lightbox.image}
         images={lightbox.images}
         title={lightbox.title}
+        project={lightbox.project}
         blurImage={lightbox.blurImage}
         onClose={handleCloseLightbox}
       />
 
       <Footer />
     </div>
-  )
+  );
 }

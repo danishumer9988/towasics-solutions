@@ -670,6 +670,11 @@ img {
   filter: none !important;
 }
 
+/* ===== Per-image effects — override the global reset above ===== */
+.effect-image {
+  filter: var(--fx-filter, none) !important;
+}
+
 /* ===== Navbar Link Font Spec ===== */
 .nav-item-link {
   font-family: 'Inter', sans-serif !important;

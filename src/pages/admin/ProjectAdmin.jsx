@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import axios from 'axios'
-import { API_BASE_URL } from '../../config'
-import AdminLayout from '../../components/admin/AdminLayout'
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { API_BASE_URL } from '../../config';
+import AdminLayout from '../../components/admin/AdminLayout';
 import {
   PageHeader, Card, Button, Badge, EmptyState,
   TableSkeleton, ConfirmDialog, Alert,
-} from '../../components/admin/ui'
+} from '../../components/admin/ui';
+import { getImageUrl } from '../../lib/imageEffects.jsx'; // NEW IMPORT
 
 const htmlToText = (html = '') =>
   html
@@ -25,7 +26,6 @@ const blockPreview = (p) => {
   return p.description || '—'
 }
 
-// Legacy-safe active check: undefined => treated as active
 const isProjectActive = (p) => p.isActive !== false
 
 export default function ProjectAdmin() {
@@ -34,7 +34,7 @@ export default function ProjectAdmin() {
   const [error, setError] = useState('')
   const [confirmId, setConfirmId] = useState(null)
   const [deleting, setDeleting] = useState(false)
-  const [togglingId, setTogglingId] = useState(null)   // NEW
+  const [togglingId, setTogglingId] = useState(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -68,12 +68,10 @@ export default function ProjectAdmin() {
     }
   }
 
-  /* ---------- NEW: toggle active ---------- */
   const toggleActive = async (project) => {
     if (togglingId) return
     setTogglingId(project._id)
     const nextState = !isProjectActive(project)
-    // Optimistic update
     setProjects((prev) =>
       prev.map((p) => (p._id === project._id ? { ...p, isActive: nextState } : p))
     )
@@ -85,7 +83,6 @@ export default function ProjectAdmin() {
       )
     } catch (err) {
       console.error(err)
-      // Revert on failure
       setProjects((prev) =>
         prev.map((p) => (p._id === project._id ? { ...p, isActive: project.isActive } : p))
       )
@@ -117,7 +114,6 @@ export default function ProjectAdmin() {
         </div>
       )}
 
-      {/* Summary chips */}
       {!loading && projects.length > 0 && (
         <div className="mb-4 flex flex-wrap gap-2">
           <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-50 border border-brand-100 text-xs font-medium text-brand-700">
@@ -168,12 +164,21 @@ export default function ProjectAdmin() {
                   const blockCount = Array.isArray(p.descriptions) ? p.descriptions.length : 0
                   const active = isProjectActive(p)
                   const busy = togglingId === p._id
+
+                  // FIX: Use getImageUrl to extract the URL from the object
+                  const coverUrl = p.images?.[0] ? getImageUrl(p.images[0]) : null;
+
                   return (
                     <tr key={p._id} className="border-b border-line last:border-0 hover:bg-gray-50/60">
                       <td className="px-5 py-3"><Badge tone="brand">#{p.projectNumber}</Badge></td>
                       <td className="px-5 py-3">
-                        {p.images?.[0] ? (
-                          <img src={p.images[0]} alt="" className="w-10 h-10 rounded-lg object-cover border border-line" />
+                        {coverUrl ? (
+                          <img
+                            src={coverUrl}
+                            alt=""
+                            className="w-10 h-10 rounded-lg object-cover border border-line"
+                            onError={(e) => { e.target.onerror = null; e.target.src = '/assets/slider.png'; }}
+                          />
                         ) : (
                           <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-ink-subtle text-xs">—</div>
                         )}
@@ -188,14 +193,11 @@ export default function ProjectAdmin() {
                           <span className="text-xs text-ink-subtle">—</span>
                         )}
                       </td>
-
-                      {/* NEW: Status toggle */}
                       <td className="px-5 py-3">
                         <button
                           type="button"
                           onClick={() => toggleActive(p)}
                           disabled={busy}
-                          title={active ? 'Click to deactivate' : 'Click to activate'}
                           className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition cursor-pointer disabled:opacity-60 disabled:cursor-wait ${
                             active
                               ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
@@ -210,7 +212,6 @@ export default function ProjectAdmin() {
                           {active ? 'Active' : 'Inactive'}
                         </button>
                       </td>
-
                       <td className="px-5 py-3 font-medium text-ink">{p.title}</td>
                       <td className="px-5 py-3 text-ink-muted hidden md:table-cell max-w-md">
                         <p className="truncate">{blockPreview(p)}</p>
