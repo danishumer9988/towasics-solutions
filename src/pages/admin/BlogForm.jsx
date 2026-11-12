@@ -94,8 +94,9 @@ export default function BlogForm({ mode = 'create' }) {
     }
     try {
       if (isEdit) {
-        await axios.put(`${API_BASE_URL}/blogs/${id}`, postData)
-        navigate('/blogs')
+        // CHANGED: Capture the response and redirect to the updated blog's public page
+        const res = await axios.put(`${API_BASE_URL}/blogs/${id}`, postData)
+        navigate(`/blogs/${res.data.slug}`)
       } else {
         const res = await axios.post(`${API_BASE_URL}/blogs/new`, postData)
         navigate(`/blogs/${res.data.slug}`)

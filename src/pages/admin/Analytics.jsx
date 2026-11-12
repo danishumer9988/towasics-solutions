@@ -514,15 +514,14 @@ export default function Analytics() {
       </div>
 
       {/* ────────── Row 2: Engagement (accepted only) ────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
         {loading || !summary ? (
-          Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-28" />)
+          Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28" />)
         ) : (
           <>
             <StatCard label="Sessions"     value={summary.sessions}   icon="fa-clock"          tone="info"    hint="Accepted only" />
             <StatCard label="Page Views"   value={summary.pageViews}  icon="fa-eye"            tone="success" hint="Accepted only" />
             <StatCard label="Clicks"       value={summary.clicks}     icon="fa-hand-pointer"   tone="warning" hint="Accepted only" />
-            <StatCard label="Avg. Session" value={fmtDuration(summary.avgSessionMs)} icon="fa-hourglass-half" tone="brand" hint="Accepted only" />
             <StatCard label="Bounce Rate"  value={fmtPct(summary.bounceRate)}        icon="fa-arrow-right-from-bracket" tone="warning" hint="Accepted only" />
           </>
         )}
