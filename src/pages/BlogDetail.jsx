@@ -49,7 +49,6 @@ export default function BlogDetail() {
     <div className="min-h-screen bg-brand-50 flex flex-col justify-between">
       <div>
 
-        {/* ✅ SEO — dynamic for each blog post */}
         <SEO
           title={blog?.title || 'Blog Post'}
           description={
@@ -104,16 +103,8 @@ export default function BlogDetail() {
             <article className="prose max-w-none">
               <h1 className="text-3xl md:text-4xl font-extrabold text-brand-850 mb-4">{blog.title}</h1>
 
+              {/* UPDATED: Removed Author & Avatar, Kept Only Date */}
               <div className="flex items-center gap-4 text-sm text-gray-500 font-semibold mb-8 border-b pb-4">
-                <div className="flex items-center gap-2">
-                  <img
-                    src="https://secure.gravatar.com/avatar/c64d729959c5acf420eadf0cee6fe7957c0abbcd4faa72aaabf5511b17e16aae?s=120&d=mm&r=g"
-                    alt="author"
-                    className="w-8 h-8 rounded-full border"
-                  />
-                  <span>{blog.author || 'Admin'}</span>
-                </div>
-                <span>•</span>
                 <span>{blog.createdAt ? new Date(blog.createdAt).toLocaleDateString() : 'N/A'}</span>
               </div>
 

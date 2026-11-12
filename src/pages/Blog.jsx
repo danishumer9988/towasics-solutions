@@ -44,10 +44,23 @@ export default function Blog() {
     return blogs.filter(b => b.category === slug).length
   }
 
+  const handleShare = (e, blog) => {
+    e.preventDefault()
+    const url = `${window.location.origin}/blogs/${blog.slug}`
+    if (navigator.share) {
+      navigator.share({
+        title: blog.title,
+        text: `Check out this blog post: ${blog.title}`,
+        url,
+      }).catch(console.error)
+    } else {
+      navigator.clipboard.writeText(url)
+      alert('Blog link copied to clipboard!')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-white">
-
-      {/* ✅ SEO */}
       <SEO
         title="Blog — Data Scraping, Automation & Super Intelligence Insights"
         description="Latest trends, tutorials, and case studies on web scraping, automation, super intelligence, and AI-powered data extraction from Towasic Solutions."
@@ -159,13 +172,23 @@ export default function Blog() {
                       </p>
                     </div>
 
-                    <div>
+                    <div className="flex items-center justify-between mt-4">
                       <Link
                         to={`/blogs/${blog.slug}`}
                         className="inline-block border border-[#0A85A7] text-[#0A85A7] hover:bg-[#EEFCFD] font-semibold text-sm px-6 py-2 rounded-lg transition"
                       >
                         Read More
                       </Link>
+
+                      {/* NEW SHARE BUTTON */}
+                      <button
+                        type="button"
+                        onClick={(e) => handleShare(e, blog)}
+                        className="text-gray-400 hover:text-[#0a85a7] transition-colors p-2"
+                        title="Share Blog"
+                      >
+                        <i className="fa-solid fa-share-nodes text-base"></i>
+                      </button>
                     </div>
                   </div>
                 </div>

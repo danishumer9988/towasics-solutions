@@ -25,6 +25,21 @@ export default function HomeBlogs() {
     fetchBlogs()
   }, [])
 
+  const handleShare = (e, blog) => {
+    e.preventDefault()
+    const url = `${window.location.origin}/blogs/${blog.slug}`
+    if (navigator.share) {
+      navigator.share({
+        title: blog.title,
+        text: `Check out this blog post: ${blog.title}`,
+        url,
+      }).catch(console.error)
+    } else {
+      navigator.clipboard.writeText(url)
+      alert('Blog link copied to clipboard!')
+    }
+  }
+
   if (loading) {
     return (
       <section className="py-20 bg-white">
@@ -71,10 +86,10 @@ export default function HomeBlogs() {
               <div key={post._id} className="bg-white rounded-3xl overflow-hidden shadow-lg border border-gray-100 hover:shadow-xl transition-all flex flex-col justify-between">
                 <div>
                   <div className="h-48 overflow-hidden bg-gray-50">
-                    <img 
-                      src={post.featuredImage || "/assets/blogimage.png"} 
-                      className="w-full h-full object-cover" 
-                      alt={post.title} 
+                    <img
+                      src={post.featuredImage || "/assets/blogimage.png"}
+                      className="w-full h-full object-cover"
+                      alt={post.title}
                       onError={(e) => { e.target.src = "/assets/blogimage.png" }}
                     />
                   </div>
@@ -90,10 +105,20 @@ export default function HomeBlogs() {
                   </div>
                 </div>
 
-                <div className="p-6 pt-0 mt-4 text-center">
+                <div className="p-6 pt-0 mt-4 flex items-center justify-between">
                   <Link to={`/blogs/${post.slug}`} className="inline-block text-[#0a85a7] font-semibold text-sm hover:underline">
                     Read More →
                   </Link>
+
+                  {/* NEW SHARE BUTTON */}
+                  <button
+                    type="button"
+                    onClick={(e) => handleShare(e, post)}
+                    className="text-gray-400 hover:text-[#0a85a7] transition-colors p-2"
+                    title="Share Blog"
+                  >
+                    <i className="fa-solid fa-share-nodes text-base"></i>
+                  </button>
                 </div>
               </div>
             )
