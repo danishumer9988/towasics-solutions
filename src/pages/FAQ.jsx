@@ -163,8 +163,8 @@ export default function FAQ() {
     <div className="min-h-screen bg-white font-inter">
 
     <SEO
-        title="Frequently Asked Questions — Data Scraping & Super Intelligence"
-        description="Answers to common questions about our data scraping process, delivery formats, compliance, pricing, and super intelligence solutions."
+        title="FAQs | Web Scraping & Super Intelligence Automation | Towasic Solutions"
+        description="Find answers to common questions about web scraping, automation bots, SI and LLM solutions, data enrichment, project delivery, pricing, and compliance."
         path="/faq"
         image="/assets/og-image.jpg"
         structuredData={faqSchema}

@@ -105,8 +105,8 @@ export default function Portfolio() {
   return (
     <div className="min-h-screen bg-white">
       <SEO
-        title="Portfolio — Delivered Data Scraping & Automation Projects"
-        description="235+ delivered projects across web scraping, intelligent automation, AI bots, super intelligence, and dashboards. Browse featured case studies."
+        title="Our Portfolio | Web Scraping & SI Automation | IoT Projects | Towasic"
+        description="Explore Towasic Solutions' portfolio of web scraping systems, intelligent automation, LLM bots, super intelligence solutions, and custom software projects."
         path="/portfolio"
         image="/assets/og-image.jpg"
       />

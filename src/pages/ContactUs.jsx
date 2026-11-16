@@ -12,8 +12,8 @@ export default function ContactUs() {
 
       {/* ✅ SEO */}
       <SEO
-        title="Contact Us — Let's Talk About Your Project"
-        description="Talk to our team about your data scraping, automation, or super intelligence project. Offices in Texas, Doha, and Lahore. Response within 48 hours."
+        title="Contact Towasic Solutions | Discuss Your Automation Project"
+        description="Have a project in mind? Contact Towasic Solutions for web scraping, LLM bots, intelligent automation, data enrichment and IoT solutions. Let's discuss your requirements."
         path="/contactus"
         image="/assets/og-image.jpg"
         structuredData={{

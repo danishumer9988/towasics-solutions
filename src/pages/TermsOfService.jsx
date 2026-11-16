@@ -23,8 +23,8 @@ export default function TermsOfService() {
     <div className="min-h-screen bg-white font-inter">
 
     <SEO
-        title="Terms of Service"
-        description="Terms governing the use of Towasic Solutions' data scraping, automation, and super intelligence services."
+        title="Terms of Service | Towasic Solutions"
+        description="Read the Terms of Service governing your use of the Towasic Solutions website, web scraping services, automation solutions, and related offerings."
         path="/terms-of-service"
     />
       <Navbar />

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Towasic Solutions — Logo OG Image</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #0a0a0a; font-family: 'Inter', sans-serif; }
+
+  .og-card {
+    width: 1200px;
+    height: 630px;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #041F2C 0%, #063546 30%, #086B87 70%, #0a85a7 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Dot grid overlay */
+  .og-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(97, 247, 255, 0.12) 1px, transparent 1px);
+    background-size: 28px 28px;
+    opacity: 0.6;
+  }
+
+  /* Radial ambient light behind logo */
+  .og-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(53, 217, 225, 0.25) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  /* Blurred glow orbs */
+  .orb { position: absolute; border-radius: 50%; filter: blur(120px); pointer-events: none; }
+  .orb-1 { width: 600px; height: 600px; background: #35D9E1; top: -200px; left: -100px; opacity: 0.25; }
+  .orb-2 { width: 500px; height: 500px; background: #0a85a7; bottom: -200px; right: -100px; opacity: 0.45; }
+  .orb-3 { width: 400px; height: 400px; background: #61F7FF; top: 30%; left: 40%; opacity: 0.15; }
+
+  /* Logo container */
+  .logo-container {
+    position: relative;
+    z-index: 10;
+    background: #ffffff;
+    padding: 30px 60px;
+    border-radius: 32px;
+    box-shadow:
+      0 30px 60px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+
+  /* Real Logo Image */
+  .logo-image {
+    height: 160px; /* Adjust this if the logo looks too big/small */
+    width: auto;
+    max-width: 600px;
+    object-fit: contain;
+    display: block;
+  }
+</style>
+</head>
+<body>
+<div class="og-card">
+  <!-- Ambient Backgrounds -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <!-- Centered Real Logo -->
+  <div class="logo-container">
+    <!-- Using the exact path from your Navbar -->
+    <img src="assets/logo.png" alt="Towasic Solutions" class="logo-image" />
+  </div>
+</div>
+</body>
+</html>

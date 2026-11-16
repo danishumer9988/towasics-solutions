@@ -259,8 +259,8 @@ export default function AboutUs() {
   return (
     <div className="min-h-screen bg-white">
       <SEO
-        title="About Us — Data Scraping, Automation & Super Intelligence Team"
-        description="Meet the team behind 235+ delivered projects in data scraping, intelligent automation, and super intelligence. 20+ specialists across Texas, Doha, and Lahore."
+        title="About Towasic Solutions | Web Scraping | SI Automation & IoT Solutions Experts"
+        description="Meet the team behind Towasic Solutions. We specialize in web scraping, intelligent automation, LLM bots, data enrichment, and custom IoT solutions with 235+ projects delivered worldwide."
         path="/aboutus"
         image="/assets/og-image.jpg"
       />

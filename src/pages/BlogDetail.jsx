@@ -50,11 +50,11 @@ export default function BlogDetail() {
       <div>
 
         <SEO
-          title={blog?.title || 'Blog Post'}
+          title={blog?.title || 'How to Build a Web Scraping Bot Using Python | Towasic Solutions'}
           description={
             plainDescription
               ? plainDescription
-              : 'Read the latest insights on data scraping, automation, and super intelligence from Towasic Solutions.'
+              : 'Learn how to build a Python web scraping bot, extract structured data from websites, handle requests, and automate data collection efficiently.'
           }
           path={`/blogs/${slug}`}
           image={blog?.featuredImage || '/assets/og-image.jpg'}

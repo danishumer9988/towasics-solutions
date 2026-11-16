@@ -155,7 +155,7 @@ export default function Home() {
 
       {/* ✅ SEO — with "super intelligence" keyword */}
       <SEO
-        title="Data Scraping, AI Automation & Super Intelligence Solutions"
+        title=" Towasic Solutions | Web Scraping, Web Automation bots & Super Intelligence Solutions "
         description="Towasic Solutions combines data scraping, intelligent automation, and super intelligence to build AI systems that work smarter. 235+ projects delivered. Trusted by 50+ clients worldwide."
         path="/"
         image="/assets/og-image.jpg"

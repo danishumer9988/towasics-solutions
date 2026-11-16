@@ -48,8 +48,8 @@ export default function Industries() {
     <div className="min-h-screen bg-white">
 
         <SEO
-          title="Industries We Serve — Data Scraping Solutions"
-          description="E-commerce, healthcare, finance, real estate, jobs, betting, and 10+ industries. Data scraping and super intelligence solutions tailored to your sector."
+          title="Industries We Serve | Web Scraping & SI Automation Bots | Towasic"
+          description="Explore how Towasic Solutions helps businesses across e-commerce, finance, healthcare, real estate, logistics, and other industries with web scraping and intelligent automation."
           path="/industries"
           image="/assets/og-image.jpg"
         />

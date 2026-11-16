@@ -23,8 +23,8 @@ export default function PrivacyPolicy() {
     <div className="min-h-screen bg-white font-inter">
 
     <SEO
-        title="Privacy Policy"
-        description="How Towasic Solutions collects, uses, and protects your personal data when you use our data scraping and automation services."
+        title="Privacy Policy | Towasic Solutions"
+        description="Learn how Towasic Solutions collects, uses, stores, and protects personal information when you visit our website or use our services."
         path="/privacy-policy"
     />
       <Navbar />
