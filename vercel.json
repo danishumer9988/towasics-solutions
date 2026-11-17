@@ -1,7 +1,7 @@
 {
   "rewrites": [
     {
-      "source": "/((?!api/|robots\\.txt|sitemap\\.xml|.*\\.txt|.*\\.xml|assets/.*|favicon\\.png).*)",
+      "source": "/((?!api/|robots\\.txt|sitemap\\.xml|.*\\.txt|.*\\.xml|assets/.*|favicon\\.png|index\\.html).*)",
       "has": [
         {
           "type": "header",
@@ -12,8 +12,19 @@
       "destination": "/api/og-meta?path=/$1"
     },
     {
-      "source": "/((?!api/|robots\\.txt|sitemap\\.xml|.*\\.txt|.*\\.xml|assets/.*|favicon\\.png).*)",
+      "source": "/((?!api/|robots\\.txt|sitemap\\.xml|.*\\.txt|.*\\.xml|assets/.*|favicon\\.png|index\\.html).*)",
       "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/og-image",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800"
+        }
+      ]
     }
   ]
 }

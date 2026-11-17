@@ -34,20 +34,26 @@ export default async function handler(request) {
 
   const url = new URL(request.url)
 
-  // Extract path passed from vercel.json (e.g. /contactus)
   let path = url.searchParams.get('path') || '/'
-  // Clean up double slashes if vercel passed //contactus
   path = path.replace(/^\/\//, '/')
   if (path === '') path = '/'
 
-  const indexResponse = await fetch(new URL('/index.html', url.origin))
+  // Fetch index.html safely, following any internal redirects
+  let indexUrl = new URL('/index.html', url.origin)
+  let indexResponse = await fetch(indexUrl)
+
+  if (indexResponse.status >= 300 && indexResponse.status < 400) {
+    const redirectLoc = indexResponse.headers.get('location')
+    if (redirectLoc) {
+      indexResponse = await fetch(redirectLoc)
+    }
+  }
+
   let html = await indexResponse.text()
 
   const { title, description } = getMetadataForPath(path)
   const fullTitle = withSuffix(title)
   const canonical = `${SITE_URL}${path === '/' ? '' : path}`
-
-  // Full HTTPS URL for the dynamic image
   const ogImage = buildOgImageUrl({ title, description, url: canonical })
 
   const meta = `
