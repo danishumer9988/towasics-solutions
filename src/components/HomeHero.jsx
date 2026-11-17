@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 /* =========================================================
-   1. INLINE CSS (Removed the drop shadow to fix the "border")
+   1. INLINE CSS (Cleaned for single colors)
    ========================================================= */
 const animationStyles = `
   .rtx-hero {
@@ -15,26 +15,29 @@ const animationStyles = `
   }
   .rtx-hero__stage {
     display: inline-block;
-    white-space: pre-wrap;
+    white-space: pre;
     min-width: 0;
-    line-height: 1.15;
   }
   .rtx-hero__char {
     display: inline-block;
     white-space: pre;
     vertical-align: baseline;
     backface-visibility: hidden;
-    will-change: opacity, transform;
+    will-change: opacity, transform, filter;
     animation: rtxHeroCharIn 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    /* Drop shadow so the bright colors pop against dark backgrounds */
+    filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.3));
   }
   @keyframes rtxHeroCharIn {
     from {
       opacity: 0;
       transform: translateY(0.14em) scale(0.94);
+      filter: blur(3px) drop-shadow(0px 2px 4px rgba(0,0,0,0.3));
     }
     to {
       opacity: 1;
       transform: translateY(0) scale(1);
+      filter: blur(0) drop-shadow(0px 2px 4px rgba(0,0,0,0.3));
     }
   }
   .rtx-hero__cursor {
@@ -67,6 +70,7 @@ const animationStyles = `
     .rtx-hero__char {
       animation: none !important;
       opacity: 1 !important;
+      filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.3)) !important;
       transform: none !important;
     }
     .rtx-hero__cursor {
@@ -77,61 +81,72 @@ const animationStyles = `
 `;
 
 /* =========================================================
-   2. YOUR EXACT COLOURS (Unchanged)
+   2. SHINY SINGLE COLORS (One for each word)
    ========================================================= */
 const SINGLE_COLORS = [
-  '#538d22', // 1. Olive Green
-  '#0e606b', // 2. Dark Teal
-  '#1697a6', // 3. Cyan
-  '#001e45', // 4. Navy Blue
-  '#1f0037', // 5. Deep Purple
-  '#003246', // 6. Dark Ocean
+  '#538d22', // Electric Cyan
+  '#0e606b', // Indigo
+  '#1697a6', // Royal Blue
+  '#001e45', // Emerald Green
+  '#1f0037', // Deep Violet
+  '#003246', // Sunset Orange
 ];
 
 /* =========================================================
-   3. COMPONENT (Handles Prefix + Dynamic Words)
+   3. COMPONENT
    ========================================================= */
+const DEFAULT_WORDS = [
+  'SUPER INTELLIGENCE',
+  'INTELLIGENT AUTOMATION',
+  'INSIGHTS',
+  'COMPETITIVE ADVANTAGE',
+  'SI-BOTS',
+  'AUTONOMOUS SYSTEMS',
+];
+
 function TypewriterFadeGradient({
-  prefix = '',
-  words = [],
-  typingSpeed = 60,
-  deletingSpeed = 30,
+  words = DEFAULT_WORDS,
+  typingSpeed = 85,
+  deletingSpeed = 38,
   pauseDuration = 2400,
+  startDelay = 0,
   cursor = true,
+  className = '',
+  onComplete,
   respectReducedMotion = true,
 }) {
-  const [prefixIndex, setPrefixIndex] = useState(0);
-  const [started, setStarted] = useState(prefix === '');
   const [index, setIndex] = useState(0);
   const [subIndex, setSubIndex] = useState(0);
   const [reverse, setReverse] = useState(false);
+  const [started, setStarted] = useState(startDelay === 0);
   const [reduced, setReduced] = useState(false);
 
-  // 1. Accessibility check
+  const onCompleteRef = useRef(onComplete);
+  useEffect(() => { onCompleteRef.current = onComplete; });
+
   useEffect(() => {
-    if (!respectReducedMotion || typeof window === 'undefined' || !window.matchMedia) return;
+    if (!respectReducedMotion || typeof window === 'undefined' || !window.matchMedia) return undefined;
     const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
     setReduced(mql.matches);
     const handler = (e) => setReduced(e.matches);
-    mql.addEventListener?.('change', handler);
-    return () => mql.removeEventListener?.('change', handler);
+    if (mql.addEventListener) {
+      mql.addEventListener('change', handler);
+      return () => mql.removeEventListener('change', handler);
+    }
+    mql.addListener(handler);
+    return () => mql.removeListener(handler);
   }, [respectReducedMotion]);
 
-  // 2. Type the static prefix first
   useEffect(() => {
-    if (prefix === '') return;
-    if (prefixIndex < prefix.length) {
-      const t = setTimeout(() => setPrefixIndex((p) => p + 1), typingSpeed);
-      return () => clearTimeout(t);
-    } else {
-      const t = setTimeout(() => setStarted(true), 200); // Small pause before typing the word
-      return () => clearTimeout(t);
-    }
-  }, [prefix, prefixIndex, typingSpeed]);
+    if (startDelay <= 0) { setStarted(true); return undefined; }
+    const t = setTimeout(() => setStarted(true), startDelay);
+    return () => clearTimeout(t);
+  }, [startDelay]);
 
-  // 3. Type the dynamic words
+  const wordsKey = useMemo(() => words.join('\u0001'), [words]);
+
   useEffect(() => {
-    if (!started || words.length === 0) return;
+    if (!started || words.length === 0) return undefined;
     const currentWord = words[index] ?? '';
 
     if (subIndex === currentWord.length && !reverse) {
@@ -141,8 +156,12 @@ function TypewriterFadeGradient({
 
     if (subIndex === 0 && reverse) {
       setReverse(false);
-      setIndex((prev) => (prev + 1) % words.length);
-      return;
+      setIndex((prev) => {
+        const next = (prev + 1) % words.length;
+        if (next === 0) onCompleteRef.current?.();
+        return next;
+      });
+      return undefined;
     }
 
     const t = setTimeout(() => {
@@ -150,48 +169,49 @@ function TypewriterFadeGradient({
     }, reverse ? deletingSpeed : typingSpeed);
 
     return () => clearTimeout(t);
-  }, [started, subIndex, index, reverse, words, typingSpeed, deletingSpeed, pauseDuration]);
+  }, [subIndex, index, reverse, wordsKey, started, typingSpeed, deletingSpeed, pauseDuration]);
 
   const currentWord = words[index] ?? '';
   const visibleChars = currentWord.slice(0, subIndex);
+
+  // Get the single color for the current word
   const currentColor = SINGLE_COLORS[index % SINGLE_COLORS.length];
 
-  // Render the prefix (kept white)
-  const prefixSpans = [...prefix.slice(0, prefixIndex)].map((ch, i) => (
-    <span key={`p-${i}`} className="rtx-hero__char text-white">
-      {ch === ' ' ? '\u00A0' : ch}
-    </span>
-  ));
+  const charSpans = [...visibleChars].map((ch, i) => {
+    const isSpace = ch === ' ';
 
-  // Render the animated word (colored)
-  const wordSpans = [...visibleChars].map((ch, i) => {
-    const style = reduced ? {} : { color: currentColor, WebkitTextFillColor: currentColor };
+    // Apply the single color directly to the text
+    const style = reduced ? undefined : {
+      color: currentColor,
+      WebkitTextFillColor: currentColor,
+    };
+
     return (
-      <span key={`w-${index}-${i}`} className="rtx-hero__char" style={style}>
-        {ch === ' ' ? '\u00A0' : ch}
+      <span
+        key={`${index}-${i}`}
+        className="rtx-hero__char"
+        style={style}
+      >
+        {isSpace ? '\u00A0' : ch}
       </span>
     );
   });
 
   return (
-    <span className="rtx-hero">
+    <span className={`rtx-hero ${className}`}>
       <span className="rtx-hero__stage" aria-hidden="true">
-        {prefixSpans}
-        {prefixIndex >= prefix.length && prefix !== '' && <br />}
-        {wordSpans}
+        {charSpans}
       </span>
 
       {cursor && (
         <span
           className="rtx-hero__cursor"
           aria-hidden="true"
-          style={{ backgroundColor: started ? currentColor : '#ffffff' }}
+          style={{ backgroundColor: currentColor }}
         />
       )}
 
-      <span className="rtx-hero__sr">
-        {prefix} {currentWord}
-      </span>
+      <span className="rtx-hero__sr">{currentWord}</span>
     </span>
   );
 }
@@ -224,20 +244,24 @@ export default function HomeHero() {
             className="space-y-4 sm:space-y-6 text-center lg:text-left animate-fadeInLeft"
           >
             <motion.h1
+              style={{ lineHeight: '1.15' }}
               className="font-inter font-bold text-3xl sm:text-4xl md:text-[45px] lg:text-[50px] text-white tracking-normal capitalize mb-4 sm:mb-6 max-w-xl mx-auto lg:mx-0"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              {/* 🌟 Full Title Typewriter 🌟 */}
-              <TypewriterFadeGradient
-                prefix="UNLOCKING THE POWER OF DATA AND"
-                words={HERO_WORDS}
-                typingSpeed={60}
-                deletingSpeed={30}
-                pauseDuration={2400}
-                cursor
-              />
+              UNLOCKING THE <br className="hidden sm:inline" /> POWER OF DATA AND
+              <br className="hidden sm:block" />
+
+              <span className="inline-block mt-2">
+                <TypewriterFadeGradient
+                  words={HERO_WORDS}
+                  typingSpeed={85}
+                  deletingSpeed={38}
+                  pauseDuration={2400}
+                  cursor
+                />
+              </span>
             </motion.h1>
 
             <div className="pt-2 sm:pt-4">
