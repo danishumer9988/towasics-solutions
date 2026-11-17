@@ -30,7 +30,21 @@ export default function SEO({
     url: canonical,
   })
 
-  const imageUrl = isStaticDefault ? ogImageUrl : image
+  // Force absolute URL for the image (Requirement 2)
+  let imageUrl = isStaticDefault ? ogImageUrl : image
+  if (imageUrl && !imageUrl.startsWith('http')) {
+    imageUrl = `${SITE_URL}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`
+  }
+
+  // Auto-detect admin paths for noindex (Requirement 3)
+  const isAdminPath =
+    path.startsWith('/admin') ||
+    path.startsWith('/dashboard') ||
+    path.startsWith('/auth') ||
+    path.startsWith('/subscriptions') ||
+    path.startsWith('/addfaq')
+
+  const shouldNoIndex = noIndex || isAdminPath
 
   useEffect(() => {
     const setMeta = (attr, key, content) => {
@@ -56,11 +70,14 @@ export default function SEO({
 
     document.title = fullTitle
     setMeta('name', 'description', finalDescription)
+
+    // Apply the calculated shouldNoIndex
     setMeta(
       'name',
       'robots',
-      noIndex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large'
+      shouldNoIndex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large'
     )
+
     setLink('canonical', canonical)
 
     setMeta('property', 'og:type', type)
@@ -70,7 +87,7 @@ export default function SEO({
     setMeta('property', 'og:url', canonical)
     setMeta('property', 'og:image', imageUrl)
     setMeta('property', 'og:image:secure_url', imageUrl)
-    setMeta('property', 'og:image:type', 'image/jpeg')
+    setMeta('property', 'og:image:type', 'image/png')
     setMeta('property', 'og:image:width', '1200')
     setMeta('property', 'og:image:height', '630')
     setMeta('property', 'og:image:alt', meta.title || SITE_NAME)
@@ -99,7 +116,7 @@ export default function SEO({
     canonical,
     imageUrl,
     type,
-    noIndex,
+    shouldNoIndex,
     structuredData,
     meta.title,
   ])

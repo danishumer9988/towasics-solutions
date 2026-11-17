@@ -1,14 +1,13 @@
-// api/og-image.js
 import { ImageResponse } from '@vercel/og'
 
 export const config = {
-  runtime: 'nodejs20.x',
+  runtime: 'edge',
 }
 
-const SITE_URL = 'https://towasicsolutions.com'
-const BRAND_PRIMARY = '#0a85a7'
-const BRAND_DARK = '#086B87'
-const BRAND_LIGHT = '#44D9E7'
+// 🛑 REPLACE THIS WITH YOUR ACTUAL BASE64 STRING
+// (It must start with data:image/png;base64,...)
+// Example placeholder 1x1 pixel:
+const LOGO_BASE64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
 
 function truncate(text, max) {
   if (!text) return ''
@@ -21,147 +20,83 @@ export default async function handler(request) {
     const { searchParams } = new URL(request.url)
 
     const title = truncate(searchParams.get('title') || 'Towasic Solutions', 90)
-    const description = truncate(searchParams.get('description') || '', 180)
-    const pageUrl = truncate(searchParams.get('url') || SITE_URL, 80)
+    const description = truncate(searchParams.get('description') || 'Data Scraping & SI Automation', 100)
 
     return new ImageResponse(
       (
         <div
           style={{
-            width: '100%',
             height: '100%',
+            width: '100%',
             display: 'flex',
-            flexDirection: 'row',
+            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            background: `linear-gradient(135deg, ${BRAND_PRIMARY} 0%, ${BRAND_DARK} 100%)`,
-            padding: '64px 80px',
-            fontFamily: 'Inter, sans-serif',
-            position: 'relative',
+            backgroundColor: '#0a85a7',
+            padding: '60px', // 60px safe margin
+            fontFamily: 'sans-serif',
           }}
         >
-          {/* Accent bar */}
-          <div
+          {/* Logo at the top */}
+          <img
+            src={LOGO_BASE64}
+            width={180}
+            height={180}
             style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: 8,
-              background: `linear-gradient(90deg, ${BRAND_LIGHT} 0%, ${BRAND_PRIMARY} 100%)`,
+              objectFit: 'contain',
+              marginBottom: '40px',
+              borderRadius: '20px'
             }}
           />
 
-          {/* LEFT: Favicon */}
+          {/* Title (Max 2 lines) */}
           <div
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 320,
-              height: 320,
-              background: '#ffffff',
-              borderRadius: 24,
-              padding: 24,
-              marginRight: 64,
-              flexShrink: 0,
+              fontSize: 56,
+              fontWeight: 800,
+              color: '#ffffff',
+              textAlign: 'center',
+              lineHeight: 1.2,
+              marginBottom: '20px',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
             }}
           >
-            <img
-              src={`${SITE_URL}/assets/favicon.png`}
-              alt="Towasic Solutions Logo"
-              width={240}
-              height={240}
-              style={{ objectFit: 'contain', borderRadius: 16 }}
-            />
+            {title}
           </div>
 
-          {/* RIGHT: Content */}
+          {/* Short Tagline */}
           <div
             style={{
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              flex: 1,
-              color: '#ffffff',
-              minWidth: 0,
+              fontSize: 28,
+              fontWeight: 500,
+              color: 'rgba(255,255,255,0.85)',
+              textAlign: 'center',
+              lineHeight: 1.4,
             }}
           >
-            <div
-              style={{
-                fontSize: 22,
-                fontWeight: 600,
-                letterSpacing: 4,
-                textTransform: 'uppercase',
-                color: BRAND_LIGHT,
-                marginBottom: 24,
-              }}
-            >
-              Towasic Solutions
-            </div>
-
-            <div
-              style={{
-                fontSize: title.length > 60 ? 42 : 52,
-                fontWeight: 800,
-                lineHeight: 1.15,
-                marginBottom: 24,
-                display: 'flex',
-                flexWrap: 'wrap',
-              }}
-            >
-              {title}
-            </div>
-
-            {description && (
-              <div
-                style={{
-                  fontSize: 24,
-                  fontWeight: 400,
-                  lineHeight: 1.4,
-                  color: 'rgba(255,255,255,0.85)',
-                  marginBottom: 28,
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                }}
-              >
-                {description}
-              </div>
-            )}
-
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                fontSize: 20,
-                fontWeight: 500,
-                color: 'rgba(255,255,255,0.75)',
-              }}
-            >
-              <span
-                style={{
-                  display: 'flex',
-                  width: 8,
-                  height: 8,
-                  borderRadius: 999,
-                  background: BRAND_LIGHT,
-                }}
-              />
-              {pageUrl.replace(/^https?:\/\//, '')}
-            </div>
+            {description}
           </div>
         </div>
       ),
       {
         width: 1200,
         height: 630,
-        format: 'jpeg',
-        quality: 80,
+        format: 'png',
       }
     )
-  } catch (err) {
-    console.error('[og-image] Render failed:', err)
-    return new Response('Failed to generate image', { status: 500 })
+  } catch (e) {
+    console.error('[og-image] Render failed:', e)
+    // Fail-safe: Return a valid image even if the logo base64 is broken
+    return new ImageResponse(
+      (
+        <div style={{ height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0a85a7', color: 'white', fontSize: 72, fontWeight: 'bold' }}>
+          Towasic Solutions
+        </div>
+      ),
+      { width: 1200, height: 630 }
+    )
   }
 }

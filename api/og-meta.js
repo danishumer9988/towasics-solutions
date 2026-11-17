@@ -1,4 +1,3 @@
-// api/og-meta.js
 import {
   getMetadataForPath,
   buildOgImageUrl,
@@ -15,7 +14,8 @@ const CRAWLER_UA = [
   'facebookexternalhit', 'facebot', 'twitterbot', 'linkedinbot',
   'telegrambot', 'whatsapp', 'slackbot', 'discordbot', 'pinterest',
   'embedly', 'quora link preview', 'showyoubot', 'outbrain',
-  'vkshare', 'w3c_validator', 'redditbot', 'applebot',
+  'vkshare', 'w3c_validator', 'redditbot', 'applebot', 'googlebot',
+  'bingbot', 'skypeuripreview', 'iframely', 'mastodon', 'google-inspectiontool'
 ]
 
 function isCrawler(request) {
@@ -33,34 +33,41 @@ export default async function handler(request) {
   }
 
   const url = new URL(request.url)
-  if (url.hostname.startsWith('www.')) {
-    url.hostname = url.hostname.slice(4)
-  }
+
+  // Extract path passed from vercel.json (e.g. /contactus)
+  let path = url.searchParams.get('path') || '/'
+  // Clean up double slashes if vercel passed //contactus
+  path = path.replace(/^\/\//, '/')
+  if (path === '') path = '/'
 
   const indexResponse = await fetch(new URL('/index.html', url.origin))
   let html = await indexResponse.text()
 
-  const pathname = url.pathname === '/' ? '/' : url.pathname.replace(/\/$/, '')
-  const { title, description } = getMetadataForPath(pathname)
+  const { title, description } = getMetadataForPath(path)
   const fullTitle = withSuffix(title)
-  const canonical = `${SITE_URL}${pathname === '/' ? '' : pathname}`
+  const canonical = `${SITE_URL}${path === '/' ? '' : path}`
+
+  // Full HTTPS URL for the dynamic image
   const ogImage = buildOgImageUrl({ title, description, url: canonical })
 
   const meta = `
     <title>${escapeHtml(fullTitle)}</title>
     <meta name="description" content="${escapeHtml(description)}" />
     <link rel="canonical" href="${escapeHtml(canonical)}" />
+    
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Towasic Solutions" />
     <meta property="og:title" content="${escapeHtml(fullTitle)}" />
     <meta property="og:description" content="${escapeHtml(description)}" />
     <meta property="og:url" content="${escapeHtml(canonical)}" />
+    
     <meta property="og:image" content="${escapeHtml(ogImage)}" />
     <meta property="og:image:secure_url" content="${escapeHtml(ogImage)}" />
-    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="${escapeHtml(title)}" />
+    
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@towasicsolution" />
     <meta name="twitter:title" content="${escapeHtml(fullTitle)}" />
