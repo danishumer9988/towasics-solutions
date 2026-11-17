@@ -1,21 +1,219 @@
-import React from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import TypewriterFadeGradient from './animations/TypewriterFadeGradient';
 
+/* =========================================================
+   1. INLINE CSS (Removed the drop shadow to fix the "border")
+   ========================================================= */
+const animationStyles = `
+  .rtx-hero {
+    display: inline-flex;
+    align-items: baseline;
+    vertical-align: baseline;
+    max-width: 100%;
+    position: relative;
+  }
+  .rtx-hero__stage {
+    display: inline-block;
+    white-space: pre-wrap;
+    min-width: 0;
+    line-height: 1.15;
+  }
+  .rtx-hero__char {
+    display: inline-block;
+    white-space: pre;
+    vertical-align: baseline;
+    backface-visibility: hidden;
+    will-change: opacity, transform;
+    animation: rtxHeroCharIn 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes rtxHeroCharIn {
+    from {
+      opacity: 0;
+      transform: translateY(0.14em) scale(0.94);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  .rtx-hero__cursor {
+    display: inline-block;
+    width: 0.055em;
+    min-width: 2px;
+    height: 1em;
+    margin-left: 0.06em;
+    vertical-align: -0.15em;
+    animation: rtxHeroCaret 1s steps(1, end) infinite;
+    transition: background-color 0.3s ease;
+  }
+  @keyframes rtxHeroCaret {
+    0%,  49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+  .rtx-hero__sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rtx-hero__char {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+    .rtx-hero__cursor {
+      animation: none;
+      opacity: 1;
+    }
+  }
+`;
+
+/* =========================================================
+   2. YOUR EXACT COLOURS (Unchanged)
+   ========================================================= */
+const SINGLE_COLORS = [
+  '#538d22', // 1. Olive Green
+  '#0e606b', // 2. Dark Teal
+  '#1697a6', // 3. Cyan
+  '#001e45', // 4. Navy Blue
+  '#1f0037', // 5. Deep Purple
+  '#003246', // 6. Dark Ocean
+];
+
+/* =========================================================
+   3. COMPONENT (Handles Prefix + Dynamic Words)
+   ========================================================= */
+function TypewriterFadeGradient({
+  prefix = '',
+  words = [],
+  typingSpeed = 60,
+  deletingSpeed = 30,
+  pauseDuration = 2400,
+  cursor = true,
+  respectReducedMotion = true,
+}) {
+  const [prefixIndex, setPrefixIndex] = useState(0);
+  const [started, setStarted] = useState(prefix === '');
+  const [index, setIndex] = useState(0);
+  const [subIndex, setSubIndex] = useState(0);
+  const [reverse, setReverse] = useState(false);
+  const [reduced, setReduced] = useState(false);
+
+  // 1. Accessibility check
+  useEffect(() => {
+    if (!respectReducedMotion || typeof window === 'undefined' || !window.matchMedia) return;
+    const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReduced(mql.matches);
+    const handler = (e) => setReduced(e.matches);
+    mql.addEventListener?.('change', handler);
+    return () => mql.removeEventListener?.('change', handler);
+  }, [respectReducedMotion]);
+
+  // 2. Type the static prefix first
+  useEffect(() => {
+    if (prefix === '') return;
+    if (prefixIndex < prefix.length) {
+      const t = setTimeout(() => setPrefixIndex((p) => p + 1), typingSpeed);
+      return () => clearTimeout(t);
+    } else {
+      const t = setTimeout(() => setStarted(true), 200); // Small pause before typing the word
+      return () => clearTimeout(t);
+    }
+  }, [prefix, prefixIndex, typingSpeed]);
+
+  // 3. Type the dynamic words
+  useEffect(() => {
+    if (!started || words.length === 0) return;
+    const currentWord = words[index] ?? '';
+
+    if (subIndex === currentWord.length && !reverse) {
+      const t = setTimeout(() => setReverse(true), pauseDuration);
+      return () => clearTimeout(t);
+    }
+
+    if (subIndex === 0 && reverse) {
+      setReverse(false);
+      setIndex((prev) => (prev + 1) % words.length);
+      return;
+    }
+
+    const t = setTimeout(() => {
+      setSubIndex((prev) => prev + (reverse ? -1 : 1));
+    }, reverse ? deletingSpeed : typingSpeed);
+
+    return () => clearTimeout(t);
+  }, [started, subIndex, index, reverse, words, typingSpeed, deletingSpeed, pauseDuration]);
+
+  const currentWord = words[index] ?? '';
+  const visibleChars = currentWord.slice(0, subIndex);
+  const currentColor = SINGLE_COLORS[index % SINGLE_COLORS.length];
+
+  // Render the prefix (kept white)
+  const prefixSpans = [...prefix.slice(0, prefixIndex)].map((ch, i) => (
+    <span key={`p-${i}`} className="rtx-hero__char text-white">
+      {ch === ' ' ? '\u00A0' : ch}
+    </span>
+  ));
+
+  // Render the animated word (colored)
+  const wordSpans = [...visibleChars].map((ch, i) => {
+    const style = reduced ? {} : { color: currentColor, WebkitTextFillColor: currentColor };
+    return (
+      <span key={`w-${index}-${i}`} className="rtx-hero__char" style={style}>
+        {ch === ' ' ? '\u00A0' : ch}
+      </span>
+    );
+  });
+
+  return (
+    <span className="rtx-hero">
+      <span className="rtx-hero__stage" aria-hidden="true">
+        {prefixSpans}
+        {prefixIndex >= prefix.length && prefix !== '' && <br />}
+        {wordSpans}
+      </span>
+
+      {cursor && (
+        <span
+          className="rtx-hero__cursor"
+          aria-hidden="true"
+          style={{ backgroundColor: started ? currentColor : '#ffffff' }}
+        />
+      )}
+
+      <span className="rtx-hero__sr">
+        {prefix} {currentWord}
+      </span>
+    </span>
+  );
+}
+
+/* =========================================================
+   4. MAIN HERO COMPONENT
+   ========================================================= */
 const HERO_WORDS = [
   'SUPER INTELLIGENCE',
   'INTELLIGENT AUTOMATION',
   'INSIGHTS',
   'COMPETITIVE ADVANTAGE',
-  'SI-BOTS',
+  'SUPER INTELLIGENCE BOTS',
   'AUTONOMOUS SYSTEMS',
 ];
 
 export default function HomeHero() {
   return (
-    /* 100% original background and spacing */
     <section className="relative custombackgroud min-h-[500px] lg:min-h-[620px] flex items-center py-10 lg:pt-16 lg:pb-0">
+
+      <style>{animationStyles}</style>
+
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mainabove z-10 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
 
@@ -26,25 +224,20 @@ export default function HomeHero() {
             className="space-y-4 sm:space-y-6 text-center lg:text-left animate-fadeInLeft"
           >
             <motion.h1
-              style={{ lineHeight: '1.15' }}
               className="font-inter font-bold text-3xl sm:text-4xl md:text-[45px] lg:text-[50px] text-white tracking-normal capitalize mb-4 sm:mb-6 max-w-xl mx-auto lg:mx-0"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              UNLOCKING THE <br className="hidden sm:inline" /> POWER OF DATA AND
-              <br className="hidden sm:block" />
-
-              {/* 🌟 Typewriter + Fade + Gradient 🌟 */}
-              <span className="inline-block mt-2">
-                <TypewriterFadeGradient
-                  words={HERO_WORDS}
-                  typingSpeed={85}
-                  deletingSpeed={38}
-                  pauseDuration={2400}
-                  cursor
-                />
-              </span>
+              {/* 🌟 Full Title Typewriter 🌟 */}
+              <TypewriterFadeGradient
+                prefix="UNLOCKING THE POWER OF DATA AND"
+                words={HERO_WORDS}
+                typingSpeed={60}
+                deletingSpeed={30}
+                pauseDuration={2400}
+                cursor
+              />
             </motion.h1>
 
             <div className="pt-2 sm:pt-4">

@@ -15,11 +15,11 @@ const STATIC_ROUTES = {
     description: "Have a project in mind? Contact Towasic Solutions for web scraping, LLM bots, intelligent automation, data enrichment and IoT solutions. Let's discuss your requirements.",
   },
   '/industries': {
-    title: 'Industries We Serve | Web Scraping & SI Automation Bots | Towasic',
+    title: 'Industries We Serve | Web Scraping & SI Automation Bots | Towasic Solutions',
     description: 'Explore how Towasic Solutions helps businesses across e-commerce, finance, healthcare, real estate, logistics, and other industries with web scraping and intelligent automation.',
   },
   '/howworks': {
-    title: 'Our Process | Web Scraping & SI Automation Solutions | Towasic',
+    title: 'Our Process | Web Scraping & SI Automation Solutions | Towasic Solutions',
     description: 'Discover how Towasic Solutions turns your requirements into reliable web scraping, LLM bot, and SI automation solutions through a clear, step-by-step development process.',
   },
   '/faq': {
@@ -31,7 +31,7 @@ const STATIC_ROUTES = {
     description: 'Explore web scraping tutorials, SI and LLM developments, automation guides, data enrichment techniques, and practical insights from Towasic Solutions.',
   },
   '/portfolio': {
-    title: 'Portfolio | Towasic Solutions',
+    title: 'Our Portfolio | Web Scraping & SI Automation | IoT Projects | Towasic Solutions',
     description: 'Explore the portfolio of Towasic Solutions — web scraping, intelligent automation, LLM bots, and custom software projects delivered for clients worldwide.',
   },
   '/privacy-policy': {
