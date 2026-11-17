@@ -1,37 +1,18 @@
-import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import TypewriterFadeGradient from './animations/TypewriterFadeGradient';
+
+const HERO_WORDS = [
+  'SUPER INTELLIGENCE',
+  'INTELLIGENT AUTOMATION',
+  'INSIGHTS',
+  'COMPETITIVE ADVANTAGE',
+  'SI-BOTS',
+  'AUTONOMOUS SYSTEMS',
+];
 
 export default function HomeHero() {
-  const words = [
-    "SUPER INTELLIGENCE",
-    "INTELLIGENT AUTOMATION",
-    "INSIGHTS",
-    "COMPETITIVE ADVANTAGE",
-    "SI-BOTS",
-    "AUTONOMOUS SYSTEMS"
-  ]
-
-  const [index, setIndex] = useState(0)
-  const [subIndex, setSubIndex] = useState(0)
-  const [reverse, setReverse] = useState(false)
-
-  useEffect(() => {
-    if (subIndex === words[index].length + 1 && !reverse) {
-      const timeout = setTimeout(() => setReverse(true), 3000)
-      return () => clearTimeout(timeout)
-    }
-    if (subIndex === 0 && reverse) {
-      setReverse(false)
-      setIndex((prev) => (prev + 1) % words.length)
-      return
-    }
-    const timeout = setTimeout(() => {
-      setSubIndex((prev) => prev + (reverse ? -1 : 1))
-    }, reverse ? 40 : 100)
-    return () => clearTimeout(timeout)
-  }, [subIndex, index, reverse])
-
   return (
     /* 100% original background and spacing */
     <section className="relative custombackgroud min-h-[500px] lg:min-h-[620px] flex items-center py-10 lg:pt-16 lg:pb-0">
@@ -41,7 +22,7 @@ export default function HomeHero() {
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
             className="space-y-4 sm:space-y-6 text-center lg:text-left animate-fadeInLeft"
           >
             <motion.h1
@@ -54,13 +35,15 @@ export default function HomeHero() {
               UNLOCKING THE <br className="hidden sm:inline" /> POWER OF DATA AND
               <br className="hidden sm:block" />
 
-              {/* 🌟 SIMPLE & ELEGANT TEXT ANIMATION 🌟 */}
+              {/* 🌟 Typewriter + Fade + Gradient 🌟 */}
               <span className="inline-block mt-2">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#35d9e1] to-[#a5f3fc]">
-                  {words[index].substring(0, subIndex)}
-                </span>
-                {/* Simple, clean blinking cursor */}
-                <span className="text-[#35d9e1] animate-pulse ml-0.5">|</span>
+                <TypewriterFadeGradient
+                  words={HERO_WORDS}
+                  typingSpeed={85}
+                  deletingSpeed={38}
+                  pauseDuration={2400}
+                  cursor
+                />
               </span>
             </motion.h1>
 
@@ -114,5 +97,5 @@ export default function HomeHero() {
         </div>
       </div>
     </section>
-  )
+  );
 }
