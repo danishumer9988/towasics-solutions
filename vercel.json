@@ -6,7 +6,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(facebookexternalhit|twitterbot|linkedinbot|telegrambot|whatsapp|slackbot|discordbot|pinterest|embedly|applebot|redditbot|outbrain|vkshare|quora).*"
+          "value": ".*(facebookexternalhit|Facebot|Twitterbot|LinkedInBot|TelegramBot|WhatsApp|Slackbot|Discordbot|Pinterest|Embedly|Applebot|Redditbot|Outbrain|vkShare|Quora).*"
         }
       ],
       "destination": "/api/og-meta"
@@ -14,6 +14,19 @@
     {
       "source": "/((?!api/|robots\\.txt|sitemap\\.xml|.*\\.txt|.*\\.xml|assets/.*|favicon\\.png).*)",
       "destination": "/index.html"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.towasicsolutions.com"
+        }
+      ],
+      "destination": "https://towasicsolutions.com/$1",
+      "permanent": true
     }
   ],
   "headers": [

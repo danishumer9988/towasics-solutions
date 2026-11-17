@@ -7,13 +7,6 @@ import {
   SITE_NAME,
 } from '../lib/seo/metadata'
 
-/**
- * Reusable SEO component — updates <head> tags on route change.
- *
- * Titles and descriptions come from src/lib/seo/metadata.js so that the
- * client, the Edge Function (api/og-meta.js), and the OG-image generator
- * (api/og-image.js) all agree on the same strings.
- */
 export default function SEO({
   title,
   description,
@@ -24,14 +17,10 @@ export default function SEO({
   structuredData = null,
 }) {
   const meta = getMetadataForPath(path, { title, description })
-
-  // Final <title> — suffix only if not already present (Bug fix)
   const fullTitle = withSuffix(meta.title)
-
   const canonical = `${SITE_URL}${path.startsWith('/') ? path : '/' + path}`
   const finalDescription = meta.description || ''
 
-  // Dynamic OG image — always preferred unless a real custom image was passed
   const STATIC_DEFAULTS = ['/assets/og-image.jpg', '/assets/og-image.png']
   const isStaticDefault = !image || STATIC_DEFAULTS.includes(image)
 
@@ -44,7 +33,6 @@ export default function SEO({
   const imageUrl = isStaticDefault ? ogImageUrl : image
 
   useEffect(() => {
-    /* ---------- helpers ---------- */
     const setMeta = (attr, key, content) => {
       if (content === undefined || content === null || content === '') return
       let el = document.querySelector(`meta[${attr}="${key}"]`)
@@ -66,7 +54,6 @@ export default function SEO({
       el.setAttribute('href', href)
     }
 
-    /* ---------- primary ---------- */
     document.title = fullTitle
     setMeta('name', 'description', finalDescription)
     setMeta(
@@ -76,7 +63,6 @@ export default function SEO({
     )
     setLink('canonical', canonical)
 
-    /* ---------- Open Graph ---------- */
     setMeta('property', 'og:type', type)
     setMeta('property', 'og:site_name', SITE_NAME)
     setMeta('property', 'og:title', fullTitle)
@@ -84,19 +70,17 @@ export default function SEO({
     setMeta('property', 'og:url', canonical)
     setMeta('property', 'og:image', imageUrl)
     setMeta('property', 'og:image:secure_url', imageUrl)
-    setMeta('property', 'og:image:type', 'image/png')
+    setMeta('property', 'og:image:type', 'image/jpeg')
     setMeta('property', 'og:image:width', '1200')
     setMeta('property', 'og:image:height', '630')
     setMeta('property', 'og:image:alt', meta.title || SITE_NAME)
 
-    /* ---------- Twitter / X ---------- */
     setMeta('name', 'twitter:card', 'summary_large_image')
     setMeta('name', 'twitter:site', '@towasicsolution')
     setMeta('name', 'twitter:title', fullTitle)
     setMeta('name', 'twitter:description', finalDescription)
     setMeta('name', 'twitter:image', imageUrl)
 
-    /* ---------- page-specific JSON-LD ---------- */
     let script = document.getElementById('seo-jsonld-page')
     if (structuredData) {
       if (!script) {

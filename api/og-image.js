@@ -1,12 +1,4 @@
 // api/og-image.js
-// Generates a 1200×630 Open Graph image for any page.
-//
-// Left side  → the actual Towasic Solutions logo from /assets/logo.png
-// Right side → page title, page description, page URL
-//
-// This uses @vercel/og which renders JSX to PNG on the edge / serverless
-// runtime — no headless browser required.
-
 import { ImageResponse } from '@vercel/og'
 
 export const config = {
@@ -18,31 +10,6 @@ const BRAND_PRIMARY = '#0a85a7'
 const BRAND_DARK = '#086B87'
 const BRAND_LIGHT = '#44D9E7'
 
-/**
- * Load the Towasic Solutions logo once per invocation and return a data URI.
- * Returning null means "logo unavailable" — the caller renders a text-only
- * fallback so the share card is never broken.
- */
-async function loadLogoDataUri() {
-  try {
-    // Prefer the production absolute URL so this works on both previews
-    // and production deployments.
-    const res = await fetch(`${SITE_URL}/assets/logo.png`, {
-      // Let the CDN serve it fast
-      cf: { cacheEverything: true, cacheTtl: 86400 },
-    })
-    if (!res.ok) return null
-    const contentType = res.headers.get('content-type') || 'image/png'
-    const arrayBuffer = await res.arrayBuffer()
-    const base64 = Buffer.from(arrayBuffer).toString('base64')
-    return `data:${contentType};base64,${base64}`
-  } catch (err) {
-    console.error('[og-image] Failed to load logo:', err)
-    return null
-  }
-}
-
-/** Truncate long text so it fits the card without an ellipsis running off-edge. */
 function truncate(text, max) {
   if (!text) return ''
   const str = String(text).trim()
@@ -53,14 +20,9 @@ export default async function handler(request) {
   try {
     const { searchParams } = new URL(request.url)
 
-    const title = truncate(
-      searchParams.get('title') || 'Towasic Solutions',
-      90
-    )
+    const title = truncate(searchParams.get('title') || 'Towasic Solutions', 90)
     const description = truncate(searchParams.get('description') || '', 180)
     const pageUrl = truncate(searchParams.get('url') || SITE_URL, 80)
-
-    const logoDataUri = await loadLogoDataUri()
 
     return new ImageResponse(
       (
@@ -74,12 +36,11 @@ export default async function handler(request) {
             justifyContent: 'center',
             background: `linear-gradient(135deg, ${BRAND_PRIMARY} 0%, ${BRAND_DARK} 100%)`,
             padding: '64px 80px',
-            fontFamily:
-              'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+            fontFamily: 'Inter, sans-serif',
             position: 'relative',
           }}
         >
-          {/* Decorative brand accent bar */}
+          {/* Accent bar */}
           <div
             style={{
               position: 'absolute',
@@ -91,48 +52,31 @@ export default async function handler(request) {
             }}
           />
 
-          {/* ---------- LEFT: Logo on white card ---------- */}
+          {/* LEFT: Favicon */}
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: 340,
-              height: 340,
+              width: 320,
+              height: 320,
               background: '#ffffff',
-              borderRadius: 32,
-              padding: 32,
-              boxShadow: '0 24px 60px -20px rgba(0,0,0,0.35)',
+              borderRadius: 24,
+              padding: 24,
               marginRight: 64,
               flexShrink: 0,
             }}
           >
-            {logoDataUri ? (
-              <img
-                src={logoDataUri}
-                alt="Towasic Solutions"
-                width={280}
-                height={280}
-                style={{ objectFit: 'contain' }}
-              />
-            ) : (
-              <div
-                style={{
-                  fontSize: 56,
-                  fontWeight: 800,
-                  color: BRAND_DARK,
-                  textAlign: 'center',
-                  lineHeight: 1.1,
-                }}
-              >
-                Towasic
-                <br />
-                Solutions
-              </div>
-            )}
+            <img
+              src={`${SITE_URL}/assets/favicon.png`}
+              alt="Towasic Solutions Logo"
+              width={240}
+              height={240}
+              style={{ objectFit: 'contain', borderRadius: 16 }}
+            />
           </div>
 
-          {/* ---------- RIGHT: Title + Description + URL ---------- */}
+          {/* RIGHT: Content */}
           <div
             style={{
               display: 'flex',
@@ -143,7 +87,6 @@ export default async function handler(request) {
               minWidth: 0,
             }}
           >
-            {/* Eyebrow */}
             <div
               style={{
                 fontSize: 22,
@@ -157,7 +100,6 @@ export default async function handler(request) {
               Towasic Solutions
             </div>
 
-            {/* Title */}
             <div
               style={{
                 fontSize: title.length > 60 ? 42 : 52,
@@ -171,7 +113,6 @@ export default async function handler(request) {
               {title}
             </div>
 
-            {/* Description */}
             {description && (
               <div
                 style={{
@@ -188,7 +129,6 @@ export default async function handler(request) {
               </div>
             )}
 
-            {/* URL pill */}
             <div
               style={{
                 display: 'flex',
@@ -216,31 +156,12 @@ export default async function handler(request) {
       {
         width: 1200,
         height: 630,
+        format: 'jpeg',
+        quality: 80,
       }
     )
   } catch (err) {
     console.error('[og-image] Render failed:', err)
-    // Last-resort fallback so a share never breaks
-    return new ImageResponse(
-      (
-        <div
-          style={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: BRAND_PRIMARY,
-            color: '#ffffff',
-            fontSize: 64,
-            fontWeight: 800,
-            fontFamily: 'Inter, sans-serif',
-          }}
-        >
-          Towasic Solutions
-        </div>
-      ),
-      { width: 1200, height: 630 }
-    )
+    return new Response('Failed to generate image', { status: 500 })
   }
 }
