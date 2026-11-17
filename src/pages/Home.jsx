@@ -8,23 +8,16 @@ import TestimonialSlider from '../components/TestimonialSlider'
 import HomeServicesGrid from '../components/HomeServicesGrid'
 import HomeRelatedServices from '../components/HomeRelatedServices'
 import HomeBlogs from '../components/HomeBlogs'
+import HomeHero from '../components/HomeHero' // 👈 IMPORTED NEW HERO
 import SEO from '../components/SEO'
 
 /* -------------------- Animated Counter -------------------- */
-/**
- * Counts from `start` to `end` when it scrolls into view.
- * - start > end → counts down (99 → 0)
- * - start < end → counts up   (1 → 97)
- * - Animates only once per page load
- * - Respects prefers-reduced-motion
- */
 function AnimatedCounter({ start, end, duration = 1800, suffix = '', className = '', ariaLabel }) {
   const [count, setCount] = useState(start)
   const ref = useRef(null)
   const hasAnimated = useRef(false)
 
   useEffect(() => {
-    // Accessibility: skip animation for users who prefer reduced motion
     if (
       typeof window !== 'undefined' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -46,7 +39,6 @@ function AnimatedCounter({ start, end, duration = 1800, suffix = '', className =
             const animate = (now) => {
               const elapsed = now - startTime
               const progress = Math.min(elapsed / duration, 1)
-              // easeOutCubic — fast start, slow finish
               const eased = 1 - Math.pow(1 - progress, 3)
               const current = Math.round(start + direction * range * eased)
               setCount(current)
@@ -54,7 +46,7 @@ function AnimatedCounter({ start, end, duration = 1800, suffix = '', className =
               if (progress < 1) {
                 requestAnimationFrame(animate)
               } else {
-                setCount(end) // ensure exact final value
+                setCount(end)
               }
             }
 
@@ -62,7 +54,7 @@ function AnimatedCounter({ start, end, duration = 1800, suffix = '', className =
           }
         })
       },
-      { threshold: 0.3 } // trigger when 30% of element is visible
+      { threshold: 0.3 }
     )
 
     if (ref.current) observer.observe(ref.current)
@@ -153,7 +145,6 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
 
-      {/* ✅ SEO — with "super intelligence" keyword */}
       <SEO
         title=" Towasic Solutions | Web Scraping, Web Automation bots & Super Intelligence Solutions "
         description="Towasic Solutions combines data scraping, intelligent automation, and super intelligence to build AI systems that work smarter. 235+ projects delivered. Trusted by 50+ clients worldwide."
@@ -175,84 +166,8 @@ export default function Home() {
 
       <Navbar />
 
-      {/* Hero Section */}
-      <section className="relative custombackgroud min-h-[500px] lg:min-h-[620px] flex items-center py-10 lg:pt-16 lg:pb-0">
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mainabove z-10 w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="space-y-4 sm:space-y-6 text-center lg:text-left animate-fadeInLeft"
-            >
-              <motion.h1
-                style={{ lineHeight: '1.15' }}
-                className="font-inter font-bold text-3xl sm:text-4xl md:text-[45px] lg:text-[50px] text-white tracking-normal capitalize mb-4 sm:mb-6 max-w-xl mx-auto lg:mx-0"
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-              >
-                UNLOCKING THE <br className="hidden sm:inline" /> POWER OF DATA AND SUPER INTELLIGENCE
-              </motion.h1>
-              <motion.p
-                style={{ lineHeight: '1.25' }}
-                className="font-inter font-medium text-base sm:text-lg md:text-[20px] text-white tracking-normal opacity-95 mb-6 sm:mb-8 max-w-2xl mx-auto lg:mx-0"
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.4 }}
-              >
-                Towasic Solutions specializes in scalable web scraping, intelligent automation, and super intelligence-powered solutions that help businesses work smarter, innovate faster, and grow with confidence.
-              </motion.p>
-
-              <div className="pt-2 sm:pt-4">
-              <Link to="/contactus">
-                <motion.button
-                  className="bg-white hover:bg-gray-100 text-[#0a85a7] font-bold px-8 py-3.5 rounded-full text-base sm:text-lg shadow-lg font-inter"
-                  initial="hidden"
-                  animate="visible"
-                  whileHover="hover"
-                  whileTap="tap"
-                  variants={{
-                    hidden:  { opacity: 0, y: 30 },
-                    visible: {
-                      opacity: 1,
-                      y: 0,
-                      transition: { duration: 0.8, delay: 0.6 },
-                    },
-                    hover: {
-                      scale: 1.08,
-                      boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.35)',
-                      transition: { duration: 0.12, ease: 'easeOut' },
-                    },
-                    tap: {
-                      scale: 0.95,
-                      transition: { duration: 0.08, ease: 'easeOut' },
-                    },
-                  }}
-                >
-                  Let's Talk
-                </motion.button>
-              </Link>
-            </div>
-            </motion.div>
-
-            <motion.div
-              className="flex justify-center lg:justify-end mt-4 lg:mt-0 relative z-20"
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-            >
-              <motion.img
-                src="/assets/heroperso.png"
-                alt="Data extraction and super intelligence illustration"
-                className="heroimage animate-float max-h-[380px] sm:max-h-[480px] lg:max-h-[580px] xl:max-h-[620px] object-contain transform translate-y-6 lg:translate-y-16 -mb-6 lg:-mb-16"
-                whileHover={{ scale: 1.05, rotate: 2 }}
-                transition={{ duration: 0.3 }}
-              />
-            </motion.div>
-          </div>
-        </div>
-      </section>
+      {/* 👇 NEW HERO COMPONENT USED HERE 👇 */}
+      <HomeHero />
 
       {/* Stats/Journey Section */}
       <section className="mb-4 bg-gradient-to-r pb-4 pt-4 sm:pt-6 lg:pt-8 mt-[15px]">

@@ -109,7 +109,7 @@ export default function Footer() {
               className="h-20 w-auto object-contain mb-3 bg-white p-2 rounded-lg shadow-sm" 
             />
             <p className="text-[18px] text-white/90 leading-relaxed max-w-xs font-inter">
-             Towasic Solutions delivers web scraping, intelligent automation, and AI-powered solutions that help businesses work smarter and grow with confidence.
+             Towasic Solutions specializes in scalable web scraping and intelligent automation solutions powered by super intelligence that help businesses work smarter, innovate faster, and grow with confidence.
             </p>
             
             {/* Email with white badge */}

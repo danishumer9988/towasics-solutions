@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
-    "@vercel/og": "^0.6.5",
+    "@vercel/og": "^0.6.8",
     "adm-zip": "^0.6.1",
     "axios": "^1.10.0",
     "framer-motion": "^12.6.1",
