@@ -44,20 +44,9 @@ import PrivacyAdmin from './pages/admin/PrivacyAdmin'
 import TermsAdmin from './pages/admin/TermsAdmin'
 
 import BlogCategoryAdmin from './pages/admin/BlogCategoryAdmin'
+import SystemLogs from './pages/admin/SystemLogs'
 
-// ... (Add the import at the top)
-import SystemLogs from './pages/admin/SystemLogs';
-
-/* Admin / private pages: no tracking, no cookie banner, no popups.
-   NOTE: '/blogs/:slug' is a PUBLIC blog post, so only the admin
-   blog routes ('/blogs', '/blogs/new', '/blogs/edit/:id') are listed. */
-const ADMIN_PREFIXES = [
-  '/admin',
-  '/dashboard',
-  '/auth',
-  '/subscriptions',
-  '/addfaq',
-]
+const ADMIN_PREFIXES = ['/admin', '/dashboard', '/auth', '/subscriptions', '/addfaq']
 
 const isAdminPath = (p) =>
   ADMIN_PREFIXES.some((prefix) => p.startsWith(prefix)) ||

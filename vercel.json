@@ -1,8 +1,30 @@
 {
   "rewrites": [
     {
-      "source": "/((?!robots\\.txt|sitemap\\.xml|.*\\.txt|.*\\.xml|assets/.*|favicon\\.png).*)",
+      "source": "/((?!api/|robots\\.txt|sitemap\\.xml|.*\\.txt|.*\\.xml|assets/.*|favicon\\.png).*)",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|twitterbot|linkedinbot|telegrambot|whatsapp|slackbot|discordbot|pinterest|embedly|applebot|redditbot|outbrain|vkshare|quora).*"
+        }
+      ],
+      "destination": "/api/og-meta"
+    },
+    {
+      "source": "/((?!api/|robots\\.txt|sitemap\\.xml|.*\\.txt|.*\\.xml|assets/.*|favicon\\.png).*)",
       "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/og-image",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800"
+        }
+      ]
     }
   ]
 }

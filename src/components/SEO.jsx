@@ -1,27 +1,47 @@
 import { useEffect } from 'react'
-
-const SITE_URL = 'https://towasicsolutions.com'
-const SITE_NAME = 'Towasic Solutions'
-const DEFAULT_IMAGE = `${SITE_URL}/assets/og-image.jpg`
-const DEFAULT_DESCRIPTION =
-  'Towasic Solutions — data scraping, intelligent automation, and super intelligence solutions that help businesses work smarter.'
+import {
+  getMetadataForPath,
+  buildOgImageUrl,
+  withSuffix,
+  SITE_URL,
+  SITE_NAME,
+} from '../lib/seo/metadata'
 
 /**
  * Reusable SEO component — updates <head> tags on route change.
+ *
+ * Titles and descriptions come from src/lib/seo/metadata.js so that the
+ * client, the Edge Function (api/og-meta.js), and the OG-image generator
+ * (api/og-image.js) all agree on the same strings.
  */
 export default function SEO({
   title,
-  description = DEFAULT_DESCRIPTION,
+  description,
   path = '/',
-  image = DEFAULT_IMAGE,
+  image,
   type = 'website',
   noIndex = false,
   structuredData = null,
 }) {
-  const fullTitle = title ? `${title} | ${SITE_NAME}` : SITE_NAME
+  const meta = getMetadataForPath(path, { title, description })
+
+  // Final <title> — suffix only if not already present (Bug fix)
+  const fullTitle = withSuffix(meta.title)
+
   const canonical = `${SITE_URL}${path.startsWith('/') ? path : '/' + path}`
-  const imageUrl = image.startsWith('http') ? image : `${SITE_URL}${image}`
-  const finalDescription = description || DEFAULT_DESCRIPTION
+  const finalDescription = meta.description || ''
+
+  // Dynamic OG image — always preferred unless a real custom image was passed
+  const STATIC_DEFAULTS = ['/assets/og-image.jpg', '/assets/og-image.png']
+  const isStaticDefault = !image || STATIC_DEFAULTS.includes(image)
+
+  const ogImageUrl = buildOgImageUrl({
+    title: meta.title,
+    description: meta.description,
+    url: canonical,
+  })
+
+  const imageUrl = isStaticDefault ? ogImageUrl : image
 
   useEffect(() => {
     /* ---------- helpers ---------- */
@@ -63,9 +83,11 @@ export default function SEO({
     setMeta('property', 'og:description', finalDescription)
     setMeta('property', 'og:url', canonical)
     setMeta('property', 'og:image', imageUrl)
+    setMeta('property', 'og:image:secure_url', imageUrl)
+    setMeta('property', 'og:image:type', 'image/png')
     setMeta('property', 'og:image:width', '1200')
     setMeta('property', 'og:image:height', '630')
-    setMeta('property', 'og:image:alt', title || SITE_NAME)
+    setMeta('property', 'og:image:alt', meta.title || SITE_NAME)
 
     /* ---------- Twitter / X ---------- */
     setMeta('name', 'twitter:card', 'summary_large_image')
@@ -87,7 +109,16 @@ export default function SEO({
     } else if (script) {
       script.remove()
     }
-  }, [fullTitle, finalDescription, canonical, imageUrl, type, noIndex, structuredData])
+  }, [
+    fullTitle,
+    finalDescription,
+    canonical,
+    imageUrl,
+    type,
+    noIndex,
+    structuredData,
+    meta.title,
+  ])
 
   return null
 }
