@@ -281,7 +281,7 @@ export default function AboutUs() {
               Leadership Team
             </h2>
             <p className="text-gray-600 text-base sm:text-lg leading-relaxed font-medium font-inter">
-              At Towasic Solutions, we are a team of experienced developers specializing in web scraping, automation bots, AI-powered agents, IoT, and full-stack development. With over 5 years of expertise and 235+ successful projects delivered, we pride ourselves on building intelligent, reliable, and efficient solutions for clients worldwide.
+              At Towasic Solutions, we are a team of experienced developers specializing in web scraping, automation bots, AI-powered agents, IoT, and Software development. With over 5 years of expertise and 235+ successful projects delivered, we pride ourselves on building intelligent, reliable, and efficient solutions for clients worldwide.
             </p>
           </div>
 
