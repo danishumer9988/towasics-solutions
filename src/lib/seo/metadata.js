@@ -3,35 +3,35 @@ const SITE_NAME = 'Towasic Solutions'
 
 const STATIC_ROUTES = {
   '/': {
-    title: 'Towasic Solutions | Web Scraping, Web Automation bots & Super Intelligence Solutions',
+    title: 'Towasic Solutions | Web Scraping, AI Agents & Automation Bots, and Super Intelligence Solutions Company',
     description: 'Towasic Solutions combines data scraping, intelligent automation, and super intelligence to build AI systems that work smarter. 235+ projects delivered. Trusted by 50+ clients worldwide.',
   },
   '/aboutus': {
-    title: 'About Towasic Solutions | Web Scraping | SI Automation & IoT Solutions Experts',
+    title: 'About Towasic Solutions | Web Scraping, AI Automation Agents & IoT Solutions Experts Company',
     description: 'Meet the team behind Towasic Solutions. We specialize in web scraping, intelligent automation, LLM bots, data enrichment, and custom IoT solutions with 235+ projects delivered worldwide.',
   },
   '/contactus': {
-    title: 'Contact Towasic Solutions | Discuss Your Automation Project',
+    title: 'Contact Towasic Solutions | Discuss Your Custom Software Project',
     description: "Have a project in mind? Contact Towasic Solutions for web scraping, LLM bots, intelligent automation, data enrichment and IoT solutions. Let's discuss your requirements.",
   },
   '/industries': {
-    title: 'Industries We Serve | Web Scraping & SI Automation Bots | Towasic Solutions',
+    title: 'Industries We Serve | Web Scraping, AI Agents & Automation Bots | Towasic Solutions',
     description: 'Explore how Towasic Solutions helps businesses across e-commerce, finance, healthcare, real estate, logistics, and other industries with web scraping and intelligent automation.',
   },
   '/howworks': {
-    title: 'Our Process | Web Scraping & SI Automation Solutions | Towasic Solutions',
-    description: 'Discover how Towasic Solutions turns your requirements into reliable web scraping, LLM bot, and SI automation solutions through a clear, step-by-step development process.',
+    title: 'Our Process | Web Scraping & AI Automation Solutions | Towasic Solutions',
+    description: 'Discover how Towasic Solutions turns your requirements into reliable web scraping, LLM bot, and AI automation solutions through a clear, step-by-step development process.',
   },
   '/faq': {
-    title: 'FAQs | Web Scraping & Super Intelligence Automation | Towasic Solutions',
-    description: 'Find answers to common questions about web scraping, automation bots, SI and LLM solutions, data enrichment, project delivery, pricing, and compliance.',
+    title: 'FAQs | Web Scraping & Intelligent Automation | Towasic Solutions',
+    description: 'Find answers to common questions about web scraping, automation bots, Custom Intelligent solutions, data enrichment, project delivery, pricing, and compliance.',
   },
   '/blog': {
-    title: 'Blogs | Web Scraping, Super Intelligence Automation | Towasic Solutions',
-    description: 'Explore web scraping tutorials, SI and LLM developments, automation guides, data enrichment techniques, and practical insights from Towasic Solutions.',
+    title: 'Blogs | Web Scraping, AI Automation Agents | Towasic Solutions',
+    description: 'Explore web scraping tutorials, AI and LLM developments, automation guides, data enrichment techniques, and practical insights from Towasic Solutions.',
   },
   '/portfolio': {
-    title: 'Our Portfolio | Web Scraping & SI Automation | IoT Projects | Towasic Solutions',
+    title: 'Our Portfolio | Web Scraping, AI Automation Agents & IoT Solutions | Towasic Solutions',
     description: 'Explore the portfolio of Towasic Solutions — web scraping, intelligent automation, LLM bots, and custom software projects delivered for clients worldwide.',
   },
   '/privacy-policy': {

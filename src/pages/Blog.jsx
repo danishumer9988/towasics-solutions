@@ -62,8 +62,8 @@ export default function Blog() {
   return (
     <div className="min-h-screen bg-white">
       <SEO
-        title="Web Scraping, Super Intelligence Automation Blog | Towasic Solutions"
-        description="Explore web scraping tutorials, SI and LLM developments, automation guides, data enrichment techniques, and practical insights from Towasic Solutions."
+        title="Blogs | Web Scraping, AI Automation Agents | Towasic Solutions"
+        description="Explore web scraping tutorials, AI and LLM developments, automation guides, data enrichment techniques, and practical insights from Towasic Solutions."
         path="/blog"
         image="/assets/og-image.jpg"
       />

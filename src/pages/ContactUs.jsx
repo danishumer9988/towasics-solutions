@@ -12,7 +12,7 @@ export default function ContactUs() {
 
       {/* ✅ SEO */}
       <SEO
-        title="Contact Towasic Solutions | Discuss Your Automation Project"
+        title="Contact Towasic Solutions | Discuss Your Custom Software Project"
         description="Have a project in mind? Contact Towasic Solutions for web scraping, LLM bots, intelligent automation, data enrichment and IoT solutions. Let's discuss your requirements."
         path="/contactus"
         image="/assets/og-image.jpg"

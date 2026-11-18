@@ -146,7 +146,7 @@ export default function Home() {
     <div className="min-h-screen bg-white">
 
       <SEO
-        title=" Towasic Solutions | Web Scraping, Web Automation bots & Super Intelligence Solutions "
+        title="Towasic Solutions | Web Scraping, AI Agents & Automation Bots, and Super Intelligence Solutions Company"
         description="Towasic Solutions combines data scraping, intelligent automation, and super intelligence to build AI systems that work smarter. 235+ projects delivered. Trusted by 50+ clients worldwide."
         path="/"
         image="/assets/og-image.jpg"

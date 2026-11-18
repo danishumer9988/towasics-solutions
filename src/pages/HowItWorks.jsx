@@ -10,8 +10,8 @@ export default function HowItWorks() {
     <div className="min-h-screen bg-white">
 
     <SEO
-        title="Our Process | Web Scraping & SI Automation Solutions | Towasic"
-        description="Discover how Towasic Solutions turns your requirements into reliable web scraping, LLM bot, and SI automation solutions through a clear, step-by-step development process."
+        title="Our Process | Web Scraping & AI Automation Solutions | Towasic Solutions"
+        description="Discover how Towasic Solutions turns your requirements into reliable web scraping, LLM bot, and AI automation solutions through a clear, step-by-step development process."
         path="/howworks"
         image="/assets/og-image.jpg"
     />
