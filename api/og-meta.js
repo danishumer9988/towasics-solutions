@@ -1,3 +1,5 @@
+// api/og-meta.js
+
 import {
   getMetadataForPath,
   buildOgImageUrl,
@@ -6,6 +8,7 @@ import {
   SITE_NAME,
   STATIC_ROUTES,
 } from '../src/lib/seo/metadata.js'
+
 import { servicesData } from '../src/data/servicesData.js'
 
 export const config = {
@@ -41,8 +44,13 @@ const CRAWLER_UA = [
 ]
 
 function isCrawler(request) {
-  const userAgent = (request.headers.get('user-agent') || '').toLowerCase()
-  return CRAWLER_UA.some((crawler) => userAgent.includes(crawler))
+  const userAgent = (
+    request.headers.get('user-agent') || ''
+  ).toLowerCase()
+
+  return CRAWLER_UA.some((crawler) =>
+    userAgent.includes(crawler)
+  )
 }
 
 function escapeHtml(value = '') {
@@ -71,17 +79,27 @@ function stripHtml(value = '') {
 
 function normalizePath(rawPath = '/') {
   let path = String(rawPath || '/').trim()
-  if (!path.startsWith('/')) path = `/${path}`
-  // A query string or hash must not become part of the canonical path.
+
+  if (!path.startsWith('/')) {
+    path = `/${path}`
+  }
+
   path = path.split('?')[0].split('#')[0]
-  // Prevent protocol-relative or malformed paths.
-  if (path.startsWith('//')) path = path.replace(/^\/+/, '/')
-  if (path.length > 1 && path.endsWith('/')) path = path.slice(0, -1)
+
+  if (path.startsWith('//')) {
+    path = path.replace(/^\/+/, '/')
+  }
+
+  if (path.length > 1 && path.endsWith('/')) {
+    path = path.slice(0, -1)
+  }
+
   return path || '/'
 }
 
 function absoluteImageUrl(image) {
   if (!image) return null
+
   try {
     return new URL(image, SITE_URL).toString()
   } catch {
@@ -90,39 +108,76 @@ function absoluteImageUrl(image) {
 }
 
 function removeExistingSeoTags(html) {
-  // Remove title, description, canonical, robots, Open Graph and Twitter tags
-  // before injecting one authoritative set for the requested URL.
-  let output = html.replace(/<title\b[^>]*>[\s\S]*?<\/title>/gi, '')
+  let output = html.replace(
+    /<title\b[^>]*>[\s\S]*?<\/title>/gi,
+    ''
+  )
 
   output = output.replace(/<meta\b[^>]*>/gi, (tag) => {
-    const name = tag.match(/\bname\s*=\s*["']([^"']+)["']/i)?.[1]?.toLowerCase()
-    const property = tag.match(/\bproperty\s*=\s*["']([^"']+)["']/i)?.[1]?.toLowerCase()
+    const name = tag.match(
+      /\bname\s*=\s*["']([^"']+)["']/i
+    )?.[1]?.toLowerCase()
 
-    if (name === 'description' || name === 'robots') return ''
-    if (name?.startsWith('twitter:')) return ''
-    if (property?.startsWith('og:')) return ''
+    const property = tag.match(
+      /\bproperty\s*=\s*["']([^"']+)["']/i
+    )?.[1]?.toLowerCase()
+
+    if (name === 'description' || name === 'robots') {
+      return ''
+    }
+
+    if (name?.startsWith('twitter:')) {
+      return ''
+    }
+
+    if (property?.startsWith('og:')) {
+      return ''
+    }
+
     return tag
   })
 
-  output = output.replace(/<link\b[^>]*\brel\s*=\s*["']canonical["'][^>]*>/gi, '')
+  output = output.replace(
+    /<link\b(?=[^>]*\brel\s*=\s*["']canonical["'])[^>]*>/gi,
+    ''
+  )
+
   return output
 }
 
+// Fetch individual blog metadata from the backend.
 async function getBlogMetadata(slug) {
   try {
-    const response = await fetch(`${BLOG_API_BASE}/blogs/${encodeURIComponent(slug)}`, {
-      headers: { Accept: 'application/json' },
-    })
+    const response = await fetch(
+      `${BLOG_API_BASE}/blogs/${encodeURIComponent(slug)}`,
+      {
+        headers: {
+          Accept: 'application/json',
+        },
+      }
+    )
 
     if (!response.ok) return null
 
     const blog = await response.json()
-    if (!blog || blog.isPublished === false || !blog.title) return null
 
-    const description = stripHtml(blog.content || blog.description || '').slice(0, 300)
+    if (
+      !blog ||
+      blog.isPublished === false ||
+      !blog.title
+    ) {
+      return null
+    }
+
+    const description = stripHtml(
+      blog.content || blog.description || ''
+    ).slice(0, 300)
+
     return {
       title: blog.title,
-      description: description || 'Read the latest article from Towasic Solutions on web scraping, automation, and super intelligence.',
+      description:
+        description ||
+        'Read the latest article from Towasic Solutions on web scraping, automation, and super intelligence.',
       image: absoluteImageUrl(blog.featuredImage),
       type: 'article',
       found: true,
@@ -133,13 +188,18 @@ async function getBlogMetadata(slug) {
   }
 }
 
+// Read service SEO metadata directly from servicesData.js.
 function getServiceMetadata(slug) {
   const service = servicesData[slug]
+
   if (!service) return null
 
   return {
-    title: service.seo?.title || service.title,
-    description: service.seo?.description || service.section1?.description || '',
+    title: service.seo?.title || service.title || SITE_NAME,
+    description:
+      service.seo?.description ||
+      service.section1?.description ||
+      '',
     image: null,
     type: 'website',
     found: true,
@@ -147,63 +207,100 @@ function getServiceMetadata(slug) {
 }
 
 function isKnownStaticPath(path) {
-  return Object.prototype.hasOwnProperty.call(STATIC_ROUTES, path)
+  return Object.prototype.hasOwnProperty.call(
+    STATIC_ROUTES,
+    path
+  )
 }
 
 export default async function handler(request) {
   const requestUrl = new URL(request.url)
-  const path = normalizePath(requestUrl.searchParams.get('path') || '/')
 
-  // This function is normally reached through the crawler-only Vercel rewrite.
-  // If someone opens the function URL directly, send them to the real page
-  // instead of fetching this function recursively.
+  const path = normalizePath(
+    requestUrl.searchParams.get('path') || '/'
+  )
+
+  // Redirect normal visitors to the actual website page.
   if (!isCrawler(request)) {
-    return Response.redirect(new URL(path, SITE_URL), 302)
+    return Response.redirect(
+      new URL(path, SITE_URL),
+      302
+    )
   }
 
+  // Fetch the website HTML shell.
   let html = ''
+
   try {
-    const indexResponse = await fetch(new URL('/index.html', requestUrl.origin))
-    if (!indexResponse.ok) throw new Error(`index.html returned ${indexResponse.status}`)
+    const indexResponse = await fetch(
+      new URL('/index.html', requestUrl.origin)
+    )
+
+    if (!indexResponse.ok) {
+      throw new Error(
+        `index.html returned ${indexResponse.status}`
+      )
+    }
+
     html = await indexResponse.text()
   } catch (error) {
     console.error('OG HTML shell fetch failed:', error)
-    html = '<!doctype html><html lang="en"><head></head><body><div id="root"></div></body></html>'
+
+    html =
+      '<!doctype html><html lang="en"><head></head><body><div id="root"></div></body></html>'
   }
 
+  // Get the default metadata for static pages.
   let metadata = getMetadataForPath(path)
+
   let ogType = 'website'
   let isNotFound = false
 
   const blogMatch = path.match(/^\/blogs\/([^/]+)$/)
   const serviceMatch = path.match(/^\/services\/([^/]+)$/)
 
+  // BLOG PAGES
   if (blogMatch) {
-    const blogMetadata = await getBlogMetadata(blogMatch[1])
+    const blogMetadata = await getBlogMetadata(
+      blogMatch[1]
+    )
+
     if (blogMetadata) {
       metadata = blogMetadata
       ogType = blogMetadata.type
     } else {
       isNotFound = true
+
       metadata = {
         title: 'Blog Not Found | Towasic Solutions',
         description: 'The requested article could not be found.',
       }
     }
-  } else if (serviceMatch) {
-    const serviceMetadata = getServiceMetadata(serviceMatch[1])
+  }
+
+  // SERVICE PAGES
+  else if (serviceMatch) {
+    const serviceMetadata = getServiceMetadata(
+      serviceMatch[1]
+    )
+
     if (serviceMetadata) {
       metadata = serviceMetadata
       ogType = serviceMetadata.type
     } else {
       isNotFound = true
+
       metadata = {
         title: 'Service Not Found | Towasic Solutions',
         description: 'The requested service page could not be found.',
       }
     }
-  } else if (!isKnownStaticPath(path)) {
+  }
+
+  // UNKNOWN STATIC PAGES
+  else if (!isKnownStaticPath(path)) {
     isNotFound = true
+
     metadata = {
       title: 'Page Not Found | Towasic Solutions',
       description: 'The page you are looking for could not be found.',
@@ -212,30 +309,59 @@ export default async function handler(request) {
 
   const title = metadata.title || SITE_NAME
   const description = metadata.description || ''
-  const fullTitle = withSuffix(title)
-  const canonical = `${SITE_URL}${path === '/' ? '' : path}`
-  const generatedImage = buildOgImageUrl({ title, description, url: canonical })
-  // Use the branded generated image for every page so the Towasic logo is
-  // consistently present in every social preview.
-  const ogImage = generatedImage
-  const robots = isNotFound ? 'noindex, nofollow' : 'index, follow, max-image-preview:large'
 
+  const fullTitle = withSuffix(title)
+
+  const canonical = `${SITE_URL}${
+    path === '/' ? '' : path
+  }`
+
+  // Use an explicitly supplied image, or the branded OG image.
+  const ogImage =
+    absoluteImageUrl(metadata.image) ||
+    buildOgImageUrl({
+      title,
+      description,
+      url: canonical,
+    })
+
+  const robots = isNotFound
+    ? 'noindex, nofollow'
+    : 'index, follow, max-image-preview:large'
+
+  // Generate SEO and social-sharing tags.
   const meta = `
     <title>${escapeHtml(fullTitle)}</title>
-    <meta name="description" content="${escapeHtml(description)}" />
+
+    <meta
+      name="description"
+      content="${escapeHtml(description)}"
+    />
+
     <meta name="robots" content="${robots}" />
-    <link rel="canonical" href="${escapeHtml(canonical)}" />
-    <meta property="og:type" content="${ogType}" />
+
+    <link
+      rel="canonical"
+      href="${escapeHtml(canonical)}"
+    />
+
+    <meta property="og:type" content="${escapeHtml(ogType)}" />
     <meta property="og:site_name" content="${escapeHtml(SITE_NAME)}" />
     <meta property="og:title" content="${escapeHtml(fullTitle)}" />
     <meta property="og:description" content="${escapeHtml(description)}" />
     <meta property="og:url" content="${escapeHtml(canonical)}" />
+
     <meta property="og:image" content="${escapeHtml(ogImage)}" />
     <meta property="og:image:secure_url" content="${escapeHtml(ogImage)}" />
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="${escapeHtml(`${fullTitle} — Towasic Solutions`)}" />
+
+    <meta
+      property="og:image:alt"
+      content="${escapeHtml(`${fullTitle} — Towasic Solutions`)}"
+    />
+
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@towasicsolution" />
     <meta name="twitter:title" content="${escapeHtml(fullTitle)}" />
@@ -243,21 +369,33 @@ export default async function handler(request) {
     <meta name="twitter:image" content="${escapeHtml(ogImage)}" />
   `.trim()
 
+  // Remove old tags before inserting the new metadata.
   html = removeExistingSeoTags(html)
 
   if (html.includes('<!-- META_INJECTION_POINT -->')) {
-    html = html.replace('<!-- META_INJECTION_POINT -->', meta)
+    html = html.replace(
+      '<!-- META_INJECTION_POINT -->',
+      meta
+    )
   } else if (html.includes('</head>')) {
-    html = html.replace('</head>', `${meta}\n</head>`)
+    html = html.replace(
+      '</head>',
+      `${meta}\n</head>`
+    )
   } else {
-    html = `<!doctype html><html lang="en"><head>${meta}</head><body><div id="root"></div></body></html>`
+    html = `<!doctype html>
+      <html lang="en">
+        <head>${meta}</head>
+        <body><div id="root"></div></body>
+      </html>`
   }
 
   return new Response(html, {
     status: 200,
     headers: {
       'Content-Type': 'text/html; charset=utf-8',
-      'Cache-Control': 'public, max-age=0, s-maxage=60, stale-while-revalidate=300',
+      'Cache-Control':
+        'public, max-age=0, s-maxage=60, stale-while-revalidate=300',
       'X-Robots-Tag': robots,
     },
   })
