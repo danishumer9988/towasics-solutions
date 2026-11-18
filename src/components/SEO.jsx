@@ -5,7 +5,15 @@ import {
   withSuffix,
   SITE_URL,
   SITE_NAME,
+  STATIC_ROUTES,
 } from '../lib/seo/metadata'
+
+function normalizePath(path = '/') {
+  let value = String(path || '/').split('?')[0].split('#')[0]
+  if (!value.startsWith('/')) value = `/${value}`
+  if (value.length > 1 && value.endsWith('/')) value = value.slice(0, -1)
+  return value || '/'
+}
 
 export default function SEO({
   title,
@@ -16,68 +24,71 @@ export default function SEO({
   noIndex = false,
   structuredData = null,
 }) {
-  const meta = getMetadataForPath(path, { title, description })
+  const normalizedPath = normalizePath(path)
+  const isStaticMetadataRoute = Object.prototype.hasOwnProperty.call(STATIC_ROUTES, normalizedPath)
+
+  // Static public pages always use metadata.js as the source of truth.
+  // Dynamic blog/service detail pages may supply their fetched database data.
+  const meta = isStaticMetadataRoute
+    ? getMetadataForPath(normalizedPath)
+    : getMetadataForPath(normalizedPath, { title, description })
+
   const fullTitle = withSuffix(meta.title)
-  const canonical = `${SITE_URL}${path.startsWith('/') ? path : '/' + path}`
+  const canonical = `${SITE_URL}${normalizedPath === '/' ? '' : normalizedPath}`
   const finalDescription = meta.description || ''
+  const staticDefaultImages = ['/assets/og-image.jpg', '/assets/og-image.png']
+  const isStaticDefault = !image || staticDefaultImages.includes(image)
 
-  const STATIC_DEFAULTS = ['/assets/og-image.jpg', '/assets/og-image.png']
-  const isStaticDefault = !image || STATIC_DEFAULTS.includes(image)
-
-  const ogImageUrl = buildOgImageUrl({
+  const generatedOgImage = buildOgImageUrl({
     title: meta.title,
-    description: meta.description,
+    description: finalDescription,
     url: canonical,
   })
 
-  // Force absolute URL for the image (Requirement 2)
-  let imageUrl = isStaticDefault ? ogImageUrl : image
-  if (imageUrl && !imageUrl.startsWith('http')) {
-    imageUrl = `${SITE_URL}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`
+  let imageUrl = isStaticDefault ? generatedOgImage : image
+  if (imageUrl && !/^https?:\/\//i.test(imageUrl)) {
+    imageUrl = new URL(imageUrl, SITE_URL).toString()
   }
 
-  // Auto-detect admin paths for noindex (Requirement 3)
   const isAdminPath =
-    path.startsWith('/admin') ||
-    path.startsWith('/dashboard') ||
-    path.startsWith('/auth') ||
-    path.startsWith('/subscriptions') ||
-    path.startsWith('/addfaq')
+    normalizedPath.startsWith('/admin') ||
+    normalizedPath.startsWith('/dashboard') ||
+    normalizedPath.startsWith('/auth') ||
+    normalizedPath.startsWith('/subscriptions') ||
+    normalizedPath.startsWith('/addfaq')
 
   const shouldNoIndex = noIndex || isAdminPath
 
   useEffect(() => {
-    const setMeta = (attr, key, content) => {
+    const setMeta = (attribute, key, content) => {
       if (content === undefined || content === null || content === '') return
-      let el = document.querySelector(`meta[${attr}="${key}"]`)
-      if (!el) {
-        el = document.createElement('meta')
-        el.setAttribute(attr, key)
-        document.head.appendChild(el)
+      const selector = `meta[${attribute}="${key}"]`
+      let element = document.head.querySelector(selector)
+      if (!element) {
+        element = document.createElement('meta')
+        element.setAttribute(attribute, key)
+        document.head.appendChild(element)
       }
-      el.setAttribute('content', content)
+      element.setAttribute('content', content)
     }
 
     const setLink = (rel, href) => {
-      let el = document.querySelector(`link[rel="${rel}"]`)
-      if (!el) {
-        el = document.createElement('link')
-        el.setAttribute('rel', rel)
-        document.head.appendChild(el)
+      let element = document.head.querySelector(`link[rel="${rel}"]`)
+      if (!element) {
+        element = document.createElement('link')
+        element.setAttribute('rel', rel)
+        document.head.appendChild(element)
       }
-      el.setAttribute('href', href)
+      element.setAttribute('href', href)
     }
 
     document.title = fullTitle
     setMeta('name', 'description', finalDescription)
-
-    // Apply the calculated shouldNoIndex
     setMeta(
       'name',
       'robots',
       shouldNoIndex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large'
     )
-
     setLink('canonical', canonical)
 
     setMeta('property', 'og:type', type)
@@ -90,7 +101,7 @@ export default function SEO({
     setMeta('property', 'og:image:type', 'image/png')
     setMeta('property', 'og:image:width', '1200')
     setMeta('property', 'og:image:height', '630')
-    setMeta('property', 'og:image:alt', meta.title || SITE_NAME)
+    setMeta('property', 'og:image:alt', `${fullTitle} — ${SITE_NAME}`)
 
     setMeta('name', 'twitter:card', 'summary_large_image')
     setMeta('name', 'twitter:site', '@towasicsolution')
@@ -118,7 +129,6 @@ export default function SEO({
     type,
     shouldNoIndex,
     structuredData,
-    meta.title,
   ])
 
   return null
