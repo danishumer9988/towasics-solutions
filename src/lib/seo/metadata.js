@@ -27,7 +27,7 @@ const STATIC_ROUTES = {
     description: 'Find answers to common questions about web scraping, automation bots, SI and LLM solutions, data enrichment, project delivery, pricing, and compliance.',
   },
   '/blog': {
-    title: 'Web Scraping, Super Intelligence Automation Blog | Towasic Solutions',
+    title: 'Blogs | Web Scraping, Super Intelligence Automation | Towasic Solutions',
     description: 'Explore web scraping tutorials, SI and LLM developments, automation guides, data enrichment techniques, and practical insights from Towasic Solutions.',
   },
   '/portfolio': {
