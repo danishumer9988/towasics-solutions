@@ -94,13 +94,8 @@ export function getMetadataForPath(path, overrides = {}) {
 }
 
 export function buildOgImageUrl({ title, description, url }) {
-  const base = `${SITE_URL}/api/og-image`
-  const params = new URLSearchParams({
-    title: title || SITE_NAME,
-    description: description || '',
-    url: url || SITE_URL,
-  })
-  return `${base}?${params.toString()}`
+  return `${SITE_URL}/assets/og-image.jpg`
 }
+
 
 export { SITE_URL, SITE_NAME, STATIC_ROUTES }

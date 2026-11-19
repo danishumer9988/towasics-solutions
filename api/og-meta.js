@@ -77,7 +77,9 @@ function normalizePath(rawPath = '/') {
     // Preserve original path.
   }
 
-  if (!path.startsWith('/')) path = `/${path}`
+  if (!path.startsWith('/')) {
+    path = `/${path}`
+  }
 
   path = path.split('?')[0].split('#')[0]
 
@@ -125,15 +127,19 @@ function removeExistingSeoTags(html) {
       return ''
     }
 
-    if (property?.startsWith('og:')) return ''
+    if (property?.startsWith('og:')) {
+      return ''
+    }
 
     return tag
   })
 
-  return output.replace(
+  output = output.replace(
     /<link\b(?=[^>]*\brel\s*=\s*["']canonical["'])[^>]*>/gi,
     ''
   )
+
+  return output
 }
 
 async function getBlogMetadata(slug) {
@@ -188,7 +194,6 @@ function getServiceMetadata(slug) {
 
   if (!service) return null
 
-  // Use exactly the same SEO fields as ServicePage.jsx.
   const title = stripHtml(
     service.seo?.title || service.title || ''
   )
@@ -230,16 +235,12 @@ export default async function handler(request) {
     )
   }
 
+  // Fetch the original React HTML shell.
   let html
 
   try {
     const indexResponse = await fetch(
-      new URL('/index.html', requestUrl.origin),
-      {
-        headers: {
-          'User-Agent': 'TowasicSolutions-OG-Renderer/2.0',
-        },
-      }
+      new URL('/index.html', requestUrl.origin)
     )
 
     if (!indexResponse.ok) {
@@ -257,6 +258,7 @@ export default async function handler(request) {
     })
   }
 
+  // Resolve metadata.
   let metadata = getMetadataForPath(path)
   let ogType = 'website'
   let isNotFound = false
@@ -300,6 +302,7 @@ export default async function handler(request) {
     }
   }
 
+  // Prepare SEO values.
   const title = metadata.title || SITE_NAME
   const description = stripHtml(metadata.description || '')
   const fullTitle = withSuffix(title)
@@ -307,6 +310,12 @@ export default async function handler(request) {
   const canonical =
     `${SITE_URL.replace(/\/$/, '')}${path === '/' ? '' : path}`
 
+  const robots = isNotFound
+    ? 'noindex, nofollow'
+    : 'index, follow, max-image-preview:large'
+
+  // Prefer the blog's featured image.
+  // Otherwise use the shared static OG image.
   const actualImage = absoluteImageUrl(metadata.image)
 
   const ogImage =
@@ -317,18 +326,16 @@ export default async function handler(request) {
       url: canonical,
     })
 
-  const robots = isNotFound
-    ? 'noindex, nofollow'
-    : 'index, follow, max-image-preview:large'
-
+  // Only declare JPEG metadata for the static fallback image.
   const imageMetadata = actualImage
     ? ''
     : `
-      <meta property="og:image:type" content="image/png" />
+      <meta property="og:image:type" content="image/jpeg" />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
     `
 
+  // Generate the final metadata.
   const meta = `
     <title>${escapeHtml(fullTitle)}</title>
 
@@ -337,7 +344,7 @@ export default async function handler(request) {
 
     <link rel="canonical" href="${escapeHtml(canonical)}" />
 
-    <meta property="og:type" content="${ogType}" />
+    <meta property="og:type" content="${escapeHtml(ogType)}" />
     <meta property="og:site_name" content="${escapeHtml(SITE_NAME)}" />
     <meta property="og:title" content="${escapeHtml(fullTitle)}" />
     <meta property="og:description" content="${escapeHtml(description)}" />
@@ -356,6 +363,7 @@ export default async function handler(request) {
     <meta name="twitter:image" content="${escapeHtml(ogImage)}" />
   `.trim()
 
+  // Replace existing metadata to prevent duplicates.
   html = removeExistingSeoTags(html)
 
   if (html.includes('<!-- META_INJECTION_POINT -->')) {
@@ -364,7 +372,10 @@ export default async function handler(request) {
       meta
     )
   } else if (html.includes('</head>')) {
-    html = html.replace('</head>', `${meta}\n</head>`)
+    html = html.replace(
+      '</head>',
+      `${meta}\n</head>`
+    )
   } else {
     return new Response('HTML head section not found', {
       status: 500,
