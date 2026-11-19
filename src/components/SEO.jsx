@@ -147,8 +147,8 @@ export default function SEO({
 
     if (isGeneratedImage) {
       setMeta('property', 'og:image:type', 'image/jpeg')
-      setMeta('property', 'og:image:width', '1600')
-      setMeta('property', 'og:image:height', '660')
+      setMeta('property', 'og:image:width', '1200')
+      setMeta('property', 'og:image:height', '630')
     } else {
       removeMeta('property', 'og:image:type')
       removeMeta('property', 'og:image:width')
