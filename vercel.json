@@ -1,12 +1,13 @@
+
 {
   "rewrites": [
     {
-      "source": "/((?!api|assets|favicon|robots).*)",
+      "source": "/((?!api|assets|favicon|robots|index\\.html).*)",
       "has": [
         {
           "type": "header",
           "key": "user-agent",
-          "value": "(?i).*(facebookexternalhit|facebot|twitterbot|linkedinbot|whatsapp|telegrambot|slackbot|discordbot|pinterest|embedly|quora link preview|showyoubot|outbrain|vkshare|redditbot|applebot|skypeuripreview|iframely|mastodon).*"
+          "value": "(?i).*(facebookexternalhit|facebot|twitterbot|linkedinbot|whatsapp|telegrambot|slackbot|discordbot|pinterest|embedly|quora link preview|showyoubot|outbrain|vkshare|redditbot|applebot|skypeuripreview|iframely|mastodon|google-inspectiontool).*"
         }
       ],
       "destination": "/api/og-meta?path=/$1"
