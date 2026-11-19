@@ -1,4 +1,4 @@
-const SITE_URL = 'https://towasicsolutions.com'
+const SITE_URL = 'https://www.towasicsolutions.com'
 const SITE_NAME = 'Towasic Solutions'
 
 const STATIC_ROUTES = {
