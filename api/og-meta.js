@@ -1,4 +1,3 @@
-// api/og-meta.js
 
 import {
   getMetadataForPath,
@@ -44,13 +43,8 @@ const CRAWLER_UA = [
 ]
 
 function isCrawler(request) {
-  const userAgent = (
-    request.headers.get('user-agent') || ''
-  ).toLowerCase()
-
-  return CRAWLER_UA.some((crawler) =>
-    userAgent.includes(crawler)
-  )
+  const ua = (request.headers.get('user-agent') || '').toLowerCase()
+  return CRAWLER_UA.some((crawler) => ua.includes(crawler))
 }
 
 function escapeHtml(value = '') {
@@ -80,15 +74,16 @@ function stripHtml(value = '') {
 function normalizePath(rawPath = '/') {
   let path = String(rawPath || '/').trim()
 
-  if (!path.startsWith('/')) {
-    path = `/${path}`
+  try {
+    path = decodeURIComponent(path)
+  } catch {
+    // Keep the original path if decoding fails.
   }
+
+  if (!path.startsWith('/')) path = `/${path}`
 
   path = path.split('?')[0].split('#')[0]
-
-  if (path.startsWith('//')) {
-    path = path.replace(/^\/+/, '/')
-  }
+  path = path.replace(/^\/+/, '/')
 
   if (path.length > 1 && path.endsWith('/')) {
     path = path.slice(0, -1)
@@ -101,7 +96,11 @@ function absoluteImageUrl(image) {
   if (!image) return null
 
   try {
-    return new URL(image, SITE_URL).toString()
+    const url = new URL(image, SITE_URL)
+
+    if (url.protocol !== 'https:') return null
+
+    return url.toString()
   } catch {
     return null
   }
@@ -114,25 +113,18 @@ function removeExistingSeoTags(html) {
   )
 
   output = output.replace(/<meta\b[^>]*>/gi, (tag) => {
-    const name = tag.match(
-      /\bname\s*=\s*["']([^"']+)["']/i
-    )?.[1]?.toLowerCase()
+    const name = tag.match(/\bname\s*=\s*["']([^"']+)["']/i)?.[1]?.toLowerCase()
+    const property = tag.match(/\bproperty\s*=\s*["']([^"']+)["']/i)?.[1]?.toLowerCase()
 
-    const property = tag.match(
-      /\bproperty\s*=\s*["']([^"']+)["']/i
-    )?.[1]?.toLowerCase()
-
-    if (name === 'description' || name === 'robots') {
+    if (
+      name === 'description' ||
+      name === 'robots' ||
+      name?.startsWith('twitter:')
+    ) {
       return ''
     }
 
-    if (name?.startsWith('twitter:')) {
-      return ''
-    }
-
-    if (property?.startsWith('og:')) {
-      return ''
-    }
+    if (property?.startsWith('og:')) return ''
 
     return tag
   })
@@ -145,15 +137,12 @@ function removeExistingSeoTags(html) {
   return output
 }
 
-// Fetch individual blog metadata from the backend.
 async function getBlogMetadata(slug) {
   try {
     const response = await fetch(
       `${BLOG_API_BASE}/blogs/${encodeURIComponent(slug)}`,
       {
-        headers: {
-          Accept: 'application/json',
-        },
+        headers: { Accept: 'application/json' },
       }
     )
 
@@ -161,56 +150,59 @@ async function getBlogMetadata(slug) {
 
     const blog = await response.json()
 
-    if (
-      !blog ||
-      blog.isPublished === false ||
-      !blog.title
-    ) {
+    if (!blog || blog.isPublished === false || !blog.title) {
       return null
     }
 
     const description = stripHtml(
-      blog.content || blog.description || ''
+      blog.description || blog.content || ''
     ).slice(0, 300)
 
     return {
       title: blog.title,
       description:
         description ||
-        'Read the latest article from Towasic Solutions on web scraping, automation, and super intelligence.',
+        'Read the latest articles from Towasic Solutions.',
       image: absoluteImageUrl(blog.featuredImage),
       type: 'article',
-      found: true,
     }
   } catch (error) {
-    console.error('OG blog metadata fetch failed:', error)
+    console.error('OG blog metadata error:', error)
     return null
   }
 }
 
-// Read service SEO metadata directly from servicesData.js.
+// Use the main service-page content, not the SEO subsection.
 function getServiceMetadata(slug) {
-  const service = servicesData[slug]
+  const normalizedSlug = slug.trim().toLowerCase()
+
+  const service =
+    servicesData[normalizedSlug] ||
+    Object.entries(servicesData).find(
+      ([key, value]) =>
+        key.toLowerCase() === normalizedSlug ||
+        value.slug?.toLowerCase() === normalizedSlug
+    )?.[1]
 
   if (!service) return null
 
+  const title = stripHtml(service.title || '').trim()
+  const description = stripHtml(
+    service.section1?.description || ''
+  ).slice(0, 300)
+
+  if (!title || !description) return null
+
   return {
-    title: service.seo?.title || service.title || SITE_NAME,
-    description:
-      service.seo?.description ||
-      service.section1?.description ||
-      '',
+    title,
+    description,
     image: null,
     type: 'website',
-    found: true,
   }
 }
 
 function isKnownStaticPath(path) {
-  return Object.prototype.hasOwnProperty.call(
-    STATIC_ROUTES,
-    path
-  )
+  return Object.prototype.hasOwnProperty.call(STATIC_ROUTES, path)
 }
 
 export default async function handler(request) {
@@ -220,16 +212,13 @@ export default async function handler(request) {
     requestUrl.searchParams.get('path') || '/'
   )
 
-  // Redirect normal visitors to the actual website page.
+  // Normal visitors should reach the real website page.
   if (!isCrawler(request)) {
-    return Response.redirect(
-      new URL(path, SITE_URL),
-      302
-    )
+    return Response.redirect(new URL(path, SITE_URL), 302)
   }
 
   // Fetch the website HTML shell.
-  let html = ''
+  let html
 
   try {
     const indexResponse = await fetch(
@@ -237,70 +226,52 @@ export default async function handler(request) {
     )
 
     if (!indexResponse.ok) {
-      throw new Error(
-        `index.html returned ${indexResponse.status}`
-      )
+      throw new Error(`index.html returned ${indexResponse.status}`)
     }
 
     html = await indexResponse.text()
   } catch (error) {
-    console.error('OG HTML shell fetch failed:', error)
+    console.error('OG HTML shell error:', error)
 
-    html =
-      '<!doctype html><html lang="en"><head></head><body><div id="root"></div></body></html>'
+    return new Response('Unable to load website HTML', {
+      status: 500,
+    })
   }
 
-  // Get the default metadata for static pages.
   let metadata = getMetadataForPath(path)
-
   let ogType = 'website'
   let isNotFound = false
 
   const blogMatch = path.match(/^\/blogs\/([^/]+)$/)
   const serviceMatch = path.match(/^\/services\/([^/]+)$/)
 
-  // BLOG PAGES
   if (blogMatch) {
-    const blogMetadata = await getBlogMetadata(
-      blogMatch[1]
-    )
+    const blogMetadata = await getBlogMetadata(blogMatch[1])
 
     if (blogMetadata) {
       metadata = blogMetadata
       ogType = blogMetadata.type
     } else {
       isNotFound = true
-
       metadata = {
         title: 'Blog Not Found | Towasic Solutions',
         description: 'The requested article could not be found.',
       }
     }
-  }
-
-  // SERVICE PAGES
-  else if (serviceMatch) {
-    const serviceMetadata = getServiceMetadata(
-      serviceMatch[1]
-    )
+  } else if (serviceMatch) {
+    const serviceMetadata = getServiceMetadata(serviceMatch[1])
 
     if (serviceMetadata) {
       metadata = serviceMetadata
-      ogType = serviceMetadata.type
     } else {
       isNotFound = true
-
       metadata = {
         title: 'Service Not Found | Towasic Solutions',
         description: 'The requested service page could not be found.',
       }
     }
-  }
-
-  // UNKNOWN STATIC PAGES
-  else if (!isKnownStaticPath(path)) {
+  } else if (!isKnownStaticPath(path)) {
     isNotFound = true
-
     metadata = {
       title: 'Page Not Found | Towasic Solutions',
       description: 'The page you are looking for could not be found.',
@@ -308,19 +279,16 @@ export default async function handler(request) {
   }
 
   const title = metadata.title || SITE_NAME
-  const description = metadata.description || ''
-
+  const description = stripHtml(metadata.description || '')
   const fullTitle = withSuffix(title)
 
-  const canonical = `${SITE_URL}${
-    path === '/' ? '' : path
-  }`
+  // Keep one canonical domain for www and non-www requests.
+  const canonical = `${SITE_URL.replace(/\/$/, '')}${path === '/' ? '' : path}`
 
-  // Use an explicitly supplied image, or the branded OG image.
   const ogImage =
     absoluteImageUrl(metadata.image) ||
     buildOgImageUrl({
-      title,
+      title: fullTitle,
       description,
       url: canonical,
     })
@@ -329,38 +297,21 @@ export default async function handler(request) {
     ? 'noindex, nofollow'
     : 'index, follow, max-image-preview:large'
 
-  // Generate SEO and social-sharing tags.
   const meta = `
     <title>${escapeHtml(fullTitle)}</title>
-
-    <meta
-      name="description"
-      content="${escapeHtml(description)}"
-    />
-
+    <meta name="description" content="${escapeHtml(description)}" />
     <meta name="robots" content="${robots}" />
-
-    <link
-      rel="canonical"
-      href="${escapeHtml(canonical)}"
-    />
+    <link rel="canonical" href="${escapeHtml(canonical)}" />
 
     <meta property="og:type" content="${escapeHtml(ogType)}" />
     <meta property="og:site_name" content="${escapeHtml(SITE_NAME)}" />
     <meta property="og:title" content="${escapeHtml(fullTitle)}" />
     <meta property="og:description" content="${escapeHtml(description)}" />
     <meta property="og:url" content="${escapeHtml(canonical)}" />
-
     <meta property="og:image" content="${escapeHtml(ogImage)}" />
     <meta property="og:image:secure_url" content="${escapeHtml(ogImage)}" />
     <meta property="og:image:type" content="image/png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-
-    <meta
-      property="og:image:alt"
-      content="${escapeHtml(`${fullTitle} — Towasic Solutions`)}"
-    />
+    <meta property="og:image:alt" content="${escapeHtml(`${fullTitle} — ${SITE_NAME}`)}" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@towasicsolution" />
@@ -369,34 +320,23 @@ export default async function handler(request) {
     <meta name="twitter:image" content="${escapeHtml(ogImage)}" />
   `.trim()
 
-  // Remove old tags before inserting the new metadata.
   html = removeExistingSeoTags(html)
 
   if (html.includes('<!-- META_INJECTION_POINT -->')) {
-    html = html.replace(
-      '<!-- META_INJECTION_POINT -->',
-      meta
-    )
+    html = html.replace('<!-- META_INJECTION_POINT -->', meta)
   } else if (html.includes('</head>')) {
-    html = html.replace(
-      '</head>',
-      `${meta}\n</head>`
-    )
+    html = html.replace('</head>', `${meta}\n</head>`)
   } else {
-    html = `<!doctype html>
-      <html lang="en">
-        <head>${meta}</head>
-        <body><div id="root"></div></body>
-      </html>`
+    return new Response('HTML head section not found', { status: 500 })
   }
 
   return new Response(html, {
     status: 200,
     headers: {
       'Content-Type': 'text/html; charset=utf-8',
-      'Cache-Control':
-        'public, max-age=0, s-maxage=60, stale-while-revalidate=300',
+      'Cache-Control': 'public, max-age=0, s-maxage=60, stale-while-revalidate=300',
       'X-Robots-Tag': robots,
+      'Vary': 'User-Agent',
     },
   })
 }
