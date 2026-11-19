@@ -6,7 +6,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(WhatsApp|whatsapp|facebookexternalhit|Facebot|Twitterbot|LinkedInBot|TelegramBot|Slackbot|Discordbot|Pinterest|Embedly|Applebot|Redditbot|Outbrain|vkShare|Quora|ShowYouBot|W3C_Validator|Googlebot|bingbot|SkypeUriPreview|Iframely|Mastodon|Google-InspectionTool).*"
+          "value": "(?i).*(facebookexternalhit|facebot|twitterbot|linkedinbot|whatsapp|telegrambot|slackbot|discordbot|pinterest|embedly|quora link preview|showyoubot|outbrain|vkshare|redditbot|applebot|skypeuripreview|iframely|mastodon).*"
         }
       ],
       "destination": "/api/og-meta?path=/$1"

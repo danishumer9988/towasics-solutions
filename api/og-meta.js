@@ -1,4 +1,3 @@
-
 import {
   getMetadataForPath,
   buildOgImageUrl,
@@ -34,12 +33,9 @@ const CRAWLER_UA = [
   'w3c_validator',
   'redditbot',
   'applebot',
-  'googlebot',
-  'bingbot',
   'skypeuripreview',
   'iframely',
   'mastodon',
-  'google-inspectiontool',
 ]
 
 function isCrawler(request) {
@@ -73,33 +69,23 @@ function stripHtml(value = '') {
 
 function normalizePath(rawPath = '/') {
   let path = String(rawPath || '/').trim()
-
   try {
     path = decodeURIComponent(path)
   } catch {
     // Keep the original path if decoding fails.
   }
-
   if (!path.startsWith('/')) path = `/${path}`
-
   path = path.split('?')[0].split('#')[0]
   path = path.replace(/^\/+/, '/')
-
-  if (path.length > 1 && path.endsWith('/')) {
-    path = path.slice(0, -1)
-  }
-
+  if (path.length > 1 && path.endsWith('/')) path = path.slice(0, -1)
   return path || '/'
 }
 
 function absoluteImageUrl(image) {
   if (!image) return null
-
   try {
     const url = new URL(image, SITE_URL)
-
     if (url.protocol !== 'https:') return null
-
     return url.toString()
   } catch {
     return null
@@ -107,10 +93,7 @@ function absoluteImageUrl(image) {
 }
 
 function removeExistingSeoTags(html) {
-  let output = html.replace(
-    /<title\b[^>]*>[\s\S]*?<\/title>/gi,
-    ''
-  )
+  let output = html.replace(/<title\b[^>]*>[\s\S]*?<\/title>/gi, '')
 
   output = output.replace(/<meta\b[^>]*>/gi, (tag) => {
     const name = tag.match(/\bname\s*=\s*["']([^"']+)["']/i)?.[1]?.toLowerCase()
@@ -123,9 +106,7 @@ function removeExistingSeoTags(html) {
     ) {
       return ''
     }
-
     if (property?.startsWith('og:')) return ''
-
     return tag
   })
 
@@ -142,22 +123,19 @@ async function getBlogMetadata(slug) {
     const response = await fetch(
       `${BLOG_API_BASE}/blogs/${encodeURIComponent(slug)}`,
       {
-        headers: { Accept: 'application/json' },
+        headers: {
+          Accept: 'application/json',
+          'User-Agent': 'TowasicSolutions-OG/1.0',
+        },
+        signal: AbortSignal.timeout(5000),
       }
     )
-
     if (!response.ok) return null
-
     const blog = await response.json()
-
-    if (!blog || blog.isPublished === false || !blog.title) {
-      return null
-    }
-
+    if (!blog || blog.isPublished === false || !blog.title) return null
     const description = stripHtml(
       blog.description || blog.content || ''
     ).slice(0, 300)
-
     return {
       title: blog.title,
       description:
@@ -172,10 +150,8 @@ async function getBlogMetadata(slug) {
   }
 }
 
-// Use the main service-page content, not the SEO subsection.
 function getServiceMetadata(slug) {
   const normalizedSlug = slug.trim().toLowerCase()
-
   const service =
     servicesData[normalizedSlug] ||
     Object.entries(servicesData).find(
@@ -183,22 +159,13 @@ function getServiceMetadata(slug) {
         key.toLowerCase() === normalizedSlug ||
         value.slug?.toLowerCase() === normalizedSlug
     )?.[1]
-
   if (!service) return null
-
   const title = stripHtml(service.title || '').trim()
   const description = stripHtml(
     service.section1?.description || ''
   ).slice(0, 300)
-
   if (!title || !description) return null
-
-  return {
-    title,
-    description,
-    image: null,
-    type: 'website',
-  }
+  return { title, description, image: null, type: 'website' }
 }
 
 function isKnownStaticPath(path) {
@@ -207,35 +174,26 @@ function isKnownStaticPath(path) {
 
 export default async function handler(request) {
   const requestUrl = new URL(request.url)
-
   const path = normalizePath(
     requestUrl.searchParams.get('path') || '/'
   )
 
-  // Normal visitors should reach the real website page.
   if (!isCrawler(request)) {
     return Response.redirect(new URL(path, SITE_URL), 302)
   }
 
-  // Fetch the website HTML shell.
   let html
-
   try {
     const indexResponse = await fetch(
       new URL('/index.html', requestUrl.origin)
     )
-
     if (!indexResponse.ok) {
       throw new Error(`index.html returned ${indexResponse.status}`)
     }
-
     html = await indexResponse.text()
   } catch (error) {
     console.error('OG HTML shell error:', error)
-
-    return new Response('Unable to load website HTML', {
-      status: 500,
-    })
+    return new Response('Unable to load website HTML', { status: 500 })
   }
 
   let metadata = getMetadataForPath(path)
@@ -247,7 +205,6 @@ export default async function handler(request) {
 
   if (blogMatch) {
     const blogMetadata = await getBlogMetadata(blogMatch[1])
-
     if (blogMetadata) {
       metadata = blogMetadata
       ogType = blogMetadata.type
@@ -260,7 +217,6 @@ export default async function handler(request) {
     }
   } else if (serviceMatch) {
     const serviceMetadata = getServiceMetadata(serviceMatch[1])
-
     if (serviceMetadata) {
       metadata = serviceMetadata
     } else {
@@ -281,17 +237,11 @@ export default async function handler(request) {
   const title = metadata.title || SITE_NAME
   const description = stripHtml(metadata.description || '')
   const fullTitle = withSuffix(title)
-
-  // Keep one canonical domain for www and non-www requests.
   const canonical = `${SITE_URL.replace(/\/$/, '')}${path === '/' ? '' : path}`
 
   const ogImage =
     absoluteImageUrl(metadata.image) ||
-    buildOgImageUrl({
-      title: fullTitle,
-      description,
-      url: canonical,
-    })
+    buildOgImageUrl({ title: fullTitle, description, url: canonical })
 
   const robots = isNotFound
     ? 'noindex, nofollow'
@@ -311,6 +261,8 @@ export default async function handler(request) {
     <meta property="og:image" content="${escapeHtml(ogImage)}" />
     <meta property="og:image:secure_url" content="${escapeHtml(ogImage)}" />
     <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="${escapeHtml(`${fullTitle} — ${SITE_NAME}`)}" />
 
     <meta name="twitter:card" content="summary_large_image" />
@@ -336,7 +288,7 @@ export default async function handler(request) {
       'Content-Type': 'text/html; charset=utf-8',
       'Cache-Control': 'public, max-age=0, s-maxage=60, stale-while-revalidate=300',
       'X-Robots-Tag': robots,
-      'Vary': 'User-Agent',
+      Vary: 'User-Agent',
     },
   })
 }
