@@ -1,9 +1,5 @@
 import { ImageResponse } from '@vercel/og'
 
-export const config = {
-  runtime: 'edge',
-}
-
 const LOGO_URL = 'https://towasicsolutions.com/assets/logo.png'
 const SITE_URL_FALLBACK = 'https://towasicsolutions.com'
 const BRAND_COLOR = '#0a85a7'
@@ -29,7 +25,7 @@ function arrayBufferToBase64(buffer) {
       bytes.subarray(i, i + chunkSize)
     )
   }
-  return btoa(binary)
+  return Buffer.from(binary, 'binary').toString('base64')
 }
 
 async function fetchLogoDataUrl() {
@@ -47,22 +43,21 @@ async function fetchLogoDataUrl() {
   }
 }
 
-export default async function handler(request) {
+export default async function handler(req, res) {
   try {
-    const url = new URL(request.url)
     const title = truncate(
-      url.searchParams.get('title') || 'Towasic Solutions',
+      req.query.title || 'Towasic Solutions',
       100
     )
     const description = truncate(
-      url.searchParams.get('description') || '',
+      req.query.description || '',
       150
     )
-    const siteUrl = url.searchParams.get('url') || SITE_URL_FALLBACK
+    const siteUrl = req.query.url || SITE_URL_FALLBACK
 
     const logoSrc = await fetchLogoDataUrl()
 
-    return new ImageResponse(
+    const imageResponse = new ImageResponse(
       (
         <div
           style={{
@@ -154,14 +149,19 @@ export default async function handler(request) {
       {
         width: 1200,
         height: 630,
-        headers: {
-          'Cache-Control':
-            'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800',
-        },
       }
     )
+
+    const buffer = Buffer.from(await imageResponse.arrayBuffer())
+
+    res.setHeader('Content-Type', 'image/png')
+    res.setHeader(
+      'Cache-Control',
+      'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800'
+    )
+    res.status(200).end(buffer)
   } catch (error) {
     console.error('OG image error:', error)
-    return new Response('Failed to generate OG image', { status: 500 })
+    res.status(500).end('Failed to generate OG image')
   }
 }
