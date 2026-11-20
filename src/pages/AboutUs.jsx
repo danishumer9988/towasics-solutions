@@ -259,7 +259,7 @@ export default function AboutUs() {
   return (
     <div className="min-h-screen bg-white">
       <SEO
-        title="About Towasic Solutions | Web Scraping, AI Automation Agents & IoT Solutions Experts Company"
+        title="About Towasic Solutions | Web Scraping, AI Automation Agents & IoT Solutions Company"
         description="Meet the team behind Towasic Solutions. We specialize in web scraping, intelligent automation, LLM bots, data enrichment, and custom IoT solutions with 235+ projects delivered worldwide."
         path="/aboutus"
         image="/assets/og-image.jpg"

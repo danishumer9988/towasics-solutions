@@ -7,7 +7,7 @@ const STATIC_ROUTES = {
     description: 'Towasic Solutions combines data scraping, intelligent automation, and super intelligence to build AI systems that work smarter. 235+ projects delivered. Trusted by 50+ clients worldwide.',
   },
   '/aboutus': {
-    title: 'About Towasic Solutions | Web Scraping, AI Automation Agents & IoT Solutions Experts Company',
+    title: 'About Towasic Solutions | Web Scraping, AI Automation Agents & IoT Solutions Company',
     description: 'Meet the team behind Towasic Solutions. We specialize in web scraping, intelligent automation, LLM bots, data enrichment, and custom IoT solutions with 235+ projects delivered worldwide.',
   },
   '/contactus': {
