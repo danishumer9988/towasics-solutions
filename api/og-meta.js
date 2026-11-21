@@ -1,4 +1,3 @@
-
 import {
   getMetadataForPath,
   buildOgImageUrl,
@@ -9,6 +8,7 @@ import {
 } from '../src/lib/seo/metadata.js'
 
 import { servicesData } from '../src/data/servicesData.js'
+import { extractProjectId } from '../src/lib/projectLink.js'
 
 export const config = {
   runtime: 'edge',
@@ -214,6 +214,41 @@ function getServiceMetadata(slug) {
   }
 }
 
+async function getProjectMetadata(id) {
+  try {
+    const response = await fetch(
+      `${BLOG_API_BASE}/projects/${encodeURIComponent(id)}`,
+      {
+        headers: {
+          Accept: 'application/json',
+          'User-Agent': 'TowasicSolutions-OG/2.0',
+        },
+        signal: AbortSignal.timeout(5000),
+      }
+    )
+    if (!response.ok) return null
+
+    const project = await response.json()
+    if (!project || project.isActive === false || !project.title) {
+      return null
+    }
+
+    const firstBlock = project.descriptions?.[0]?.content || ''
+    const description = stripHtml(project.description || firstBlock).slice(0, 200)
+
+    return {
+      title: project.title,
+      description:
+        description || 'See this project delivered by Towasic Solutions.',
+      image: null, // always use the shared site og-image.jpg
+      type: 'website',
+    }
+  } catch (error) {
+    console.error('OG project metadata error:', error)
+    return null
+  }
+}
+
 function isKnownStaticPath(path) {
   return Object.prototype.hasOwnProperty.call(
     STATIC_ROUTES,
@@ -265,6 +300,7 @@ export default async function handler(request) {
 
   const blogMatch = path.match(/^\/blogs\/([^/]+)$/)
   const serviceMatch = path.match(/^\/services\/([^/]+)$/)
+  const portfolioMatch = path.match(/^\/portfolio\/([^/]+)$/)
 
   if (blogMatch) {
     const blogMetadata = await getBlogMetadata(blogMatch[1])
@@ -291,6 +327,23 @@ export default async function handler(request) {
       metadata = {
         title: 'Service Not Found | Towasic Solutions',
         description: 'The requested service page could not be found.',
+      }
+    }
+  } else if (portfolioMatch) {
+    // Support both new readable links and old id-only links.
+    const projectId = extractProjectId(portfolioMatch[1])
+    const projectMetadata = projectId
+      ? await getProjectMetadata(projectId)
+      : null
+
+    if (projectMetadata) {
+      metadata = projectMetadata
+    } else {
+      isNotFound = true
+
+      metadata = {
+        title: 'Project Not Found | Towasic Solutions',
+        description: 'The requested project could not be found.',
       }
     }
   } else if (!isKnownStaticPath(path)) {

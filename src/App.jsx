@@ -110,6 +110,7 @@ function App() {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/portfolio" element={<Portfolio />} />
+        <Route path="/portfolio/:id" element={<Portfolio />} />
 
         <Route path="/auth/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -8,11 +8,15 @@ import SEO from '../components/SEO';
 import ProjectImageLightbox from '../components/public/ProjectImageLightbox';
 import ProjectDetailModal from '../components/public/ProjectDetailModal';
 import ProjectCard from '../components/public/ProjectCard';
+import { extractProjectId } from '../lib/projectLink';
 import { API_BASE_URL } from '../config';
 
 const PER_PAGE = 20;
 
 export default function Portfolio() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
   const [industries, setIndustries] = useState([]);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,7 +29,7 @@ export default function Portfolio() {
     image: '',
     images: [],
     title: '',
-    project: null,   // NEW
+    project: null,
     blurImage: false,
   });
 
@@ -54,6 +58,19 @@ export default function Portfolio() {
     };
   }, []);
 
+  // Deep link: open the project modal when the URL ends with a project id
+  useEffect(() => {
+    if (!id || projects.length === 0) return;
+    const projectId = extractProjectId(id);
+    const match = projects.find((p) => p._id === projectId);
+    if (match) setSelectedProject(match);
+  }, [id, projects]);
+
+  const handleCloseProject = () => {
+    setSelectedProject(null);
+    if (id) navigate('/portfolio', { replace: true });
+  };
+
   const filtered = useMemo(() => {
     if (selectedIndustry === 'all') return projects;
     return projects.filter((p) => p.industry === selectedIndustry);
@@ -76,7 +93,6 @@ export default function Portfolio() {
     window.scrollTo({ top: 320, behavior: 'smooth' });
   };
 
-  /* NEW: 4th arg is now the project (was blurImage) */
   const handleEnlargeImage = (image, images, title, project = null) => {
     setLightbox({
       isOpen: true,
@@ -312,7 +328,7 @@ export default function Portfolio() {
       <ProjectDetailModal
         isOpen={!!selectedProject}
         project={selectedProject}
-        onClose={() => setSelectedProject(null)}
+        onClose={handleCloseProject}
         onEnlarge={handleEnlargeImage}
       />
 

@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import EffectImage from './EffectImage';
+import { SITE_URL } from '../../lib/seo/metadata';
+import { buildProjectPath } from '../../lib/projectLink';
 import { getImageUrl, resolveImageEffects } from '../../lib/imageEffects.jsx';
+
+const getShareUrl = (project) => `${SITE_URL}${buildProjectPath(project)}`;
 
 export default function ProjectCard({ project, onEnlarge, onReadMore, variant = 'grid' }) {
   if (variant === 'slider') {
@@ -17,16 +21,17 @@ function GridProjectCard({ project, onReadMore, onEnlarge }) {
 
   const handleShare = (e) => {
     e.stopPropagation();
+    const shareUrl = getShareUrl(project);
     const shareData = {
       title: project.title,
       text: `Check out this project: ${project.title}`,
-      url: window.location.href,
+      url: shareUrl,
     };
 
     if (navigator.share) {
       navigator.share(shareData).catch(console.error);
     } else {
-      navigator.clipboard.writeText(window.location.href);
+      navigator.clipboard.writeText(shareUrl);
       alert('Project link copied to clipboard!');
     }
   };
@@ -92,7 +97,7 @@ function GridProjectCard({ project, onReadMore, onEnlarge }) {
           <i className="fa-solid fa-arrow-right text-[10px]"></i>
         </button>
 
-        {/* NEW SHARE BUTTON */}
+        {/* SHARE BUTTON */}
         <button
           type="button"
           onClick={handleShare}
@@ -117,15 +122,16 @@ function SliderProjectCard({ project, onEnlarge, onReadMore }) {
 
   const handleShare = (e) => {
     e.stopPropagation();
+    const shareUrl = getShareUrl(project);
     const shareData = {
       title: project.title,
       text: `Check out this project: ${project.title}`,
-      url: window.location.href,
+      url: shareUrl,
     };
     if (navigator.share) {
       navigator.share(shareData).catch(console.error);
     } else {
-      navigator.clipboard.writeText(window.location.href);
+      navigator.clipboard.writeText(shareUrl);
       alert('Project link copied to clipboard!');
     }
   };
@@ -165,7 +171,7 @@ function SliderProjectCard({ project, onEnlarge, onReadMore }) {
                 <i className="fa-solid fa-arrow-right text-xs"></i>
               </button>
 
-              {/* NEW SHARE BUTTON */}
+              {/* SHARE BUTTON */}
               <button
                 type="button"
                 onClick={handleShare}
