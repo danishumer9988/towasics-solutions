@@ -255,7 +255,25 @@ const teamMembers = [
   { name: "Hassan Basra", image: "/team/Frame 1000004271 (2).png", skills: ["Generative AI & LLM Applications", "Agentic AI & Autonomous Systems", "Conversational AI & Intelligent Chatbots", "LLM Training, Fine-Tuning & Optimization", "AI-Powered Automation & Intelligent Solutions"] },
 ]
 
+const testimonialImages = [
+  { src: '/team/testimonial2.png', alt: 'CDL Tech Review 1' },
+  { src: '/team/testimonial1.png', alt: 'CDL Tech Review 2' },
+];
+
+const testimonialSettings = {
+  infinite: true,
+  speed: 500,
+  slidesToShow: 1,
+  slidesToScroll: 1,
+  dots: true,
+  arrows: false,
+  autoplay: true,        // <-- Updated to auto-slide
+  autoplaySpeed: 3000,   // <-- 3 seconds per slide
+};
+
 export default function AboutUs() {
+  const testimonialSliderRef = useRef(null);
+
   return (
     <div className="min-h-screen bg-white">
       <SEO
@@ -380,8 +398,40 @@ export default function AboutUs() {
             <h2 className="text-brand-600 text-lg font-semibold uppercase tracking-wider mb-2">Testimonials</h2>
             <p className="text-4xl font-bold text-brand-800">Trusted by Industry Leaders</p>
           </div>
-          <div className="flex justify-center mt-12">
-            <img src="/team/Group 48095430.png" alt="CDL Tech Review" className="w-full max-w-3xl rounded-2xl shadow-xl" />
+
+          <div className="relative mt-12 px-4 md:px-16 max-w-4xl mx-auto">
+            {/* Custom Prev Button */}
+            <button
+              onClick={() => testimonialSliderRef.current?.slickPrev()}
+              className="absolute left-0 md:-left-6 top-1/2 -translate-y-1/2 bg-white hover:bg-gray-100 text-gray-800 h-12 w-12 rounded-full flex items-center justify-center shadow-lg border border-gray-200 transition-all z-10 active:scale-95"
+              title="Previous Testimonial"
+            >
+              <i className="fa-solid fa-chevron-left text-lg"></i>
+            </button>
+
+            {/* Custom Next Button */}
+            <button
+              onClick={() => testimonialSliderRef.current?.slickNext()}
+              className="absolute right-0 md:-right-6 top-1/2 -translate-y-1/2 bg-white hover:bg-gray-100 text-gray-800 h-12 w-12 rounded-full flex items-center justify-center shadow-lg border border-gray-200 transition-all z-10 active:scale-95"
+              title="Next Testimonial"
+            >
+              <i className="fa-solid fa-chevron-right text-lg"></i>
+            </button>
+
+            {/* Slider Component */}
+            <Slider ref={testimonialSliderRef} {...testimonialSettings} className="testimonial-image-slider">
+              {testimonialImages.map((testimonial, index) => (
+                <div key={index} className="px-2 pb-8">
+                  <div className="flex justify-center">
+                    <img
+                      src={testimonial.src}
+                      alt={testimonial.alt}
+                      className="w-full max-w-xl rounded-2xl shadow-xl object-contain"
+                    />
+                  </div>
+                </div>
+              ))}
+            </Slider>
           </div>
         </div>
       </section>
