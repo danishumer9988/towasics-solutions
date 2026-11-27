@@ -94,17 +94,18 @@ export default function BlogForm({ mode = 'create' }) {
     }
     try {
       if (isEdit) {
-        // CHANGED: Capture the response and redirect to the updated blog's public page
-        const res = await axios.put(`${API_BASE_URL}/blogs/${id}`, postData)
-        navigate(`/blogs/${res.data.slug}`)
+        await axios.put(`${API_BASE_URL}/blogs/${id}`, postData)
       } else {
-        const res = await axios.post(`${API_BASE_URL}/blogs/new`, postData)
-        navigate(`/blogs/${res.data.slug}`)
+        await axios.post(`${API_BASE_URL}/blogs/new`, postData)
       }
+      // CHANGED: go back to the admin blog list, not the public blog page
+      navigate('/blogs')
     } catch (err) {
       console.error(err)
       setError('Failed to save blog post.')
-    } finally { setSaving(false) }
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (

@@ -883,3 +883,119 @@ img {
   border-top: 1px solid #E2E8F0;
   margin: 1.5rem 0;
 }
+
+/* ============================================================
+   Rich Text Content — blog & project body styling.
+   Scoped to `.prose > div` so the blog title <h1> (direct child
+   of article.prose) keeps its own `text-brand-850` utility class
+   and is never overridden by these rules.
+   ============================================================ */
+
+/* Headings */
+.prose > div h1 {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #086B87;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  margin-bottom: 0.75rem;
+}
+.prose > div h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #086B87;
+  line-height: 1.3;
+  margin-bottom: 0.5rem;
+}
+.prose > div h3 {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: #086B87;
+  line-height: 1.3;
+  margin-bottom: 0.5rem;
+}
+.prose > div h4 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #086B87;
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
+}
+
+/* Lists */
+.prose > div ul,
+.prose > div ol {
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+.prose > div ul { list-style-type: disc; }
+.prose > div ol { list-style-type: decimal; }
+.prose > div li { margin-bottom: 0.25rem; }
+
+/* Blockquote */
+.prose > div blockquote {
+  border-left: 4px solid #0a85a7;
+  background-color: #f0fafa;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  color: #334155;
+  font-style: italic;
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+/* Tables */
+.prose > div table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.95rem;
+}
+.prose > div table th,
+.prose > div table td {
+  border: 1px solid #d1d5db;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+.prose > div table th {
+  background-color: #f3f4f6;
+  font-weight: 600;
+  color: #0f172a;
+}
+.prose > div table tr:nth-child(even) td {
+  background-color: #f9fafb;
+}
+
+/* Horizontal rule */
+.prose > div hr {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 1.5rem 0;
+}
+
+/* Images inside content */
+.prose > div img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+}
+
+/* Font-size outputs (from execCommand('fontSize', N)) */
+.prose > div font[size="1"] { font-size: 12px !important; }
+.prose > div font[size="2"] { font-size: 14px !important; }
+.prose > div font[size="3"] { font-size: 16px !important; }
+.prose > div font[size="4"] { font-size: 18px !important; }
+.prose > div font[size="5"] { font-size: 22px !important; }
+.prose > div font[size="6"] { font-size: 28px !important; }
+.prose > div font[size="7"] { font-size: 36px !important; }
+
+/* Mobile tweaks */
+@media (max-width: 640px) {
+  .prose > div h1 { font-size: 1.75rem; }
+  .prose > div h2 { font-size: 1.5rem; }
+  .prose > div h3 { font-size: 1.25rem; }
+  .prose > div table { font-size: 0.8rem; }
+  .prose > div table th,
+  .prose > div table td { padding: 0.375rem 0.5rem; }
+}

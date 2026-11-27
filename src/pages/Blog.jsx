@@ -77,6 +77,17 @@ export default function Blog() {
         imageAlt="Blog Illustration"
       />
 
+       <section className="py-12 bg-white max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center border-b border-gray-100">
+        <div className="space-y-4 font-inter w-full mx-auto">
+          <h2 className="font-bold text-[20px] sm:text-[24px] capitalize" style={{ color: '#096078' }}>
+            Welcome to Our Data Scraping Insights
+          </h2>
+          <p className="font-medium text-[16px] text-slate-600 leading-relaxed pt-1 max-w-4xl mx-auto">
+            Stay updated with the latest trends, tips, and best practices in data scraping. Our blog is dedicated to helping businesses harness the power of data through insightful articles, case studies, and expert advice.
+          </p>
+        </div>
+      </section>
+
       {!loading && categories.length > 0 && (
         <section className="sticky top-16 z-40 bg-white/80 backdrop-blur-md border-b border-gray-100/60 shadow-sm">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -118,17 +129,6 @@ export default function Blog() {
           </div>
         </section>
       )}
-
-      <section className="py-12 bg-white max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center border-b border-gray-100">
-        <div className="space-y-4 font-inter w-full mx-auto">
-          <h2 className="font-bold text-[20px] sm:text-[24px] capitalize" style={{ color: '#096078' }}>
-            Welcome to Our Data Scraping Insights
-          </h2>
-          <p className="font-medium text-[16px] text-slate-600 leading-relaxed pt-1 max-w-4xl mx-auto">
-            Stay updated with the latest trends, tips, and best practices in data scraping. Our blog is dedicated to helping businesses harness the power of data through insightful articles, case studies, and expert advice.
-          </p>
-        </div>
-      </section>
 
       <section className="py-12 pb-24 bg-white max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {loading ? (
