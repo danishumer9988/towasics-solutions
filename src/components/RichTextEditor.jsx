@@ -199,7 +199,7 @@ export default function RichTextEditor({ value, onChange, placeholder }) {
   const insertTable = (rows, cols) => {
     if (rows < 1 || cols < 1) return;
     restoreSelection();
-    const thStyle = 'border: 1px solid #d1d5db; padding: 8px 12px; background: #f3f4f6; text-align: left; font-weight: 600;';
+    const thStyle = 'border: 1px solid #d1d5db; padding: 8px 12px; text-align: left; font-weight: 600;';
     const tdStyle = 'border: 1px solid #d1d5db; padding: 8px 12px; vertical-align: top;';
     const headerRow = `<tr>${Array(cols).fill(`<th style="${thStyle}">Header</th>`).join('')}</tr>`;
     const bodyRows = Array(Math.max(0, rows - 1)).fill(
@@ -217,7 +217,7 @@ export default function RichTextEditor({ value, onChange, placeholder }) {
   };
 
   /* ---------- Table row / column operations ---------- */
-  const addRow = (position /* 'above' | 'below' */) => {
+  const addRow = (position) => {
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0) return;
     const cell = getClosestCell(sel.anchorNode);
@@ -259,7 +259,7 @@ export default function RichTextEditor({ value, onChange, placeholder }) {
     handleInput();
   };
 
-  const addColumn = (position /* 'left' | 'right' */) => {
+  const addColumn = (position) => {
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0) return;
     const cell = getClosestCell(sel.anchorNode);
@@ -323,18 +323,43 @@ export default function RichTextEditor({ value, onChange, placeholder }) {
   /* Prevent losing selection when clicking toolbar buttons */
   const handleButtonMouseDown = (e) => e.preventDefault();
 
-  /* Smart paste: if user pastes raw HTML source, insert as HTML */
+  /* Smart paste: clean up inline styles (like white backgrounds) from pasted content */
   const handlePaste = (e) => {
+    e.preventDefault();
     const clipboard = e.clipboardData || window.clipboardData;
     if (!clipboard) return;
+
+    let html = clipboard.getData('text/html');
     const text = clipboard.getData('text/plain') || '';
-    const html = clipboard.getData('text/html') || '';
-    const looksLikeHtmlSource = /^\s*</.test(text) && /<\/[a-z][\s\S]*>/i.test(text);
-    if (looksLikeHtmlSource && !html) {
-      e.preventDefault();
-      document.execCommand('insertHTML', false, text);
-      handleInput();
+
+    if (html) {
+      // Create a temporary DOM element to parse the pasted HTML
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+
+      // Find all elements and strip out background colors, weird fonts, and classes
+      const elements = tempDiv.querySelectorAll('*');
+      elements.forEach((el) => {
+        // Remove background styles that cause the white highlight box
+        el.style.backgroundColor = '';
+        el.style.background = '';
+        el.style.fontFamily = '';
+        el.style.color = '';
+        el.style.lineHeight = '';
+        el.removeAttribute('class');
+
+        if (el.getAttribute('style') === '') {
+          el.removeAttribute('style');
+        }
+      });
+
+      document.execCommand('insertHTML', false, tempDiv.innerHTML);
+    } else {
+      // Insert as plain text if no HTML
+      document.execCommand('insertText', false, text);
     }
+
+    handleInput();
   };
 
   const btnClass = (isActive, extra = '') =>
