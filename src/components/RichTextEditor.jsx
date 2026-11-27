@@ -11,6 +11,13 @@ const FONT_SIZES = [
   { value: '7', label: 'XX-Large' },
 ];
 
+/* Find the nearest td/th ancestor of a selection node */
+const getClosestCell = (node) => {
+  if (!node) return null;
+  const el = node.nodeType === Node.TEXT_NODE ? node.parentElement : node;
+  return el?.closest?.('td, th') || null;
+};
+
 export default function RichTextEditor({ value, onChange, placeholder }) {
   const editorRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -21,6 +28,7 @@ export default function RichTextEditor({ value, onChange, placeholder }) {
   const [uploading, setUploading] = useState(false);
   const [showTablePicker, setShowTablePicker] = useState(false);
   const [tableHover, setTableHover] = useState({ rows: 0, cols: 0 });
+  const [tableState, setTableState] = useState({ inTable: false, rows: 0, cols: 0 });
 
   const [active, setActive] = useState({
     bold: false, italic: false, underline: false, strike: false,
@@ -71,6 +79,15 @@ export default function RichTextEditor({ value, onChange, placeholder }) {
       alignCenter:  safeQuery('justifyCenter'),
       alignRight:   safeQuery('justifyRight'),
       alignJustify: safeQuery('justifyFull'),
+    });
+
+    /* Detect whether the cursor is inside a table */
+    const cell = getClosestCell(sel.anchorNode);
+    const table = cell ? cell.closest('table') : null;
+    setTableState({
+      inTable: !!table,
+      rows: table ? table.rows.length : 0,
+      cols: table && table.rows[0] ? table.rows[0].cells.length : 0,
     });
   }, []);
 
@@ -199,6 +216,110 @@ export default function RichTextEditor({ value, onChange, placeholder }) {
     setTableHover({ rows: 0, cols: 0 });
   };
 
+  /* ---------- Table row / column operations ---------- */
+  const addRow = (position /* 'above' | 'below' */) => {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    const cell = getClosestCell(sel.anchorNode);
+    const row = cell?.closest('tr');
+    if (!row) return;
+
+    const newRow = document.createElement('tr');
+    Array.from(row.cells).forEach((c) => {
+      const tag = c.tagName.toLowerCase() === 'th' ? 'th' : 'td';
+      const newCell = document.createElement(tag);
+      newCell.innerHTML = '&nbsp;';
+      const style = c.getAttribute('style');
+      if (style) newCell.setAttribute('style', style);
+      newRow.appendChild(newCell);
+    });
+
+    if (position === 'above') row.parentNode.insertBefore(newRow, row);
+    else row.parentNode.insertBefore(newRow, row.nextSibling);
+
+    handleInput();
+  };
+
+  const deleteRow = () => {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    const cell = getClosestCell(sel.anchorNode);
+    const row = cell?.closest('tr');
+    if (!row) return;
+    const table = row.closest('table');
+
+    if (table.rows.length <= 1) {
+      if (window.confirm('This will delete the entire table. Continue?')) {
+        table.remove();
+        handleInput();
+      }
+      return;
+    }
+    row.remove();
+    handleInput();
+  };
+
+  const addColumn = (position /* 'left' | 'right' */) => {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    const cell = getClosestCell(sel.anchorNode);
+    if (!cell) return;
+    const table = cell.closest('table');
+    if (!table) return;
+
+    const colIndex = cell.cellIndex;
+    const insertAt = position === 'left' ? colIndex : colIndex + 1;
+
+    Array.from(table.rows).forEach((row) => {
+      const refCell = row.cells[colIndex];
+      const tag = refCell && refCell.tagName.toLowerCase() === 'th' ? 'th' : 'td';
+      const newCell = document.createElement(tag);
+      newCell.innerHTML = '&nbsp;';
+      const style = refCell?.getAttribute('style');
+      if (style) newCell.setAttribute('style', style);
+      const ref = row.cells[insertAt] || null;
+      if (ref) row.insertBefore(newCell, ref);
+      else row.appendChild(newCell);
+    });
+
+    handleInput();
+  };
+
+  const deleteColumn = () => {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    const cell = getClosestCell(sel.anchorNode);
+    if (!cell) return;
+    const table = cell.closest('table');
+    if (!table) return;
+
+    const colIndex = cell.cellIndex;
+
+    if (table.rows[0] && table.rows[0].cells.length <= 1) {
+      if (window.confirm('This will delete the entire table. Continue?')) {
+        table.remove();
+        handleInput();
+      }
+      return;
+    }
+    Array.from(table.rows).forEach((row) => {
+      if (row.cells[colIndex]) row.deleteCell(colIndex);
+    });
+    handleInput();
+  };
+
+  const deleteTable = () => {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    const cell = getClosestCell(sel.anchorNode);
+    const table = cell?.closest('table');
+    if (!table) return;
+    if (window.confirm('Delete this table?')) {
+      table.remove();
+      handleInput();
+    }
+  };
+
   /* Prevent losing selection when clicking toolbar buttons */
   const handleButtonMouseDown = (e) => e.preventDefault();
 
@@ -222,6 +343,9 @@ export default function RichTextEditor({ value, onChange, placeholder }) {
         ? 'bg-[#0a85a7] text-white hover:bg-[#097390]'
         : 'text-gray-700 hover:bg-gray-200 active:bg-gray-300'
     }`;
+
+  const tableBtnClass =
+    'inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] font-semibold text-brand-700 hover:bg-brand-100 transition';
 
   return (
     <div className="border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-brand-500 focus-within:border-transparent bg-white shadow-sm">
@@ -358,6 +482,90 @@ export default function RichTextEditor({ value, onChange, placeholder }) {
           className="hidden"
         />
       </div>
+
+      {/* Contextual table toolbar — appears only when the cursor is inside a table */}
+      {tableState.inTable && (
+        <div className="bg-brand-50 border-b border-brand-100 px-2 py-1.5 flex flex-wrap items-center gap-1">
+          <span className="px-2 text-[11px] font-semibold text-brand-700 flex items-center gap-1.5">
+            <i className="fa-solid fa-table"></i>
+            {tableState.rows} × {tableState.cols}
+          </span>
+          <span className="w-px h-4 bg-brand-200 mx-1"></span>
+
+          <button
+            type="button"
+            onMouseDown={handleButtonMouseDown}
+            onClick={() => addRow('above')}
+            className={tableBtnClass}
+            title="Insert a row above the current row"
+          >
+            <i className="fa-solid fa-arrow-up"></i> Row
+          </button>
+          <button
+            type="button"
+            onMouseDown={handleButtonMouseDown}
+            onClick={() => addRow('below')}
+            className={tableBtnClass}
+            title="Insert a row below the current row"
+          >
+            <i className="fa-solid fa-arrow-down"></i> Row
+          </button>
+
+          <span className="w-px h-4 bg-brand-200 mx-1"></span>
+
+          <button
+            type="button"
+            onMouseDown={handleButtonMouseDown}
+            onClick={() => addColumn('left')}
+            className={tableBtnClass}
+            title="Insert a column to the left"
+          >
+            <i className="fa-solid fa-arrow-left"></i> Col
+          </button>
+          <button
+            type="button"
+            onMouseDown={handleButtonMouseDown}
+            onClick={() => addColumn('right')}
+            className={tableBtnClass}
+            title="Insert a column to the right"
+          >
+            <i className="fa-solid fa-arrow-right"></i> Col
+          </button>
+
+          <span className="w-px h-4 bg-brand-200 mx-1"></span>
+
+          <button
+            type="button"
+            onMouseDown={handleButtonMouseDown}
+            onClick={deleteRow}
+            className={tableBtnClass}
+            title="Delete the current row"
+          >
+            <i className="fa-solid fa-minus"></i> Row
+          </button>
+          <button
+            type="button"
+            onMouseDown={handleButtonMouseDown}
+            onClick={deleteColumn}
+            className={tableBtnClass}
+            title="Delete the current column"
+          >
+            <i className="fa-solid fa-minus"></i> Col
+          </button>
+
+          <span className="w-px h-4 bg-brand-200 mx-1"></span>
+
+          <button
+            type="button"
+            onMouseDown={handleButtonMouseDown}
+            onClick={deleteTable}
+            className="inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] font-semibold text-red-600 hover:bg-red-50 transition"
+            title="Delete the entire table"
+          >
+            <i className="fa-solid fa-trash"></i> Table
+          </button>
+        </div>
+      )}
 
       {/* Editor Content Area */}
       <div
