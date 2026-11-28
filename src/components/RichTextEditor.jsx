@@ -44,7 +44,10 @@ export default function RichTextEditor({ value, onChange, placeholder }) {
     }
   }, [value]);
 
-  /* Detect which formats are active at the cursor */
+  /*
+   * FIX: Completely replaced queryCommandState with 100% accurate DOM traversal.
+   * This fixes the double-click issue where H2 was falsely triggering the B (Bold) button.
+   */
   const refreshActiveFormats = useCallback(() => {
     if (!editorRef.current) return;
     const sel = window.getSelection();
@@ -52,42 +55,73 @@ export default function RichTextEditor({ value, onChange, placeholder }) {
     const range = sel.getRangeAt(0);
     if (!editorRef.current.contains(range.commonAncestorContainer)) return;
 
-    const safeQuery = (cmd) => {
-      try { return document.queryCommandState(cmd); } catch { return false; }
-    };
-
-    // --- FIX: DOM-based Block Formatting (much more reliable than queryCommandValue) ---
-    let node = range.commonAncestorContainer;
+    // Use startContainer to get the actual cursor position
+    let node = range.startContainer;
     if (node.nodeType === Node.TEXT_NODE) node = node.parentNode;
 
-    let blockTag = 'p'; // default
-    while (node && node !== editorRef.current) {
-      const tag = node.tagName.toLowerCase();
-      if (['h1', 'h2', 'h3', 'h4', 'p', 'blockquote', 'div'].includes(tag)) {
-        blockTag = tag === 'div' ? 'p' : tag;
-        break;
+    const state = {
+      bold: false, italic: false, underline: false, strike: false,
+      ul: false, ol: false, blockquote: false,
+      h1: false, h2: false, h3: false, h4: false, p: false,
+      alignLeft: false, alignCenter: false, alignRight: false, alignJustify: false,
+    };
+
+    let curr = node;
+    let foundBlock = false;
+    let foundAlign = false;
+
+    // Walk up the DOM tree from the cursor to the editor root
+    while (curr && curr !== editorRef.current) {
+      if (curr.nodeType === Node.ELEMENT_NODE) {
+        const tag = curr.tagName.toLowerCase();
+        const style = curr.style;
+
+        // Block formatting
+        if (!foundBlock) {
+          if (['h1', 'h2', 'h3', 'h4', 'p', 'blockquote'].includes(tag)) {
+            state[tag] = true;
+            foundBlock = true;
+          } else if (tag === 'div') {
+            state.p = true;
+            foundBlock = true;
+          }
+        }
+
+        if (tag === 'ul') state.ul = true;
+        if (tag === 'ol') state.ol = true;
+        if (tag === 'blockquote') state.blockquote = true;
+
+        // Inline formatting (Strictly checking tags/styles, ignoring natural H1-H4 boldness)
+        if (tag === 'b' || tag === 'strong' || style.fontWeight === 'bold' || style.fontWeight === '700') {
+          state.bold = true;
+        }
+        if (tag === 'i' || tag === 'em' || style.fontStyle === 'italic') {
+          state.italic = true;
+        }
+        if (tag === 'u' || (style.textDecoration && style.textDecoration.includes('underline'))) {
+          state.underline = true;
+        }
+        if (tag === 's' || tag === 'strike' || (style.textDecoration && style.textDecoration.includes('line-through'))) {
+          state.strike = true;
+        }
+
+        // Alignment
+        if (!foundAlign) {
+          const align = style.textAlign || curr.getAttribute('align');
+          if (align === 'center') { state.alignCenter = true; foundAlign = true; }
+          else if (align === 'right') { state.alignRight = true; foundAlign = true; }
+          else if (align === 'justify') { state.alignJustify = true; foundAlign = true; }
+          else if (align === 'left') { state.alignLeft = true; foundAlign = true; }
+        }
       }
-      node = node.parentNode;
+      curr = curr.parentNode;
     }
 
-    setActive({
-      bold:       safeQuery('bold'),
-      italic:     safeQuery('italic'),
-      underline:  safeQuery('underline'),
-      strike:     safeQuery('strikeThrough'),
-      ul:         safeQuery('insertUnorderedList'),
-      ol:         safeQuery('insertOrderedList'),
-      blockquote: blockTag === 'blockquote',
-      h1:         blockTag === 'h1',
-      h2:         blockTag === 'h2',
-      h3:         blockTag === 'h3',
-      h4:         blockTag === 'h4',
-      p:          blockTag === 'p',
-      alignLeft:    safeQuery('justifyLeft'),
-      alignCenter:  safeQuery('justifyCenter'),
-      alignRight:   safeQuery('justifyRight'),
-      alignJustify: safeQuery('justifyFull'),
-    });
+    // Defaults if not found
+    if (!foundBlock) state.p = true;
+    if (!foundAlign) state.alignLeft = true;
+
+    setActive(state);
 
     /* Detect whether the cursor is inside a table */
     const cell = getClosestCell(sel.anchorNode);
@@ -103,7 +137,7 @@ export default function RichTextEditor({ value, onChange, placeholder }) {
   useEffect(() => {
     let rafId;
     const handler = () => {
-      // FIX: Use requestAnimationFrame to let the browser settle the selection state on double click
+      // requestAnimationFrame ensures the selection state is fully settled on double clicks
       if (rafId) cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(() => {
         refreshActiveFormats();
