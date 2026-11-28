@@ -52,15 +52,23 @@ export default function RichTextEditor({ value, onChange, placeholder }) {
     const range = sel.getRangeAt(0);
     if (!editorRef.current.contains(range.commonAncestorContainer)) return;
 
-    const blockTag = (() => {
-      try {
-        return (document.queryCommandValue('formatBlock') || '').toLowerCase();
-      } catch { return ''; }
-    })();
-
     const safeQuery = (cmd) => {
       try { return document.queryCommandState(cmd); } catch { return false; }
     };
+
+    // --- FIX: DOM-based Block Formatting (much more reliable than queryCommandValue) ---
+    let node = range.commonAncestorContainer;
+    if (node.nodeType === Node.TEXT_NODE) node = node.parentNode;
+
+    let blockTag = 'p'; // default
+    while (node && node !== editorRef.current) {
+      const tag = node.tagName.toLowerCase();
+      if (['h1', 'h2', 'h3', 'h4', 'p', 'blockquote', 'div'].includes(tag)) {
+        blockTag = tag === 'div' ? 'p' : tag;
+        break;
+      }
+      node = node.parentNode;
+    }
 
     setActive({
       bold:       safeQuery('bold'),
@@ -74,7 +82,7 @@ export default function RichTextEditor({ value, onChange, placeholder }) {
       h2:         blockTag === 'h2',
       h3:         blockTag === 'h3',
       h4:         blockTag === 'h4',
-      p:          blockTag === 'p' || blockTag === '',
+      p:          blockTag === 'p',
       alignLeft:    safeQuery('justifyLeft'),
       alignCenter:  safeQuery('justifyCenter'),
       alignRight:   safeQuery('justifyRight'),
@@ -93,9 +101,19 @@ export default function RichTextEditor({ value, onChange, placeholder }) {
 
   /* Attach listeners so highlight follows the cursor */
   useEffect(() => {
-    const handler = () => refreshActiveFormats();
+    let rafId;
+    const handler = () => {
+      // FIX: Use requestAnimationFrame to let the browser settle the selection state on double click
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        refreshActiveFormats();
+      });
+    };
     document.addEventListener('selectionchange', handler);
-    return () => document.removeEventListener('selectionchange', handler);
+    return () => {
+      document.removeEventListener('selectionchange', handler);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, [refreshActiveFormats]);
 
   /* Close table picker on outside click */
@@ -340,7 +358,6 @@ export default function RichTextEditor({ value, onChange, placeholder }) {
       // Find all elements and strip out background colors, weird fonts, and classes
       const elements = tempDiv.querySelectorAll('*');
       elements.forEach((el) => {
-        // Remove background styles that cause the white highlight box
         el.style.backgroundColor = '';
         el.style.background = '';
         el.style.fontFamily = '';
@@ -517,76 +534,34 @@ export default function RichTextEditor({ value, onChange, placeholder }) {
           </span>
           <span className="w-px h-4 bg-brand-200 mx-1"></span>
 
-          <button
-            type="button"
-            onMouseDown={handleButtonMouseDown}
-            onClick={() => addRow('above')}
-            className={tableBtnClass}
-            title="Insert a row above the current row"
-          >
+          <button type="button" onMouseDown={handleButtonMouseDown} onClick={() => addRow('above')} className={tableBtnClass} title="Insert a row above the current row">
             <i className="fa-solid fa-arrow-up"></i> Row
           </button>
-          <button
-            type="button"
-            onMouseDown={handleButtonMouseDown}
-            onClick={() => addRow('below')}
-            className={tableBtnClass}
-            title="Insert a row below the current row"
-          >
+          <button type="button" onMouseDown={handleButtonMouseDown} onClick={() => addRow('below')} className={tableBtnClass} title="Insert a row below the current row">
             <i className="fa-solid fa-arrow-down"></i> Row
           </button>
 
           <span className="w-px h-4 bg-brand-200 mx-1"></span>
 
-          <button
-            type="button"
-            onMouseDown={handleButtonMouseDown}
-            onClick={() => addColumn('left')}
-            className={tableBtnClass}
-            title="Insert a column to the left"
-          >
+          <button type="button" onMouseDown={handleButtonMouseDown} onClick={() => addColumn('left')} className={tableBtnClass} title="Insert a column to the left">
             <i className="fa-solid fa-arrow-left"></i> Col
           </button>
-          <button
-            type="button"
-            onMouseDown={handleButtonMouseDown}
-            onClick={() => addColumn('right')}
-            className={tableBtnClass}
-            title="Insert a column to the right"
-          >
+          <button type="button" onMouseDown={handleButtonMouseDown} onClick={() => addColumn('right')} className={tableBtnClass} title="Insert a column to the right">
             <i className="fa-solid fa-arrow-right"></i> Col
           </button>
 
           <span className="w-px h-4 bg-brand-200 mx-1"></span>
 
-          <button
-            type="button"
-            onMouseDown={handleButtonMouseDown}
-            onClick={deleteRow}
-            className={tableBtnClass}
-            title="Delete the current row"
-          >
+          <button type="button" onMouseDown={handleButtonMouseDown} onClick={deleteRow} className={tableBtnClass} title="Delete the current row">
             <i className="fa-solid fa-minus"></i> Row
           </button>
-          <button
-            type="button"
-            onMouseDown={handleButtonMouseDown}
-            onClick={deleteColumn}
-            className={tableBtnClass}
-            title="Delete the current column"
-          >
+          <button type="button" onMouseDown={handleButtonMouseDown} onClick={deleteColumn} className={tableBtnClass} title="Delete the current column">
             <i className="fa-solid fa-minus"></i> Col
           </button>
 
           <span className="w-px h-4 bg-brand-200 mx-1"></span>
 
-          <button
-            type="button"
-            onMouseDown={handleButtonMouseDown}
-            onClick={deleteTable}
-            className="inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] font-semibold text-red-600 hover:bg-red-50 transition"
-            title="Delete the entire table"
-          >
+          <button type="button" onMouseDown={handleButtonMouseDown} onClick={deleteTable} className="inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] font-semibold text-red-600 hover:bg-red-50 transition" title="Delete the entire table">
             <i className="fa-solid fa-trash"></i> Table
           </button>
         </div>
